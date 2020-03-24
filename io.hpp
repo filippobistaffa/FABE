@@ -18,6 +18,7 @@
 
 #include "types.hpp"
 #include "order.hpp"
+#include "libfa/fa.h"
 
 using namespace std;
 

@@ -28,7 +28,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /* The type for a finite automaton. */
 struct fa;
@@ -322,7 +324,9 @@ size_t fa_state_num_trans(struct state *st);
 int fa_state_trans(struct state *st, size_t i,
                    struct state **to, unsigned char *min, unsigned char *max);
 
+#ifdef __cplusplus
 }
+#endif
 
 #endif
 

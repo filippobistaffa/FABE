@@ -7,7 +7,7 @@
 #include <string.h>
 
 #include "types.hpp"
-#include "fa.h"
+#include "libfa/fa.h"
 
 using namespace std;
 

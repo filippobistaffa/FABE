@@ -1,7 +1,7 @@
 .PHONY: all
 
 BIN=fabe
-SRCDIR_C=.
+SRCDIR_C=libfa
 SRCDIR_CPP=.
 
 OBJDIR=obj
@@ -9,13 +9,14 @@ DEPDIR=dep
 
 CMP_CPP=g++ -std=c++1z -Wno-register
 CMP_C=gcc
+INC=-I/usr/include/libxml2 -I$(shell pwd)/libfa
 WARN=-Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-sign-compare -Wno-maybe-uninitialized -Wno-ignored-attributes -Wno-strict-aliasing 
 WARN+=-Wno-misleading-indentation -Wno-format-overflow -Wno-nonnull-compare
 OPTIM=-Ofast -march=native -funroll-loops -funsafe-loop-optimizations -falign-functions=16 -falign-loops=16 -fopenmp
 NOOPTIM=-O0 -march=native -fopenmp
 DBG=-g ${NOOPTIM}
 PROF=-g -DWITHGPERFTOOLS ${OPTIM}
-LINK=-lpthread -lfa
+LINK=-lpthread
 
 SRC_C=$(shell find "${SRCDIR_C}" -name "*.c")
 SRC_CPP=$(shell find "${SRCDIR_CPP}" -name "*.cpp")
