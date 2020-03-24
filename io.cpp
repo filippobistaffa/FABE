@@ -205,13 +205,15 @@ pair<vector<cost>, vector<vector<size_t>>> read_costs_bin_vars(const char *wcsp,
                 }
 
                 c.vars = vars;
-                #ifdef SORT_INPUT_TABLES
-                sort(c.vars.begin(), c.vars.end(), compare_pos(pos));
-                #endif
-                vector<size_t> map;
+                vector<size_t> map(vars.size());
 
-                for (auto var : vars) {
-                        map.push_back(find(c.vars.begin(), c.vars.end(), var) - c.vars.begin());
+                if (pos.size()) {
+                        sort(c.vars.begin(), c.vars.end(), compare_pos(pos));
+                        for (auto i = 0; i < c.vars.size(); ++i) {
+                                map[i] = find(c.vars.begin(), c.vars.end(), vars[i]) - c.vars.begin();
+                        }
+                } else {
+                        iota(map.begin(), map.end(), 0);
                 }
 
                 //print_it(vars);

@@ -1,9 +1,6 @@
 #ifndef IO_H_
 #define IO_H_
 
-// reorder variables according to elimination order
-#define SORT_INPUT_TABLES
-
 // threshold value to remove rows
 #define THRESHOLD_VALUE (100000)
 
@@ -44,6 +41,6 @@ void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
 vector<boost::dynamic_bitset<>> read_adj(const char *wcsp);
 
-pair<vector<cost>, vector<vector<size_t>>> read_costs_bin_vars(const char *wcsp, vector<size_t> const &pos, value threshold = THRESHOLD_VALUE);
+pair<vector<cost>, vector<vector<size_t>>> read_costs_bin_vars(const char *wcsp, vector<size_t> const &pos = {}, value threshold = THRESHOLD_VALUE);
 
 #endif /* IO_H_ */
