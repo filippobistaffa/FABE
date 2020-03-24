@@ -32,6 +32,10 @@ int main(int argc, char *argv[]) {
                 fas[i] = compress_clusters(costs[i]);
         }
 
+        for (auto cost : fas) {
+                cost_dot(cost, "dot");
+        }
+
         auto buckets = compute_buckets(costs, pos);
 
         for (auto i : order) {

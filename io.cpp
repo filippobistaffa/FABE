@@ -25,6 +25,32 @@ void print_cost_table(cost const &c) {
         }
 }
 
+void cost_dot(cost const &c, const char *root_dir) {
+
+        char cwd[PATH_MAX];
+        getcwd(cwd, sizeof(cwd));
+        chdir(root_dir);
+        ostringstream oss;
+        oss << c.bin_vars[0];
+
+        for (auto i = 1; i < c.bin_vars.size(); ++i) {
+                oss << "-" << c.bin_vars[i];
+        }
+
+        mkdir(oss.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        chdir(oss.str().c_str());
+
+        for (auto row : c.rows) {
+                ostringstream filename;
+                filename << row.v << ".dot";
+                auto fp = fopen(filename.str().c_str(), "w");
+                fa_dot(fp, row.fa);
+                fclose(fp);
+        }
+
+        chdir(cwd);
+}
+
 void print_adj(vector<boost::dynamic_bitset<>> const &adj) {
 
         const auto n_vars = adj.size();

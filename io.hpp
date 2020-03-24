@@ -15,6 +15,7 @@
 #include <vector>
 #include <bits/stdc++.h>
 #include <functional>
+#include <sys/stat.h>
 
 #include "types.hpp"
 #include "order.hpp"
@@ -37,6 +38,8 @@ void print_it(T const &vec, const char *name = nullptr, const char *format = nul
 }
 
 void print_cost_table(cost const &c);
+
+void cost_dot(cost const &c, const char *root_dir = ".");
 
 void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
