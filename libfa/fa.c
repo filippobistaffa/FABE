@@ -4623,6 +4623,84 @@ int fa_state_trans(struct state *st, size_t i,
     return 0;
 }
 
+/* --- Added by me --- */
+
+static struct fa *fa_subfa(struct fa *fa, struct state *st) {
+    struct fa *result = NULL;
+    struct state_set *set = state_set_init(-1, S_DATA|S_SORTED);
+    int r;
+    if (fa == NULL || set == NULL || ALLOC(result) < 0)
+        goto error;
+    result->deterministic = fa->deterministic;
+    result->minimal = fa->minimal;
+    result->nocase = fa->nocase;
+    struct state_set *worklist = state_set_init(-1, S_NONE);
+    E(worklist == NULL);
+    list_for_each(s, fa->initial) {
+        s->visited = 0;
+    }
+    for (struct state *s = st; s != NULL; s = state_set_pop(worklist)) {
+        if (!s->visited) {
+            s->visited = 1;
+            int i = state_set_push(set, s);
+            E(i < 0);
+            struct state *q = add_state(result, s->accept);
+            if (q == NULL)
+                goto error;
+            set->data[i] = q;
+            q->live = s->live;
+            q->reachable = s->reachable;
+            for_each_trans(t, s) {
+                F(state_set_push(worklist, t->to));
+            }
+        }
+    }
+    for (int i=0; i < set->used; i++) {
+        struct state *s = set->states[i];
+        struct state *sc = set->data[i];
+        for_each_trans(t, s) {
+            int to = state_set_index(set, t->to);
+            assert(to >= 0);
+            struct state *toc = set->data[to];
+            r = add_new_trans(sc, toc, t->min, t->max);
+            if (r < 0)
+                goto error;
+        }
+    }
+    state_set_free(worklist);
+    state_set_free(set);
+    return result;
+ error:
+    state_set_free(worklist);
+    state_set_free(set);
+    fa_free(result);
+    return NULL;
+}
+
+void collapse_level(struct fa *fa, struct state *st, size_t level) {
+    if (level) {
+        for_each_trans(t, st) {
+            collapse_level(fa, t->to, level - 1);
+        }
+    } else {
+        struct fa *un = fa_make_empty();
+        for_each_trans(t, st) {
+            struct fa *subfa = fa_subfa(fa, t->to);
+            union_in_place(un, &subfa);
+        }
+        fa_minimize(un);
+        char name[100];
+        sprintf(name, "dot/%p.dot", st);
+        FILE *fp = fopen(name, "w");
+        fa_dot(fp, un);
+        fclose(fp);
+    }
+}
+
+void fa_collapse_level(struct fa *fa, size_t level) {
+    collapse_level(fa, fa->initial, level);
+}
+
 /*
  * Local variables:
  *  indent-tabs-mode: nil
