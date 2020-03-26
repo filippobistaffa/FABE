@@ -2,20 +2,20 @@
 
 void print_cost_table(cost const &c) {
 
-        const auto width = max(1.0, 1 + floor(log10(*max_element(c.bin_vars.begin(), c.bin_vars.end()))));
+        const auto width = max(1.0, 1 + floor(log10(*max_element(c.vars.begin(), c.vars.end()))));
 
-        for (auto var : c.bin_vars) {
+        for (auto var : c.vars) {
                 cout << setw(width) << var << " ";
         }
         cout << endl;
 
-        for (auto i = 0; i < (width + 1) * c.bin_vars.size() - 1; ++i) {
+        for (auto i = 0; i < (width + 1) * c.vars.size() - 1; ++i) {
                 cout << "-";
         }
         cout << endl;
 
         for (auto row : c.rows) {
-                for (auto j = 0; j < c.bin_vars.size(); ++j) {
+                for (auto j = 0; j < c.vars.size(); ++j) {
                         for (auto i = 0; i < width - 1; ++i) {
                                 cout << " ";
                         }
@@ -31,10 +31,10 @@ void cost_dot(cost const &c, const char *root_dir) {
         getcwd(cwd, sizeof(cwd));
         chdir(root_dir);
         ostringstream oss;
-        oss << c.bin_vars[0];
+        oss << c.vars[0];
 
-        for (auto i = 1; i < c.bin_vars.size(); ++i) {
-                oss << "-" << c.bin_vars[i];
+        for (auto i = 1; i < c.vars.size(); ++i) {
+                oss << "-" << c.vars[i];
         }
 
         mkdir(oss.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -90,15 +90,19 @@ void print_adj(vector<boost::dynamic_bitset<>> const &adj) {
 __attribute__((always_inline)) inline
 void preallocate_rows(cost &c, value def) {
 
-        if (c.bin_vars.size() > 64) {
-                throw overflow_error("Cannot initialise more than 64 variables");
-        }
+        const auto n_rows = accumulate(c.domains.begin(), c.domains.end(), 1, std::multiplies<size_t>());
 
-        for (size_t i = 0; i < powl(2, c.bin_vars.size()); ++i) {
+        for (size_t i = 0; i < n_rows; ++i) {
                 row r = {
-                        boost::dynamic_bitset<>(c.bin_vars.size(), i),
+                        vector<size_t>(c.vars.size()),
+                        fa_make_basic(FA_EMPTY),
                         def
                 };
+                auto x = i;
+                for (size_t j = 0; j < c.vars.size(); ++j) {
+                        r.a[j] = x % c.domains[j];
+                        x /= c.domains[j];
+                }
                 c.rows.push_back(r);
         }
 }
@@ -114,7 +118,7 @@ void exclusive_scan(T1 begin, T1 end, T1 out, T2 init, T3 op) {
 }
 
 template <typename T>
-vector<T> tokenize(ifstream &f, const char *sep = " ", size_t skip = 0, size_t max_n = numeric_limits<size_t>::max()) {
+vector<T> tokenize(ifstream &f, const char *sep = " ") {
 
         string str;
         getline(f, str);
@@ -123,14 +127,39 @@ vector<T> tokenize(ifstream &f, const char *sep = " ", size_t skip = 0, size_t m
         vector<T> v;
 
         while (token != NULL) {
+                if constexpr (is_integral_v<T>) {
+                        v.push_back(atoi(token));
+                } else if (is_floating_point_v<T>) {
+                        v.push_back(atof(token));
+                }
+                token = strtok(NULL, sep);
+        }
+
+        free(dup);
+        return v;
+}
+
+template <typename T, size_t SKIP, size_t MAX_N>
+array<T, MAX_N + 1 - SKIP> tokenize(ifstream &f, const char *sep = " ") {
+
+        string str;
+        getline(f, str);
+        char *dup = strdup(str.c_str());
+        char *token = strtok(dup, sep);
+        array<T, MAX_N + 1 - SKIP> a;
+        auto skip = SKIP;
+        auto max_n = MAX_N;
+        auto i = 0;
+
+        while (token != NULL) {
                 if (skip) {
                         skip--;
                 } else {
                         if (max_n) {
                                 if constexpr (is_integral_v<T>) {
-                                        v.push_back(atoi(token));
+                                        a[i++] = atoi(token);
                                 } else if (is_floating_point_v<T>) {
-                                        v.push_back(atof(token));
+                                        a[i++] = atof(token);
                                 }
                                 max_n--;
                         } else {
@@ -141,21 +170,21 @@ vector<T> tokenize(ifstream &f, const char *sep = " ", size_t skip = 0, size_t m
         }
 
         free(dup);
-        return v;
+        return a;
 }
 
 vector<boost::dynamic_bitset<>> read_adj(const char *wcsp) {
 
         ifstream f(wcsp);
-        auto vars_costs = tokenize<size_t>(f, " ", 1, 3);
+        const auto [ n_vars, max_domain, n_costs ] = tokenize<size_t, 1, 3>(f);
         f.ignore(numeric_limits<streamsize>::max(), '\n');
-        vector<boost::dynamic_bitset<>> adj(vars_costs[0]);
+        vector<boost::dynamic_bitset<>> adj(n_vars);
 
-        for (auto i = 0; i < vars_costs[0]; ++i) {
-                adj[i] = boost::dynamic_bitset<>(vars_costs[0]);
+        for (auto i = 0; i < n_vars; ++i) {
+                adj[i] = boost::dynamic_bitset<>(n_vars);
         }
 
-        for (auto i = 0; i < vars_costs[2]; ++i) {
+        for (auto i = 0; i < n_costs; ++i) {
                 auto temp = tokenize<value>(f);
                 vector<size_t> vars;
                 for (auto it = temp.begin() + 1; it != temp.begin() + temp[0] + 1; ++it) {
@@ -194,70 +223,26 @@ void remove_threshold(cost &c, value threshold) {
         }
 }
 
-pair<vector<cost>, vector<vector<size_t>>> read_costs_bin_vars(const char *wcsp, vector<size_t> const &pos, value threshold) {
+vector<cost> read_costs(const char *wcsp, value threshold) {
 
         ifstream f(wcsp);
-        auto vars_costs = tokenize<size_t>(f, " ", 1, 3);
-        auto domains = tokenize<size_t>(f);
-        vector<size_t> bin_per_var;
-        vector<cost> costs;
+        const auto [ n_vars, max_domain, n_costs ] = tokenize<size_t, 1, 3>(f);
+        const auto all_domains = tokenize<size_t>(f);
+        print_it(all_domains);
+        vector<cost> costs(n_costs);
 
-        // compute number of bits needed for each domain
-        for (auto domain : domains) {
-                bin_per_var.push_back(1 + floor(log2(domain - 1)));
-        }
-
-        // compute exclusive prefix sum
-        vector<size_t> pfx(bin_per_var.size());
-        exclusive_scan(bin_per_var.begin(), bin_per_var.end(), pfx.begin(), 0, plus<>{});
-        vector<vector<size_t>> bin_vars(bin_per_var.size());
-
-        for (auto i = 0; i < vars_costs[0]; ++i) {
-                vector<size_t> tmp;
-                for (auto j = pfx[i]; j != pfx[i] + bin_per_var[i]; ++j) {
-                        tmp.push_back(j);
-                }
-                bin_vars[i] = tmp;
-        }
-
-        for (auto i = 0; i < vars_costs[2]; ++i) {
+        for (auto i = 0; i < n_costs; ++i) {
 
                 cost c;
                 auto temp = tokenize<value>(f);
-                vector<size_t> vars, binary_domains;
 
                 for (auto it = temp.begin() + 1; it != temp.begin() + temp[0] + 1; ++it) {
-                        vars.push_back(*it);
+                        c.vars.push_back(*it);
+                        c.domains.push_back(all_domains[*it]);
                 }
 
-                c.vars = vars;
-                vector<size_t> map(vars.size());
-
-                if (pos.size()) {
-                        sort(c.vars.begin(), c.vars.end(), compare_pos(pos));
-                        for (auto i = 0; i < c.vars.size(); ++i) {
-                                map[i] = find(c.vars.begin(), c.vars.end(), vars[i]) - c.vars.begin();
-                        }
-                } else {
-                        iota(map.begin(), map.end(), 0);
-                }
-
-                //print_it(vars);
-                //print_it(c.vars);
-                //print_it(map);
-
-                for (auto var : c.vars) {
-                        binary_domains.push_back(pow(2, bin_per_var[var]));
-                        for (auto bin_var : bin_vars[var]) {
-                                c.bin_vars.push_back(bin_var);
-                        }
-                }
-
-                vector<size_t> pfx_prod(binary_domains.size());
-                exclusive_scan(binary_domains.begin(), binary_domains.end(), pfx_prod.begin(), 1, multiplies<>{});
-                //print_it(binary_domains);
-                //print_it(pfx_prod);
-                //print_it(c.variables);
+                vector<size_t> pfx_prod(c.domains.size());
+                exclusive_scan(c.domains.begin(), c.domains.end(), pfx_prod.begin(), 1, multiplies<>{});
                 preallocate_rows(c, temp[temp[0] + 1]);
 
                 for (auto j = 0; j < temp[temp[0] + 2]; ++j) {
@@ -265,19 +250,17 @@ pair<vector<cost>, vector<vector<size_t>>> read_costs_bin_vars(const char *wcsp,
                         const value val = row[row.size() - 1];
                         auto idx = 0;
                         for (auto k = 0; k < row.size() - 1; ++k) {
-                                idx += row[k] * pfx_prod[map[k]];
+                                idx += row[k] * pfx_prod[k];
                         }
                         c.rows[idx].v = val;
-                        //cout << idx << endl;
-                        //print_it(row);
                 }
 
                 // sort according to values
                 sort(c.rows.begin(), c.rows.end(), [](const row &x, const row &y) { return (x.v < y.v); });
                 remove_threshold(c, threshold);
-                costs.push_back(c);
+                costs[i] = c;
         }
 
         f.close();
-        return make_pair(costs, bin_vars);
+        return costs;
 }

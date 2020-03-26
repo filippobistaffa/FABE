@@ -9,14 +9,14 @@ using namespace std;
 typedef float value;
 
 struct row {
-        boost::dynamic_bitset<> a;
-        value v;
+        vector<size_t> a;
         struct fa *fa;
+        value v;
 };
 
 struct cost {
         vector<size_t> vars;
-        vector<size_t> bin_vars;
+        vector<size_t> domains;
         vector<row> rows;
 };
 

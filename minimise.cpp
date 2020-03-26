@@ -1,13 +1,16 @@
 #include "minimise.hpp"
 
+#define ALPHABET "0123456789abcdefghijklmnopqrstuvwxyz"
+
 row automata(vector<row>::const_iterator begin, vector<row>::const_iterator end) {
 
         ostringstream oss;
 
         for (auto row = begin; row != end; ++row) {
-                string str;
-                to_string(row->a, str);
-                oss << str << "|";
+                for (auto i : row->a) {
+                        oss << ALPHABET[i];
+                }
+                oss << "|";
         }
 
         row ret;
@@ -28,7 +31,7 @@ cost compress_clusters(cost const &in, value tolerance) {
 
         cost out = {
                 in.vars,
-                in.bin_vars,
+                in.domains,
                 vector<row>()
         };
 

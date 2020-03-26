@@ -8,8 +8,8 @@ int main(int argc, char *argv[]) {
         }
 
         auto adj = read_adj(argv[1]);
-        //print_adj(adj);
-        //cout << endl;
+        print_adj(adj);
+        cout << endl;
 
         auto order = greedy_order(adj);
         vector<size_t> pos(order.size());
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
                 pos[order[i]] = i;
         }
 
-        auto [ costs, bin_vars ] = read_costs_bin_vars(argv[1], pos);
+        auto costs = read_costs(argv[1]);
  
         for (auto cost : costs) {
                 print_cost_table(cost);
@@ -36,7 +36,11 @@ int main(int argc, char *argv[]) {
                 cost_dot(cost, "dot");
         }
 
-        auto buckets = compute_buckets(costs, pos);
+        //cost_dot(fas[0], "dot");
+
+        //reduce_var(fas[0], 2);
+
+        /*auto buckets = compute_buckets(costs, pos);
 
         for (auto i : order) {
                 cout << "Bucket " << i << " ";
@@ -50,7 +54,13 @@ int main(int argc, char *argv[]) {
 
         print_it(order, "Ord.");
         print_it(pos, "Pos.");
-        cout << "I.W. = " << induced_width(adj, order, pos) << endl;
+        cout << "I.W. = " << induced_width(adj, order, pos) << endl;*/
+
+        for (auto cost : costs) {
+                for (auto row : cost.rows) {
+                        fa_free(row.fa);
+                }
+        }
 
         return EXIT_SUCCESS;
 }

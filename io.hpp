@@ -2,7 +2,8 @@
 #define IO_H_
 
 // threshold value to remove rows
-#define THRESHOLD_VALUE (100000)
+//#define THRESHOLD_VALUE (100000)
+//#define THRESHOLD_VALUE (10)
 
 #ifndef THRESHOLD_VALUE
 #define THRESHOLD_VALUE (numeric_limits<value>::max())
@@ -18,7 +19,6 @@
 #include <sys/stat.h>
 
 #include "types.hpp"
-#include "order.hpp"
 #include "libfa/fa.h"
 
 using namespace std;
@@ -45,6 +45,6 @@ void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
 vector<boost::dynamic_bitset<>> read_adj(const char *wcsp);
 
-pair<vector<cost>, vector<vector<size_t>>> read_costs_bin_vars(const char *wcsp, vector<size_t> const &pos = {}, value threshold = THRESHOLD_VALUE);
+vector<cost> read_costs(const char *wcsp, value threshold = THRESHOLD_VALUE);
 
 #endif /* IO_H_ */
