@@ -4,6 +4,8 @@
 #include <vector>
 #include <boost/dynamic_bitset.hpp>
 
+#define ALPHABET "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 using namespace std;
 
 typedef float value;

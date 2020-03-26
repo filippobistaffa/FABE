@@ -16,10 +16,7 @@ void print_cost_table(cost const &c) {
 
         for (auto row : c.rows) {
                 for (auto j = 0; j < c.vars.size(); ++j) {
-                        for (auto i = 0; i < width - 1; ++i) {
-                                cout << " ";
-                        }
-                        cout << row.a[j] << " ";
+                        cout << setw(width) << ALPHABET[row.a[j]] << " ";
                 }
                 cout << "= " << row.v << endl;
         }

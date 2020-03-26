@@ -1,7 +1,5 @@
 #include "minimise.hpp"
 
-#define ALPHABET "0123456789abcdefghijklmnopqrstuvwxyz"
-
 row automata(vector<row>::const_iterator begin, vector<row>::const_iterator end) {
 
         ostringstream oss;
