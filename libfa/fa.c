@@ -4684,21 +4684,44 @@ void collapse_level(struct fa *fa, struct state *st, size_t level) {
         }
     } else {
         struct fa *un = fa_make_empty();
+        //int i = 0;
         for_each_trans(t, st) {
             struct fa *subfa = fa_subfa(fa, t->to);
+            /*char name[100];
+            sprintf(name, "dot/%p-%i.dot", st, i++);
+            FILE *fp = fopen(name, "w");
+            fa_dot(fp, subfa);
+            fclose(fp);*/
             union_in_place(un, &subfa);
         }
-        fa_minimize(un);
-        char name[100];
+        /*char name[100];
         sprintf(name, "dot/%p.dot", st);
         FILE *fp = fopen(name, "w");
         fa_dot(fp, un);
-        fclose(fp);
+        fclose(fp);*/
+        free_trans(st);
+        add_epsilon_trans(st, un->initial);
+        fa_merge(fa, &un);
     }
 }
 
 void fa_collapse_level(struct fa *fa, size_t level) {
     collapse_level(fa, fa->initial, level);
+    collect(fa);
+    // unique accept state
+    // maybe sub-optimal
+    struct state *accept = add_state(fa, 1);
+    list_for_each(st, fa->initial) {
+        for_each_trans(t, st) {
+            if (t->to->accept) {
+                t->to = accept;
+            }
+        }
+    }
+    minimize_brzozowski(fa);
+    /*FILE *fp = fopen("dot/test.dot", "w");
+    fa_dot(fp, fa);
+    fclose(fp);*/
 }
 
 /*
