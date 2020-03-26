@@ -3,6 +3,7 @@
 
 #include "libfa/fa.h"
 #include "types.hpp"
+#include "bitset.hpp"
 
 void reduce_var(cost const &c, size_t var);
 
