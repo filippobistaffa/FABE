@@ -225,7 +225,6 @@ vector<cost> read_costs(const char *wcsp, value threshold) {
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_costs ] = tokenize<size_t, 1, 3>(f);
         const auto all_domains = tokenize<size_t>(f);
-        print_it(all_domains);
         vector<cost> costs(n_costs);
 
         for (auto i = 0; i < n_costs; ++i) {
