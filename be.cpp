@@ -11,7 +11,7 @@ void reduce_var(cost const &c, size_t var) {
                 const size_t n = c.rows.size();
                 const size_t ceil_div2 = 1 + ((n - 1) / 2);
                 boost::dynamic_bitset<> p(n);
-                for (auto k = 5; k >= ceil_div2; --k) {
+                for (auto k = n; k >= ceil_div2; --k) {
                         p.reset();
                         for (auto j = 0; j < k; ++j) {
                                 p.set(j);
