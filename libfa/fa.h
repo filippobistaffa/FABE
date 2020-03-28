@@ -324,6 +324,7 @@ size_t fa_state_num_trans(struct state *st);
 int fa_state_trans(struct state *st, size_t i,
                    struct state **to, unsigned char *min, unsigned char *max);
 
+void fa_compute_levels(struct fa *fa);
 
 void fa_collapse_level(struct fa *fa, size_t level);
 

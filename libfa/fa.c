@@ -82,6 +82,7 @@ struct state {
     unsigned int  live : 1;
     unsigned int  reachable : 1;
     unsigned int  visited : 1;   /* Used in various places to track progress */
+    unsigned int  level;
     /* Array of transitions. The TUSED first entries are used, the array
        has allocated room for TSIZE */
     size_t        tused;
@@ -1913,6 +1914,7 @@ static struct fa *fa_clone(struct fa *fa) {
         set->data[i] = q;
         q->live = s->live;
         q->reachable = s->reachable;
+        q->level = s->level;
     }
     for (int i=0; i < set->used; i++) {
         struct state *s = set->states[i];
@@ -4492,19 +4494,19 @@ void fa_dot(FILE *out, struct fa *fa) {
     fprintf(out, "digraph {\n  rankdir=LR;");
     list_for_each(s, fa->initial) {
         if (s->accept) {
-            fprintf(out, "\"%p\" [shape=doublecircle];\n", s);
+            fprintf(out, "\"%p (%u)\" [shape=doublecircle];\n", s, s->level);
         } else {
-            fprintf(out, "\"%p\" [shape=circle];\n", s);
+            fprintf(out, "\"%p (%u)\" [shape=circle];\n", s, s->level);
         }
     }
-    fprintf(out, "%s -> \"%p\";\n", fa->deterministic ? "dfa" : "nfa",
-            fa->initial);
+    fprintf(out, "%s -> \"%p (%u)\";\n", fa->deterministic ? "dfa" : "nfa",
+            fa->initial, fa->initial->level);
 
     struct re_str str;
     MEMZERO(&str, 1);
     list_for_each(s, fa->initial) {
         for_each_trans(t, s) {
-            fprintf(out, "\"%p\" -> \"%p\" [ label = \"", s, t->to);
+            fprintf(out, "\"%p (%u)\" -> \"%p (%u)\" [ label = \"", s, s->level, t->to, t->to->level);
             if (fa->trans_re) {
                 re_as_string(t->re, &str);
                 for (int i=0; i < str.len; i++) {
@@ -4675,6 +4677,26 @@ static struct fa *fa_subfa(struct fa *fa, struct state *st) {
     state_set_free(set);
     fa_free(result);
     return NULL;
+}
+
+void fa_compute_levels(struct fa *fa) {
+    struct state_set *worklist = state_set_init(-1, S_NONE);
+    E(worklist == NULL);
+    list_for_each(s, fa->initial) {
+        s->visited = 0;
+    }
+    fa->initial->level = 0;
+    for (struct state *s = fa->initial; s != NULL; s = state_set_pop(worklist)) {
+        if (!s->visited) {
+            s->visited = 1;
+            for_each_trans(t, s) {
+                t->to->level = s->level + 1;
+                F(state_set_push(worklist, t->to));
+            }
+        }
+    }
+ error:
+    state_set_free(worklist);
 }
 
 void collapse_level(struct fa *fa, struct state *st, size_t level) {
