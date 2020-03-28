@@ -4740,10 +4740,29 @@ void fa_collapse_level(struct fa *fa, size_t level) {
             }
         }
     }
+    // ensures complete minimization
     minimize_brzozowski(fa);
-    /*FILE *fp = fopen("dot/test.dot", "w");
-    fa_dot(fp, fa);
-    fclose(fp);*/
+}
+
+struct fa *fa_filter_letter(struct fa *fa, size_t n, char ch) {
+    fa = fa_clone(fa);
+    list_for_each(s, fa->initial) {
+        if (s->level == n) {
+            int i = 0;
+            while (i < s->tused) {
+                if (ch < s->trans[i].min || ch > s->trans[i].max) {
+                    s->tused -= 1;
+                    memmove(s->trans + i, s->trans + s->tused,
+                            sizeof(*s->trans));
+                } else {
+                    s->trans[i].min = s->trans[i].max = ch;
+                    i += 1;
+                }
+            }
+        }
+    }
+    collect(fa);
+    return fa;
 }
 
 /*

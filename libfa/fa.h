@@ -326,6 +326,8 @@ int fa_state_trans(struct state *st, size_t i,
 
 void fa_compute_levels(struct fa *fa);
 
+struct fa *fa_filter_letter(struct fa *fa, size_t n, char ch);
+
 void fa_collapse_level(struct fa *fa, size_t level);
 
 #ifdef __cplusplus
