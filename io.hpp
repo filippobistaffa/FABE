@@ -2,7 +2,7 @@
 #define IO_H_
 
 // threshold value to remove rows
-//#define THRESHOLD_VALUE (100000)
+#define THRESHOLD_VALUE (100000)
 //#define THRESHOLD_VALUE (10)
 
 #ifndef THRESHOLD_VALUE

@@ -22,22 +22,16 @@ void print_table(table const &t) {
         }
 }
 
-void automata_dot(automata const &c, const char *root_dir) {
+void automata_dot(automata const &a, const char *root_dir) {
 
         char cwd[PATH_MAX];
         getcwd(cwd, sizeof(cwd));
         chdir(root_dir);
-        ostringstream oss;
-        oss << c.vars[0];
+        auto folder = vec2str(a.vars);
+        mkdir(folder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        chdir(folder.c_str());
 
-        for (auto i = 1; i < c.vars.size(); ++i) {
-                oss << "-" << c.vars[i];
-        }
-
-        mkdir(oss.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-        chdir(oss.str().c_str());
-
-        for (auto& [v, fa] : c.rows) {
+        for (auto& [ v, fa ] : a.rows) {
                 fa_make_dot(fa, "%.0f.dot", v);
         }
 
@@ -83,7 +77,7 @@ void print_adj(vector<boost::dynamic_bitset<>> const &adj) {
 __attribute__((always_inline)) inline
 void preallocate_rows(table &t, value def) {
 
-        const auto n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, std::multiplies<size_t>());
+        const auto n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, multiplies<size_t>());
         t.rows.resize(n_rows);
 
         for (size_t i = 0; i < n_rows; ++i) {

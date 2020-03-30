@@ -32,14 +32,6 @@ int main(int argc, char *argv[]) {
                 automatas[i] = compute_automata(tables[i]);
         }
 
-        /*for (auto automata : fas) {
-                automata_dot(automata, "dot");
-        }*/
-
-        //automata_dot(fas[0], "dot");
-
-        //reduce_var(fas[0], 2);
-
         auto t_buckets = compute_buckets(tables, pos);
         auto buckets = compute_buckets(automatas, pos);
 
@@ -57,14 +49,8 @@ int main(int argc, char *argv[]) {
 
         fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
 
-        auto j = join(buckets[order.back()][0], buckets[order.back()][2], domains);
+        auto j = join_bucket(buckets[order.back()], domains);
         automata_dot(j, "dot");
-
-        for (auto automata : automatas) {
-                for (auto row : automata.rows) {
-                        fa_free(row.second);
-                }
-        }
 
         return EXIT_SUCCESS;
 }

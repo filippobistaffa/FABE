@@ -3,8 +3,10 @@
 
 #define ALPHABET "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+#include "libfa/fa.h"
 #include <unordered_map>
 #include <vector>
+
 using namespace std;
 
 typedef float value;
@@ -20,5 +22,13 @@ struct table {
         vector<size_t> domains;
         vector<pair<vector<size_t>, value>> rows;
 };
+
+__attribute__((always_inline)) inline
+void free_automata(automata const &a) {
+
+        for (auto& [ v, fa ] : a.rows) {
+                fa_free(fa);
+        }
+}
 
 #endif /* TYPES_HPP_ */

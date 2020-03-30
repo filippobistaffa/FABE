@@ -1,7 +1,7 @@
 #ifndef BE_HPP_
 #define BE_HPP_
 
-#include <numeric>
+#include <numeric>      // accumulate
 
 #include "libfa/fa.h"
 #include "types.hpp"
@@ -11,7 +11,7 @@
 
 #include "io.hpp"
 
-automata join(automata const &c1, automata const &c2, vector<size_t> domains);
+automata join_bucket(vector<automata> const &bucket, vector<size_t> domains);
 
 void reduce_var(automata const &cost, size_t var);
 

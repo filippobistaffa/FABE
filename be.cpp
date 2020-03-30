@@ -8,6 +8,99 @@
 
 #define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
 
+static automata join(automata const &a1, automata const &a2, vector<size_t> domains) {
+
+        automata join;
+        auto v1 = vector<size_t>(a1.vars);
+        auto v2 = vector<size_t>(a2.vars);
+        vector<size_t> shared;
+        sort(v1.begin(), v1.end());
+        sort(v2.begin(), v2.end());
+        set_intersection(v1.begin(),v1.end(), v2.begin(),v2.end(), back_inserter(shared));
+        vector<pair<size_t, size_t>> pos;
+        vector<size_t> sd;
+
+        for (auto var : shared) {
+                pos.push_back(make_pair(find(a1.vars.begin(), a1.vars.end(), var) - a1.vars.begin(),
+                                               find(a2.vars.begin(), a2.vars.end(), var) - a2.vars.begin()));
+                sd.push_back(domains[var]);
+        }
+
+        auto nsv1 = vector<size_t>(a1.vars);
+        auto nsv2 = vector<size_t>(a2.vars);
+
+        for (auto it = pos.rbegin(); it != pos.rend(); ++it) {
+                nsv1.erase(nsv1.begin() + it->first);
+                nsv2.erase(nsv2.begin() + it->second);
+        }
+
+        join.vars.insert(join.vars.end(), shared.begin(), shared.end());
+        join.vars.insert(join.vars.end(), nsv1.begin(), nsv1.end());
+        join.vars.insert(join.vars.end(), nsv2.begin(), nsv2.end());
+
+        for (auto var : join.vars) {
+                join.domains.push_back(domains[var]);
+        }
+
+        const auto n_comb = accumulate(sd.begin(), sd.end(), 1, multiplies<size_t>());
+
+        for (auto r1 : a1.rows) {
+                for (auto r2 : a2.rows) {
+                        const value join_val = JOIN_OP(r1.first, r2.first);
+                        for (size_t i = 0; i < n_comb; ++i) {
+                                struct fa *faj;
+                                auto fa1 = fa_clone(r1.second);
+                                auto fa2 = fa_clone(r2.second);
+                                unordered_map<value, struct fa *>::iterator it;
+                                auto comb = get_combination(i, sd);
+                                char* re = new char[shared.size() + 1];
+                                re[shared.size()] = 0;
+                                for (size_t v = 0; v < shared.size(); ++v) {
+                                        re[v] = ALPHABET[comb[v]];
+                                        fa_filter_letter(fa1, pos[v].first, ALPHABET[comb[v]]);
+                                        fa_filter_letter(fa2, pos[v].second, ALPHABET[comb[v]]);
+                                        if (fa_is_basic(fa1, FA_EMPTY) || fa_is_basic(fa2, FA_EMPTY)) {
+                                                goto next_comb;
+                                        }
+                                        fa_collapse_level(fa1, pos[v].first);
+                                        fa_collapse_level(fa2, pos[v].second);
+                                        //fa_make_dot(fa1, "dot/a1-val=%.0f-%s=%s.dot", r1.first, vea2str(shared).c_str(), vea2str(comb).c_str());
+                                        //fa_make_dot(fa2, "dot/a2-val=%.0f-%s=%s.dot", r2.first, vea2str(shared).c_str(), vea2str(comb).c_str());
+                                }
+                                fa_compile(re, shared.size(), &faj);
+                                OP_FREE_OLD(fa_concat, fa_free, faj, fa1);
+                                OP_FREE_OLD(fa_concat, fa_free, faj, fa2);
+                                it = join.rows.find(join_val);
+                                if (it == join.rows.end()) {
+                                        join.rows.insert({ join_val, faj });
+                                } else {
+                                        OP_FREE_OLD(fa_union, fa_free, it->second, faj);
+                                        fa_minimize(it->second);
+                                }
+                            next_comb:
+                                fa_free(fa1);
+                                fa_free(fa2);
+                                delete[] re;
+                        }
+                }
+        }
+
+        return join;
+}
+
+automata join_bucket(vector<automata> const &bucket, vector<size_t> domains) {
+
+        auto res = bucket.front();
+
+	for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
+	        auto old = res;
+	        res = join(old, *it, domains);
+	        free_automata(old);
+	}
+
+        return res;
+}
+
 /* void add_intersect_minus(vector<row> const &rows, boost::dynamic_bitset<> p, boost::dynamic_bitset<> n, vector<row> &out) {
 
         row res = {
@@ -37,87 +130,7 @@
         }
 
         out.push_back(res);
-} */
-
-automata join(automata const &c1, automata const &c2, vector<size_t> domains) {
-
-        automata join;
-        auto v1 = vector<size_t>(c1.vars);
-        auto v2 = vector<size_t>(c2.vars);
-        vector<size_t> shared;
-        sort(v1.begin(), v1.end());
-        sort(v2.begin(), v2.end());
-        set_intersection(v1.begin(),v1.end(), v2.begin(),v2.end(), back_inserter(shared));
-        vector<pair<size_t, size_t>> shared_pos;
-        vector<size_t> shared_dom;
-
-        for (auto var : shared) {
-                shared_pos.push_back(make_pair(find(c1.vars.begin(), c1.vars.end(), var) - c1.vars.begin(),
-                                               find(c2.vars.begin(), c2.vars.end(), var) - c2.vars.begin()));
-                shared_dom.push_back(domains[var]);
-        }
-
-        auto nsv1 = vector<size_t>(c1.vars);
-        auto nsv2 = vector<size_t>(c2.vars);
-
-        for (auto it = shared_pos.rbegin(); it != shared_pos.rend(); ++it) {
-                nsv1.erase(nsv1.begin() + it->first);
-                nsv2.erase(nsv2.begin() + it->second);
-        }
-
-        join.vars.insert(join.vars.end(), shared.begin(), shared.end());
-        join.vars.insert(join.vars.end(), nsv1.begin(), nsv1.end());
-        join.vars.insert(join.vars.end(), nsv2.begin(), nsv2.end());
-
-        for (auto var : join.vars) {
-                join.domains.push_back(domains[var]);
-        }
-
-        const auto n_comb = accumulate(shared_dom.begin(), shared_dom.end(), 1, std::multiplies<size_t>());
-
-        for (auto r1 : c1.rows) {
-                for (auto r2 : c2.rows) {
-                        const value join_val = JOIN_OP(r1.first, r2.first);
-                        for (size_t i = 0; i < n_comb; ++i) {
-                                struct fa *faj;
-                                auto fa1 = fa_clone(r1.second);
-                                auto fa2 = fa_clone(r2.second);
-                                unordered_map<value, struct fa *>::iterator it;
-                                auto comb = get_combination(i, shared_dom);
-                                char* re = new char[shared.size() + 1];
-                                re[shared.size()] = 0;
-                                for (size_t v = 0; v < shared.size(); ++v) {
-                                        re[v] = ALPHABET[comb[v]];
-                                        fa_filter_letter(fa1, shared_pos[v].first, ALPHABET[comb[v]]);
-                                        fa_filter_letter(fa2, shared_pos[v].second, ALPHABET[comb[v]]);
-                                        if (fa_is_basic(fa1, FA_EMPTY) || fa_is_basic(fa2, FA_EMPTY)) {
-                                                goto next_comb;
-                                        }
-                                        fa_collapse_level(fa1, shared_pos[v].first);
-                                        fa_collapse_level(fa2, shared_pos[v].second);
-                                        fa_make_dot(fa1, "dot/c1-val=%.0f-%s=%s.dot", r1.first, vec2str(shared).c_str(), vec2str(comb).c_str());
-                                        fa_make_dot(fa2, "dot/c2-val=%.0f-%s=%s.dot", r2.first, vec2str(shared).c_str(), vec2str(comb).c_str());
-                                }
-                                fa_compile(re, shared.size(), &faj);
-                                OP_FREE_OLD(fa_concat, fa_free, faj, fa1);
-                                OP_FREE_OLD(fa_concat, fa_free, faj, fa2);
-                                it = join.rows.find(join_val);
-                                if (it == join.rows.end()) {
-                                        join.rows.insert({ join_val, faj });
-                                } else {
-                                        OP_FREE_OLD(fa_union, fa_free, it->second, faj);
-                                        fa_minimize(it->second);
-                                }
-                            next_comb:
-                                fa_free(fa1);
-                                fa_free(fa2);
-                                delete[] re;
-                        }
-                }
-        }
-
-        return join;
-}
+}*/
 
 /*void reduce_var(cost const &c, size_t var) {
 
