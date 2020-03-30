@@ -32,6 +32,10 @@ int main(int argc, char *argv[]) {
                 automatas[i] = compute_automata(tables[i]);
         }
 
+        /*for (auto a : automatas) {
+                automata_dot(a, "dot");
+        }*/
+
         auto t_buckets = compute_buckets(tables, pos);
         auto buckets = compute_buckets(automatas, pos);
 
