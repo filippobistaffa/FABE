@@ -29,9 +29,9 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
         auto nsv1 = vector<size_t>(a1.vars);
         auto nsv2 = vector<size_t>(a2.vars);
 
-        for (auto it = pos.rbegin(); it != pos.rend(); ++it) {
-                nsv1.erase(nsv1.begin() + it->first);
-                nsv2.erase(nsv2.begin() + it->second);
+        for (auto var : shared) {
+                nsv1.erase(find(nsv1.begin(), nsv1.end(), var));
+                nsv2.erase(find(nsv2.begin(), nsv2.end(), var));
         }
 
         join.vars.insert(join.vars.end(), shared.begin(), shared.end());
