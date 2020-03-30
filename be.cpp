@@ -16,13 +16,13 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
         vector<size_t> shared;
         sort(v1.begin(), v1.end());
         sort(v2.begin(), v2.end());
-        set_intersection(v1.begin(),v1.end(), v2.begin(),v2.end(), back_inserter(shared));
+        set_intersection(v1.begin(),v1.end(), v2.begin(), v2.end(), back_inserter(shared));
         vector<pair<size_t, size_t>> pos;
         vector<size_t> sd;
 
         for (auto var : shared) {
                 pos.push_back(make_pair(find(a1.vars.begin(), a1.vars.end(), var) - a1.vars.begin(),
-                                               find(a2.vars.begin(), a2.vars.end(), var) - a2.vars.begin()));
+                                        find(a2.vars.begin(), a2.vars.end(), var) - a2.vars.begin()));
                 sd.push_back(domains[var]);
         }
 
