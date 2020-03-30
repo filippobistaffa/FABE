@@ -97,6 +97,10 @@ int fa_compile(const char *re, size_t size, struct fa **fa);
  */
 struct fa *fa_make_basic(unsigned int basic);
 
+/* Returns a new copy of the automaton
+ */
+struct fa *fa_clone(struct fa *fa);
+
 /* Return 1 if FA accepts the basic language BASIC, which must be one of
  * the constants from enum FA_BASIC.
  */
@@ -324,9 +328,11 @@ size_t fa_state_num_trans(struct state *st);
 int fa_state_trans(struct state *st, size_t i,
                    struct state **to, unsigned char *min, unsigned char *max);
 
-void fa_compute_levels(struct fa *fa);
+/* --- Added by me --- */
 
-struct fa *fa_filter_letter(struct fa *fa, size_t n, char ch);
+void fa_make_dot(struct fa *fa, const char *format, ...);
+
+void fa_filter_letter(struct fa *fa, size_t n, char ch);
 
 void fa_collapse_level(struct fa *fa, size_t level);
 

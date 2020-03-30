@@ -111,15 +111,3 @@ size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> 
 
 	return w;
 }
-
-vector<vector<cost>> compute_buckets(vector<cost> const &costs, vector<size_t> const &pos) {
-
-        vector<vector<cost>> buckets(pos.size(), vector<cost>());
-
-        for (cost c : costs) {
-                const auto max_var = *max_element(c.vars.begin(), c.vars.end(), compare_pos(pos));
-                buckets[max_var].push_back(c);
-        }
-
-        return buckets;
-}

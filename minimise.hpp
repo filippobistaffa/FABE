@@ -1,16 +1,14 @@
 #ifndef MINIMISE_HPP_
 #define MINIMISE_HPP_
 
-#include <sstream>
-#include <iostream>
-#include <cmath>
-#include <string.h>
+#include <cmath>                        // fabs
+#include <sstream>                      // ostringstream
 
 #include "types.hpp"
 #include "libfa/fa.h"
 
 using namespace std;
 
-cost compress_clusters(cost const &in, value tolerance = 0);
+automata compute_automata(table const &t, value tolerance = 0);
 
 #endif /* MINIMISE_HPP_ */

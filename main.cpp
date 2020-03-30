@@ -18,47 +18,51 @@ int main(int argc, char *argv[]) {
                 pos[order[i]] = i;
         }
 
-        auto costs = read_costs(argv[1]);
+        auto [ domains, tables ] = read_domains_tables(argv[1]);
  
-        for (auto cost : costs) {
-                print_cost_table(cost);
+        for (auto table : tables) {
+                print_table(table);
                 cout << endl;
         }
 
-        vector<cost> fas(costs.size());
+        vector<automata> automatas(tables.size());
 
         #pragma omp parallel for
-        for (auto i = 0; i < costs.size(); ++i) {
-                fas[i] = compress_clusters(costs[i]);
+        for (auto i = 0; i < tables.size(); ++i) {
+                automatas[i] = compute_automata(tables[i]);
         }
 
-        for (auto cost : fas) {
-                cost_dot(cost, "dot");
-        }
+        /*for (auto automata : fas) {
+                automata_dot(automata, "dot");
+        }*/
 
-        //cost_dot(fas[0], "dot");
+        //automata_dot(fas[0], "dot");
 
         //reduce_var(fas[0], 2);
 
-        /*auto buckets = compute_buckets(costs, pos);
+        auto t_buckets = compute_buckets(tables, pos);
+        auto buckets = compute_buckets(automatas, pos);
 
         for (auto i : order) {
-                cout << "Bucket " << i << " ";
-                print_it(bin_vars[i]);
-                cout << endl;
-                for (auto c : buckets[i]) {
-                        print_cost_table(c);
+                cout << "Bucket " << i << endl << endl;
+                for (auto t : t_buckets[i]) {
+                        print_table(t);
                         cout << endl;
                 }
         }
 
-        print_it(order, "Ord.");
-        print_it(pos, "Pos.");
-        cout << "I.W. = " << induced_width(adj, order, pos) << endl;*/
+        cout << vec2str(order, "Ord.") << endl;
+        cout << vec2str(pos, "Pos.") << endl;
+        cout << "I.W. = " << induced_width(adj, order, pos) << endl;
 
-        for (auto cost : costs) {
-                for (auto row : cost.rows) {
-                        fa_free(row.fa);
+        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
+
+        auto j = join(buckets[order.back()][0], buckets[order.back()][2], domains);
+        automata_dot(j, "dot");
+
+        for (auto automata : automatas) {
+                for (auto row : automata.rows) {
+                        fa_free(row.second);
                 }
         }
 

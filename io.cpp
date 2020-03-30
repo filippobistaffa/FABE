@@ -1,28 +1,28 @@
 #include "io.hpp"
 
-void print_cost_table(cost const &c) {
+void print_table(table const &t) {
 
-        const auto width = max(1.0, 1 + floor(log10(*max_element(c.vars.begin(), c.vars.end()))));
+        const auto width = max(1.0, 1 + floor(log10(*max_element(t.vars.begin(), t.vars.end()))));
 
-        for (auto var : c.vars) {
+        for (auto var : t.vars) {
                 cout << setw(width) << var << " ";
         }
         cout << endl;
 
-        for (auto i = 0; i < (width + 1) * c.vars.size() - 1; ++i) {
+        for (auto i = 0; i < (width + 1) * t.vars.size() - 1; ++i) {
                 cout << "-";
         }
         cout << endl;
 
-        for (auto row : c.rows) {
-                for (auto j = 0; j < c.vars.size(); ++j) {
-                        cout << setw(width) << ALPHABET[row.a[j]] << " ";
+        for (auto row : t.rows) {
+                for (auto j = 0; j < t.vars.size(); ++j) {
+                        cout << setw(width) << ALPHABET[row.first[j]] << " ";
                 }
-                cout << "= " << row.v << endl;
+                cout << "= " << row.second << endl;
         }
 }
 
-void cost_dot(cost const &c, const char *root_dir) {
+void automata_dot(automata const &c, const char *root_dir) {
 
         char cwd[PATH_MAX];
         getcwd(cwd, sizeof(cwd));
@@ -37,12 +37,8 @@ void cost_dot(cost const &c, const char *root_dir) {
         mkdir(oss.str().c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         chdir(oss.str().c_str());
 
-        for (auto row : c.rows) {
-                ostringstream filename;
-                filename << row.v << ".dot";
-                auto fp = fopen(filename.str().c_str(), "w");
-                fa_dot(fp, row.fa);
-                fclose(fp);
+        for (auto& [v, fa] : c.rows) {
+                fa_make_dot(fa, "%.0f.dot", v);
         }
 
         chdir(cwd);
@@ -85,32 +81,13 @@ void print_adj(vector<boost::dynamic_bitset<>> const &adj) {
 }
 
 __attribute__((always_inline)) inline
-void preallocate_rows(cost &c, value def) {
+void preallocate_rows(table &t, value def) {
 
-        const auto n_rows = accumulate(c.domains.begin(), c.domains.end(), 1, std::multiplies<size_t>());
+        const auto n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, std::multiplies<size_t>());
+        t.rows.resize(n_rows);
 
         for (size_t i = 0; i < n_rows; ++i) {
-                row r = {
-                        vector<size_t>(c.vars.size()),
-                        fa_make_basic(FA_EMPTY),
-                        def
-                };
-                auto x = i;
-                for (size_t j = 0; j < c.vars.size(); ++j) {
-                        r.a[j] = x % c.domains[j];
-                        x /= c.domains[j];
-                }
-                c.rows.push_back(r);
-        }
-}
-
-template <typename T1, typename T2, typename T3>
-__attribute__((always_inline)) inline
-void exclusive_scan(T1 begin, T1 end, T1 out, T2 init, T3 op) {
-
-        *out = init;
-        for (auto it = begin; it != prev(end); ++it, ++out) {
-                *(out + 1) = op(*it, *out);
+                t.rows[i] = make_pair(get_combination(i, t.domains), def);
         }
 }
 
@@ -173,7 +150,7 @@ array<T, MAX_N + 1 - SKIP> tokenize(ifstream &f, const char *sep = " ") {
 vector<boost::dynamic_bitset<>> read_adj(const char *wcsp) {
 
         ifstream f(wcsp);
-        const auto [ n_vars, max_domain, n_costs ] = tokenize<size_t, 1, 3>(f);
+        const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         f.ignore(numeric_limits<streamsize>::max(), '\n');
         vector<boost::dynamic_bitset<>> adj(n_vars);
 
@@ -181,7 +158,7 @@ vector<boost::dynamic_bitset<>> read_adj(const char *wcsp) {
                 adj[i] = boost::dynamic_bitset<>(n_vars);
         }
 
-        for (auto i = 0; i < n_costs; ++i) {
+        for (auto i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
                 vector<size_t> vars;
                 for (auto it = temp.begin() + 1; it != temp.begin() + temp[0] + 1; ++it) {
@@ -203,12 +180,12 @@ vector<boost::dynamic_bitset<>> read_adj(const char *wcsp) {
 }
 
 __attribute__((always_inline)) inline
-void remove_threshold(cost &c, value threshold) {
+void remove_threshold(table &t, value threshold) {
 
         size_t r = 0;
 
-        for (auto it = c.rows.rbegin(); it != c.rows.rend(); ++it) {
-                if (it->v >= threshold) {
+        for (auto it = t.rows.rbegin(); it != t.rows.rend(); ++it) {
+                if (it->second >= threshold) {
                         r++;
                 } else {
                         break;
@@ -216,30 +193,30 @@ void remove_threshold(cost &c, value threshold) {
         }
 
         if (r) {
-                c.rows.resize(c.rows.size() - r);
+                t.rows.resize(t.rows.size() - r);
         }
 }
 
-vector<cost> read_costs(const char *wcsp, value threshold) {
+pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, value threshold) {
 
         ifstream f(wcsp);
-        const auto [ n_vars, max_domain, n_costs ] = tokenize<size_t, 1, 3>(f);
+        const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         const auto all_domains = tokenize<size_t>(f);
-        vector<cost> costs(n_costs);
+        vector<table> tables(n_tables);
 
-        for (auto i = 0; i < n_costs; ++i) {
+        for (auto i = 0; i < n_tables; ++i) {
 
-                cost c;
+                table t;
                 auto temp = tokenize<value>(f);
 
                 for (auto it = temp.begin() + 1; it != temp.begin() + temp[0] + 1; ++it) {
-                        c.vars.push_back(*it);
-                        c.domains.push_back(all_domains[*it]);
+                        t.vars.push_back(*it);
+                        t.domains.push_back(all_domains[*it]);
                 }
 
-                vector<size_t> pfx_prod(c.domains.size());
-                exclusive_scan(c.domains.begin(), c.domains.end(), pfx_prod.begin(), 1, multiplies<>{});
-                preallocate_rows(c, temp[temp[0] + 1]);
+                vector<size_t> pfx_prod(t.domains.size());
+                exclusive_scan(t.domains.begin(), t.domains.end(), pfx_prod.begin(), 1, multiplies<>{});
+                preallocate_rows(t, temp[temp[0] + 1]);
 
                 for (auto j = 0; j < temp[temp[0] + 2]; ++j) {
                         auto row = tokenize<value>(f);
@@ -248,15 +225,17 @@ vector<cost> read_costs(const char *wcsp, value threshold) {
                         for (auto k = 0; k < row.size() - 1; ++k) {
                                 idx += row[k] * pfx_prod[k];
                         }
-                        c.rows[idx].v = val;
+                        t.rows[idx].second = val;
                 }
 
                 // sort according to values
-                sort(c.rows.begin(), c.rows.end(), [](const row &x, const row &y) { return (x.v < y.v); });
-                remove_threshold(c, threshold);
-                costs[i] = c;
+                sort(t.rows.begin(), t.rows.end(), [](pair<vector<size_t>, value> const &x,
+                                                      pair<vector<size_t>, value> const &y)
+                                                      { return (x.second < y.second); });
+                remove_threshold(t, threshold);
+                tables[i] = t;
         }
 
         f.close();
-        return costs;
+        return make_pair(all_domains, tables);
 }

@@ -9,42 +9,49 @@
 #define THRESHOLD_VALUE (numeric_limits<value>::max())
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <bits/stdc++.h>
-#include <functional>
-#include <sys/stat.h>
+#include <iostream>                     // cout
+#include <sstream>                      // ostringstream
+#include <fstream>                      // ifstream, getline
+#include <string.h>                     // strdup, strdup
+#include <math.h>                       // log10
+#include <iomanip>                      // setw
+#include <numeric>                      // accumulate
+#include <boost/dynamic_bitset.hpp>     // bitset
+#include <sys/stat.h>                   // filesystem
 
 #include "types.hpp"
+#include "util.hpp"
 #include "libfa/fa.h"
 
 using namespace std;
 
-// Prints the content of an iterable type
 template <typename T>
 __attribute__((always_inline)) inline
-void print_it(T const &vec, const char *name = nullptr, const char *format = nullptr, const char *after = nullptr) {
+string vec2str(T const &vec, const char *name = nullptr, const char *after = nullptr) {
 
-	if (name) printf("%s = [ ", name);
-	else printf("[ ");
+        ostringstream oss;
+	if (name) {
+	        oss << name << " = ";
+        }
+        oss << "[ ";
 	for (auto i : vec) {
-		if (format) { printf(format, i); printf(" "); }
-		else cout << i << " ";
+		oss << i << " ";
 	}
-	printf("]%s", (after) ? after : "\n");
+        oss << "]";
+	if (after) {
+                cout << after;
+	}
+	return oss.str();
 }
 
-void print_cost_table(cost const &c);
+void print_table(table const &t);
 
-void cost_dot(cost const &c, const char *root_dir = ".");
+void automata_dot(automata const &c, const char *root_dir = ".");
 
 void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
 vector<boost::dynamic_bitset<>> read_adj(const char *wcsp);
 
-vector<cost> read_costs(const char *wcsp, value threshold = THRESHOLD_VALUE);
+pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, value threshold = THRESHOLD_VALUE);
 
 #endif /* IO_H_ */

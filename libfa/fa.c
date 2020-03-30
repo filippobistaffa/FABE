@@ -1893,7 +1893,7 @@ int fa_is_basic(struct fa *fa, unsigned int basic) {
     return 0;
 }
 
-static struct fa *fa_clone(struct fa *fa) {
+struct fa *fa_clone(struct fa *fa) {
     struct fa *result = NULL;
     struct state_set *set = state_set_init(-1, S_DATA|S_SORTED);
     int r;
@@ -4494,19 +4494,19 @@ void fa_dot(FILE *out, struct fa *fa) {
     fprintf(out, "digraph {\n  rankdir=LR;");
     list_for_each(s, fa->initial) {
         if (s->accept) {
-            fprintf(out, "\"%p (%u)\" [shape=doublecircle];\n", s, s->level);
+            fprintf(out, "\"%p\" [shape=doublecircle];\n", s);
         } else {
-            fprintf(out, "\"%p (%u)\" [shape=circle];\n", s, s->level);
+            fprintf(out, "\"%p\" [shape=circle];\n", s);
         }
     }
-    fprintf(out, "%s -> \"%p (%u)\";\n", fa->deterministic ? "dfa" : "nfa",
-            fa->initial, fa->initial->level);
+    fprintf(out, "%s -> \"%p\";\n", fa->deterministic ? "dfa" : "nfa",
+            fa->initial);
 
     struct re_str str;
     MEMZERO(&str, 1);
     list_for_each(s, fa->initial) {
         for_each_trans(t, s) {
-            fprintf(out, "\"%p (%u)\" -> \"%p (%u)\" [ label = \"", s, s->level, t->to, t->to->level);
+            fprintf(out, "\"%p\" -> \"%p\" [ label = \"", s, t->to);
             if (fa->trans_re) {
                 re_as_string(t->re, &str);
                 for (int i=0; i < str.len; i++) {
@@ -4627,6 +4627,17 @@ int fa_state_trans(struct state *st, size_t i,
 
 /* --- Added by me --- */
 
+void fa_make_dot(struct fa *fa, const char *format, ...) {
+    va_list vl;
+    char f[PATH_MAX];
+    va_start(vl, format);
+    vsprintf(f, format, vl);
+    va_end(vl);
+    FILE *fp = fopen(f, "w");
+    fa_dot(fp, fa);
+    fclose(fp);  
+}
+
 static struct fa *fa_subfa(struct fa *fa, struct state *st) {
     struct fa *result = NULL;
     struct state_set *set = state_set_init(-1, S_DATA|S_SORTED);
@@ -4679,48 +4690,20 @@ static struct fa *fa_subfa(struct fa *fa, struct state *st) {
     return NULL;
 }
 
-void fa_compute_levels(struct fa *fa) {
-    struct state_set *worklist = state_set_init(-1, S_NONE);
-    E(worklist == NULL);
-    list_for_each(s, fa->initial) {
-        s->visited = 0;
-    }
-    fa->initial->level = 0;
-    for (struct state *s = fa->initial; s != NULL; s = state_set_pop(worklist)) {
-        if (!s->visited) {
-            s->visited = 1;
-            for_each_trans(t, s) {
-                t->to->level = s->level + 1;
-                F(state_set_push(worklist, t->to));
-            }
-        }
-    }
- error:
-    state_set_free(worklist);
-}
-
-void collapse_level(struct fa *fa, struct state *st, size_t level) {
+static void collapse_level_rec(struct fa *fa, struct state *st, size_t level) {
     if (level) {
         for_each_trans(t, st) {
-            collapse_level(fa, t->to, level - 1);
+            collapse_level_rec(fa, t->to, level - 1);
         }
     } else {
         struct fa *un = fa_make_empty();
         //int i = 0;
         for_each_trans(t, st) {
             struct fa *subfa = fa_subfa(fa, t->to);
-            /*char name[100];
-            sprintf(name, "dot/%p-%i.dot", st, i++);
-            FILE *fp = fopen(name, "w");
-            fa_dot(fp, subfa);
-            fclose(fp);*/
+            //fa_make_dot(subfa, "dot/%p-%i.dot", st, i++);
             union_in_place(un, &subfa);
         }
-        /*char name[100];
-        sprintf(name, "dot/%p.dot", st);
-        FILE *fp = fopen(name, "w");
-        fa_dot(fp, un);
-        fclose(fp);*/
+        //fa_make_dot(un, "dot/%p.dot", st);
         free_trans(st);
         add_epsilon_trans(st, un->initial);
         fa_merge(fa, &un);
@@ -4728,7 +4711,7 @@ void collapse_level(struct fa *fa, struct state *st, size_t level) {
 }
 
 void fa_collapse_level(struct fa *fa, size_t level) {
-    collapse_level(fa, fa->initial, level);
+    collapse_level_rec(fa, fa->initial, level);
     collect(fa);
     // unique accept state
     // maybe sub-optimal
@@ -4744,9 +4727,14 @@ void fa_collapse_level(struct fa *fa, size_t level) {
     minimize_brzozowski(fa);
 }
 
-struct fa *fa_filter_letter(struct fa *fa, size_t n, char ch) {
-    fa = fa_clone(fa);
+void fa_filter_letter(struct fa *fa, size_t n, char ch) {
+    struct state_set *worklist = state_set_init(-1, S_NONE);
+    E(worklist == NULL);
     list_for_each(s, fa->initial) {
+        s->visited = 0;
+    }
+    fa->initial->level = 0;
+    for (struct state *s = fa->initial; s != NULL; s = state_set_pop(worklist)) {
         if (s->level == n) {
             int i = 0;
             while (i < s->tused) {
@@ -4759,10 +4747,19 @@ struct fa *fa_filter_letter(struct fa *fa, size_t n, char ch) {
                     i += 1;
                 }
             }
+        } else {
+            for_each_trans(t, s) {
+                if (!t->to->visited) {
+                    t->to->visited = 1;
+                    t->to->level = s->level + 1;
+                    F(state_set_push(worklist, t->to));
+                }
+            }
         }
     }
     collect(fa);
-    return fa;
+ error:
+    state_set_free(worklist);
 }
 
 /*

@@ -1,25 +1,24 @@
 #ifndef TYPES_HPP_
 #define TYPES_HPP_
 
-#include <vector>
-#include <boost/dynamic_bitset.hpp>
-
 #define ALPHABET "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+#include <unordered_map>
+#include <vector>
 using namespace std;
 
 typedef float value;
 
-struct row {
-        vector<size_t> a;
-        struct fa *fa;
-        value v;
-};
-
-struct cost {
+struct automata {
         vector<size_t> vars;
         vector<size_t> domains;
-        vector<row> rows;
+        unordered_map<value, struct fa *> rows;
+};
+
+struct table {
+        vector<size_t> vars;
+        vector<size_t> domains;
+        vector<pair<vector<size_t>, value>> rows;
 };
 
 #endif /* TYPES_HPP_ */

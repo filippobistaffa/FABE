@@ -1,10 +1,31 @@
 #ifndef BE_HPP_
 #define BE_HPP_
 
+#include <numeric>
+
 #include "libfa/fa.h"
 #include "types.hpp"
 #include "bitset.hpp"
+#include "util.hpp"
+#include "order.hpp"
 
-void reduce_var(cost const &c, size_t var);
+#include "io.hpp"
+
+automata join(automata const &c1, automata const &c2, vector<size_t> domains);
+
+void reduce_var(automata const &cost, size_t var);
+
+template <typename T>
+vector<vector<T>> compute_buckets(vector<T> const &costs, vector<size_t> const &pos) {
+
+        vector<vector<T>> buckets(pos.size(), vector<T>());
+
+        for (T c : costs) {
+                const auto max_var = *max_element(c.vars.begin(), c.vars.end(), compare_pos(pos));
+                buckets[max_var].push_back(c);
+        }
+
+        return buckets;
+}
 
 #endif /* BE_HPP_ */
