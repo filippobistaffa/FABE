@@ -1,7 +1,7 @@
 #include "be.hpp"
 
-#define REDUCTION_OP(X, Y) (min(X, Y))
-#define REDUCTION_INIT (numeric_limits<value>::max())
+#define REDUCTION_MIN
+//#define REDUCTION_MAX
 
 #define JOIN_OP(X, Y) (X + Y)
 #define JOIN_INIT (0)
@@ -43,11 +43,14 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
         }
 
         const auto n_comb = accumulate(sd.begin(), sd.end(), 1, multiplies<size_t>());
+        cout << vec2str(join.vars) << endl;
+        cout << vec2str(shared) << " " << vec2str(sd) << " -> " << n_comb << endl;
 
-        for (auto r1 : a1.rows) {
-                for (auto r2 : a2.rows) {
+        for (auto const &r1 : a1.rows) {
+                for (auto const &r2 : a2.rows) {
                         const value join_val = JOIN_OP(r1.first, r2.first);
                         for (size_t i = 0; i < n_comb; ++i) {
+                                //cout << i + 1 << "/" << n_comb << endl;
                                 struct fa *faj;
                                 auto fa1 = fa_clone(r1.second);
                                 auto fa2 = fa_clone(r2.second);
@@ -55,7 +58,7 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
                                 auto comb = get_combination(i, sd);
                                 char* re = new char[shared.size() + 1];
                                 re[shared.size()] = 0;
-                                for (size_t v = 0; v < shared.size(); ++v) {
+                                for (int v = shared.size(); v --> 0;) {
                                         re[v] = ALPHABET[comb[v]];
                                         fa_filter_letter(fa1, pos[v].first, ALPHABET[comb[v]]);
                                         fa_filter_letter(fa2, pos[v].second, ALPHABET[comb[v]]);
@@ -64,9 +67,9 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
                                         }
                                         fa_collapse_level(fa1, pos[v].first);
                                         fa_collapse_level(fa2, pos[v].second);
-                                        //fa_make_dot(fa1, "dot/a1-val=%.0f-%s=%s.dot", r1.first, vea2str(shared).c_str(), vea2str(comb).c_str());
-                                        //fa_make_dot(fa2, "dot/a2-val=%.0f-%s=%s.dot", r2.first, vea2str(shared).c_str(), vea2str(comb).c_str());
                                 }
+                                //fa_make_dot(fa1, "dot/a1-val=%.0f-%s=%s.dot", r1.first, vec2str(shared).c_str(), vec2str(comb).c_str());
+                                //fa_make_dot(fa2, "dot/a2-val=%.0f-%s=%s.dot", r2.first, vec2str(shared).c_str(), vec2str(comb).c_str());
                                 fa_compile(re, shared.size(), &faj);
                                 OP_FREE_OLD(fa_concat, fa_free, faj, fa1);
                                 OP_FREE_OLD(fa_concat, fa_free, faj, fa2);
@@ -90,82 +93,76 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
 
 automata join_bucket(vector<automata> const &bucket, vector<size_t> domains) {
 
-        auto res = bucket.front();
+        auto res = copy_automata(bucket.front());
 
 	for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
 	        auto old = res;
 	        res = join(old, *it, domains);
-	        free_automata(old);
 	}
 
         return res;
 }
 
-/* void add_intersect_minus(vector<row> const &rows, boost::dynamic_bitset<> p, boost::dynamic_bitset<> n, vector<row> &out) {
+void reduce_var(automata &a, size_t var) {
 
-        row res = {
-                vector<size_t>(),
-                fa_make_basic(FA_TOTAL),
-                REDUCTION_INIT
-        };
+        const auto i = find(a.vars.begin(), a.vars.end(), var) - a.vars.begin();
+        a.vars.erase(a.vars.begin() + i);
+        a.domains.erase(a.domains.begin() + i);
+        vector<value> keys;
 
-        for EACH_SET_BIT(p, i) {
-                auto tmp = res.fa;
-                res.fa = fa_intersect(res.fa, rows[i].fa);
-                fa_free(tmp);
-                if (fa_is_basic(res.fa, FA_EMPTY)) {
-                        return;
+        for (auto &[ v, fa ] : a.rows) {
+                fa_collapse_level(fa, i);
+                keys.push_back(v);
+        }
+
+        #ifdef REDUCTION_MIN
+        sort(keys.begin(), keys.end());
+        #else
+        sort(keys.begin(), keys.end(), greater<value>());
+        #endif
+        vector<value> empty;
+
+        for (auto it = next(keys.begin()); it != keys.end(); ++it) {
+                for (auto prev = keys.begin(); prev != it; ++prev) {
+                        OP_FREE_OLD(fa_minus, fa_free, a.rows[*it], a.rows[*prev]);
+                }
+                //fa_minimize(a.rows[*it]);
+                if (fa_is_basic(a.rows[*it], FA_EMPTY)) {
+                        empty.push_back(*it);
+                }
+        }
+
+        for (auto e : empty) {
+                a.rows.erase(e);
+        }
+}
+
+void bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
+                        vector<size_t> const &pos, vector<size_t> const &domains, size_t max_iter) {
+
+        for (auto it = order.rbegin(); it != order.rend(); ++it) {
+                cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
+                auto h = join_bucket(buckets[*it], domains);
+                automata_dot(h, "dot");
+                if (it + 1 == order.rend()) {
+                        automata_dot(h, "dot");
+                        vector<value> values;
+                        for (auto &[ v, fa ] : h.rows) {
+                                values.push_back(v);
+                        }
+                        #ifdef REDUCTION_MIN
+                        const auto optimal = *min_element(values.begin(), values.end());
+                        #else
+                        const auto optimal = *max_element(values.begin(), values.end());
+                        #endif
+                        cout << "Optimal value = " << optimal << endl;
                 } else {
-                        res.v = REDUCTION_OP(res.v, rows[i].v);
-                }
-        }
-
-        for EACH_SET_BIT(n, i) {
-                auto tmp = res.fa;
-                res.fa = fa_minus(res.fa, rows[i].fa);
-                fa_free(tmp);
-                if (fa_is_basic(res.fa, FA_EMPTY)) {
-                        return;
-                }
-        }
-
-        out.push_back(res);
-}*/
-
-/*void reduce_var(cost const &c, size_t var) {
-
-        for (auto row : c.rows) {
-                fa_collapse_level(row.fa, var);
-        }
-
-        if (c.rows.size() > 1) {
-                vector<row> tmp;
-                const size_t n = c.rows.size();
-                const size_t ceil_div2 = 1 + ((n - 1) / 2);
-                boost::dynamic_bitset<> p(n);
-                for (auto k = n; k >= ceil_div2; --k) {
-                        p.reset();
-                        for (auto j = 0; j < k; ++j) {
-                                p.set(j);
-                        }
-                        while (true) {
-                                boost::dynamic_bitset<> n_p(p);
-                                n_p.flip();
-                                add_intersect_minus(c.rows, p, n_p, tmp);
-                                add_intersect_minus(c.rows, n_p, p, tmp);
-                                if (nth_bit(p, 0) == n - k)
-                                        break;
-                                int i;
-                                for (i = k - 1; i >= 0 && nth_bit(p, i) + k - i == n; --i);
-                                auto r = nth_bit(p, i);
-                                p.reset(r);
-                                p.set(r + 1);
-                                int j = 2;
-                                for (++i; i < k; ++i, ++j) {
-                                        p.reset(nth_bit(p, i));
-                                        p.set(r + j);
-                                }
+                        reduce_var(h, *it);
+                        automata_dot(h, "dot");
+                        cout << "Placed in bucket " << push_bucket(h, buckets, pos) << endl;
+                        if (--max_iter == 0) {
+                                break;
                         }
                 }
         }
-}*/
+}

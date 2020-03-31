@@ -2,16 +2,17 @@
 
 int main(int argc, char *argv[]) {
 
-        if (argc != 2) {
+        /*if (argc != 2) {
                 cout << "Usage: " << argv[0] << " wcsp_instance" << endl;
                 return EXIT_FAILURE;
-        }
+        }*/
 
         auto adj = read_adj(argv[1]);
         print_adj(adj);
         cout << endl;
 
         auto order = greedy_order(adj);
+        reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
 
         for (auto i = 0; i < order.size(); ++i) {
@@ -19,8 +20,8 @@ int main(int argc, char *argv[]) {
         }
 
         auto [ domains, tables ] = read_domains_tables(argv[1]);
- 
-        for (auto table : tables) {
+
+        for (auto const &table : tables) {
                 print_table(table);
                 cout << endl;
         }
@@ -32,7 +33,10 @@ int main(int argc, char *argv[]) {
                 automatas[i] = compute_automata(tables[i]);
         }
 
-        /*for (auto a : automatas) {
+        // change minimisation algorithm
+        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
+
+        /*for (auto const &a : automatas) {
                 automata_dot(a, "dot");
         }*/
 
@@ -51,10 +55,7 @@ int main(int argc, char *argv[]) {
         cout << vec2str(pos, "Pos.") << endl;
         cout << "I.W. = " << induced_width(adj, order, pos) << endl;
 
-        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
-
-        auto j = join_bucket(buckets[order.back()], domains);
-        automata_dot(j, "dot");
+        bucket_elimination(buckets, order, pos, domains, atoi(argv[2]));
 
         return EXIT_SUCCESS;
 }

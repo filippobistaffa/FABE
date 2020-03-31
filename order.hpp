@@ -13,7 +13,7 @@
 
 struct compare_pos {
         compare_pos(vector<size_t> const &pos) : pos(pos) {};
-        bool operator()(size_t &x, size_t &y) {
+        bool operator()(size_t const &x, size_t const &y) {
                 return pos[x] < pos[y];
         }
         vector<size_t> pos;

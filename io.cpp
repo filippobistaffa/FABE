@@ -14,7 +14,7 @@ void print_table(table const &t) {
         }
         cout << endl;
 
-        for (auto row : t.rows) {
+        for (auto const &row : t.rows) {
                 for (auto j = 0; j < t.vars.size(); ++j) {
                         cout << setw(width) << ALPHABET[row.first[j]] << " ";
                 }
@@ -31,7 +31,7 @@ void automata_dot(automata const &a, const char *root_dir) {
         mkdir(folder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         chdir(folder.c_str());
 
-        for (auto& [ v, fa ] : a.rows) {
+        for (auto const &[ v, fa ] : a.rows) {
                 fa_make_dot(fa, "%.0f.dot", v);
         }
 
