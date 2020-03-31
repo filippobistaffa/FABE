@@ -2,10 +2,16 @@
 
 int main(int argc, char *argv[]) {
 
-        /*if (argc != 2) {
-                cout << "Usage: " << argv[0] << " wcsp_instance" << endl;
+        if (argc != 2 && argc != 3) {
+                cout << "Usage: " << argv[0] << " wcsp_instance [max_iter]" << endl;
                 return EXIT_FAILURE;
-        }*/
+        }
+
+        size_t max_iter = numeric_limits<size_t>::max();
+
+        if (argc == 3) {
+                max_iter = atoi(argv[2]);
+        }
 
         auto adj = read_adj(argv[1]);
         print_adj(adj);
@@ -55,7 +61,7 @@ int main(int argc, char *argv[]) {
         cout << vec2str(pos, "Pos.") << endl;
         cout << "I.W. = " << induced_width(adj, order, pos) << endl;
 
-        bucket_elimination(buckets, order, pos, domains, atoi(argv[2]));
+        bucket_elimination(buckets, order, pos, domains, max_iter);
 
         return EXIT_SUCCESS;
 }

@@ -59,10 +59,6 @@ automata copy_automata(automata const &a) {
         return res;
 }
 
-automata join_bucket(vector<automata> const &bucket, vector<size_t> domains);
-
-void reduce_var(automata &a, size_t var);
-
 void bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
                         vector<size_t> const &pos, vector<size_t> const &domains,
                         size_t max_iter = numeric_limits<size_t>::max());

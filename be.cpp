@@ -91,7 +91,7 @@ static automata join(automata const &a1, automata const &a2, vector<size_t> doma
         return join;
 }
 
-automata join_bucket(vector<automata> const &bucket, vector<size_t> domains) {
+static automata join_bucket(vector<automata> const &bucket, vector<size_t> domains) {
 
         auto res = copy_automata(bucket.front());
 
@@ -103,7 +103,7 @@ automata join_bucket(vector<automata> const &bucket, vector<size_t> domains) {
         return res;
 }
 
-void reduce_var(automata &a, size_t var) {
+static value reduce_var(automata &a, size_t var) {
 
         const auto i = find(a.vars.begin(), a.vars.end(), var) - a.vars.begin();
         a.vars.erase(a.vars.begin() + i);
@@ -120,6 +120,11 @@ void reduce_var(automata &a, size_t var) {
         #else
         sort(keys.begin(), keys.end(), greater<value>());
         #endif
+
+        if (a.vars.size() == 0) {
+                return keys.front();
+        }
+
         vector<value> empty;
 
         for (auto it = next(keys.begin()); it != keys.end(); ++it) {
@@ -135,34 +140,28 @@ void reduce_var(automata &a, size_t var) {
         for (auto e : empty) {
                 a.rows.erase(e);
         }
+
+        return 0;
 }
 
 void bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
                         vector<size_t> const &pos, vector<size_t> const &domains, size_t max_iter) {
 
+        value optimal = 0;
+
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
-                cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
+                cout << endl << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
                 auto h = join_bucket(buckets[*it], domains);
                 automata_dot(h, "dot");
-                if (it + 1 == order.rend()) {
-                        automata_dot(h, "dot");
-                        vector<value> values;
-                        for (auto &[ v, fa ] : h.rows) {
-                                values.push_back(v);
-                        }
-                        #ifdef REDUCTION_MIN
-                        const auto optimal = *min_element(values.begin(), values.end());
-                        #else
-                        const auto optimal = *max_element(values.begin(), values.end());
-                        #endif
-                        cout << "Optimal value = " << optimal << endl;
-                } else {
-                        reduce_var(h, *it);
+                optimal += reduce_var(h, *it);
+                if (h.vars.size() > 0) {
                         automata_dot(h, "dot");
                         cout << "Placed in bucket " << push_bucket(h, buckets, pos) << endl;
-                        if (--max_iter == 0) {
-                                break;
-                        }
+                }
+                if (--max_iter == 0) {
+                        return;
                 }
         }
+
+        cout << endl << "Optimal solution = " << optimal << endl;
 }
