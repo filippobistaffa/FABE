@@ -5,7 +5,7 @@ qcachegrind="./qcachegrind"
 
 if [ "$#" -ne 1 ]
 then
-	echo "Usage: ./profile.sh INSTANCE"
+	echo "Usage: $0 INSTANCE"
 	exit
 fi
 
