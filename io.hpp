@@ -1,5 +1,5 @@
-#ifndef IO_H_
-#define IO_H_
+#ifndef IO_HPP_
+#define IO_HPP_
 
 // threshold value to remove rows
 #define THRESHOLD_VALUE (100000)
@@ -61,4 +61,4 @@ pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, vector
 
 void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
 
-#endif /* IO_H_ */
+#endif /* IO_HPP_ */
