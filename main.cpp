@@ -22,7 +22,6 @@ int main(int argc, char *argv[]) {
         //cout << endl;
 
         auto order = greedy_order(adj);
-        //iota(order.begin(), order.end(), 0);
         reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
 
@@ -36,20 +35,19 @@ int main(int argc, char *argv[]) {
 
         auto [ domains, tables ] = read_domains_tables(argv[1], pos);
 
-        for (auto const &table : tables) {
+        /*for (auto const &table : tables) {
                 print_table(table);
                 cout << endl;
-        }
+        }*/
 
         vector<automata> automatas(tables.size());
+        // change minimisation algorithm
+        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
 
         #pragma omp parallel for
         for (auto i = 0; i < tables.size(); ++i) {
                 automatas[i] = compute_automata(tables[i]);
         }
-
-        // change minimisation algorithm
-        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
 
         auto buckets = compute_buckets(automatas, pos);
 
@@ -66,7 +64,7 @@ int main(int argc, char *argv[]) {
         cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
 
         const auto optimal = bucket_elimination(buckets, order, pos, domains, max_iter);
-        cout << optimal << endl;
+        cout << endl << optimal << endl;
 
         return EXIT_SUCCESS;
 }
