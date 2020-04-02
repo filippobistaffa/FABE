@@ -3,7 +3,7 @@
 
 #include "io.hpp"
 #include "order.hpp"
-#include "minimise.hpp"
+#include "conversion.hpp"
 #include "be.hpp"
 
 #endif /* MAIN_H_ */

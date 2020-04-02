@@ -82,6 +82,7 @@ struct state {
     unsigned int  live : 1;
     unsigned int  reachable : 1;
     unsigned int  visited : 1;   /* Used in various places to track progress */
+    unsigned int  lev_vis : 1;
     unsigned int  level;
     /* Array of transitions. The TUSED first entries are used, the array
        has allocated room for TSIZE */
@@ -4652,8 +4653,10 @@ static struct fa *fa_subfa(struct fa *fa, struct state *st) {
     list_for_each(s, fa->initial) {
         s->visited = 0;
     }
+    //puts("Beginning DFS");
     for (struct state *s = st; s != NULL; s = state_set_pop(worklist)) {
         if (!s->visited) {
+            //printf("%p\n", s);
             s->visited = 1;
             int i = state_set_push(set, s);
             E(i < 0);
@@ -4690,28 +4693,41 @@ static struct fa *fa_subfa(struct fa *fa, struct state *st) {
     return NULL;
 }
 
-static void collapse_level_rec(struct fa *fa, struct state *st, size_t level) {
-    if (level) {
-        for_each_trans(t, st) {
-            collapse_level_rec(fa, t->to, level - 1);
+static void do_at_level(struct fa *fa, struct state *st, size_t level,
+                        void (*f)(struct fa *, struct state *, void *), void *data) {
+    if (!st->lev_vis) {
+        st->lev_vis = 1;
+        if (level) {
+            for_each_trans(t, st) {
+                do_at_level(fa, t->to, level - 1, f, data);
+            }
+        } else {
+            f(fa, st, data);
         }
-    } else {
-        struct fa *un = fa_make_empty();
-        //int i = 0;
-        for_each_trans(t, st) {
-            struct fa *subfa = fa_subfa(fa, t->to);
-            //fa_make_dot(subfa, "dot/%p-%i.dot", st, i++);
-            union_in_place(un, &subfa);
-        }
-        //fa_make_dot(un, "dot/%p.dot", st);
-        free_trans(st);
-        add_epsilon_trans(st, un->initial);
-        fa_merge(fa, &un);
     }
 }
 
+static void collapse_level(struct fa *fa, struct state *st, void *data) {
+    //puts("RUNNING PAYLOAD");
+    struct fa *un = fa_make_empty();
+    //int i = 0;
+    for_each_trans(t, st) {
+        struct fa *subfa = fa_subfa(fa, t->to);
+        //fa_make_dot(subfa, "dot/%p-%i.dot", st, i++);
+        union_in_place(un, &subfa);
+    }
+    //fa_make_dot(un, "dot/%p.dot", st);
+    free_trans(st);
+    add_epsilon_trans(st, un->initial);
+    fa_merge(fa, &un);
+}
+
 void fa_collapse_level(struct fa *fa, size_t level) {
-    collapse_level_rec(fa, fa->initial, level);
+    //fa_make_dot(fa, "dot/initial.dot");
+    list_for_each(s, fa->initial) {
+        s->lev_vis = 0;
+    }
+    do_at_level(fa, fa->initial, level, collapse_level, NULL);
     collect(fa);
     // unique accept state
     // maybe sub-optimal
@@ -4725,6 +4741,25 @@ void fa_collapse_level(struct fa *fa, size_t level) {
     }
     // ensures complete minimization
     minimize_brzozowski(fa);
+    //fa_make_dot(fa, "dot/final.dot");
+}
+
+static void add_level(struct fa *fa, struct state *st, void *data) {
+    char *max = (char *)data;
+    struct state *add = add_state(fa, st->accept);
+    st->accept = 0;
+    for_each_trans(t, st) {
+        add_new_trans(add, t->to, t->min, t->max);
+    }
+    free_trans(st);
+    add_new_trans(st, add, '0', *max);
+}
+
+void fa_add_level(struct fa *fa, size_t level, char max) {
+    list_for_each(s, fa->initial) {
+        s->lev_vis = 0;
+    }
+    do_at_level(fa, fa->initial, level, add_level, &max);
 }
 
 void fa_filter_letter(struct fa *fa, size_t n, char ch) {

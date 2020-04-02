@@ -1,7 +1,7 @@
-#include "minimise.hpp"
+#include "conversion.hpp"
 
 static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
-                           vector<pair<vector<size_t>, value>>::const_iterator end) {
+                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
 
         ostringstream oss;
 
@@ -28,9 +28,8 @@ bool are_equal(value a, value b, value tolerance) {
 automata compute_automata(table const &t, value tolerance) {
 
         automata res = {
-                t.vars,
-                t.domains,
-                unordered_map<value, struct fa *>()
+                vector<size_t>(t.vars),
+                vector<size_t>(t.domains),
         };
 
         auto begin = t.rows.begin();
@@ -44,6 +43,30 @@ automata compute_automata(table const &t, value tolerance) {
                 //cout << "end " << end - in.rows.begin() << endl;
                 res.rows.insert({ begin->second, fa_compile_minimise(begin, end) });
                 begin = end;
+        }
+
+        return res;
+}
+
+table compute_table(automata const &a) {
+
+        table res = {
+                vector<size_t>(a.vars),
+                vector<size_t>(a.domains),
+        };
+
+        for (auto const &[ v, fa ] : a.rows) {
+                char **rows;
+                const size_t n_rows = fa_enumerate(fa, numeric_limits<int>::max(), &rows);
+                for (auto r = 0; r < n_rows; ++r) {
+                        vector<size_t> row = vector<size_t>(res.vars.size());
+                        for (auto v = 0; v < row.size(); ++v) {
+                                row[v] = string(ALPHABET).find(rows[r][v]);
+                        }
+                        res.rows.push_back(make_pair(row, v));
+                        free(rows[r]);
+                }
+                free(rows);
         }
 
         return res;

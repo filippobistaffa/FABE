@@ -1,11 +1,19 @@
 #include "io.hpp"
 
+#ifdef PRINT_VAR_POS
+vector<size_t> var_map;
+#endif
+
 void print_table(table const &t) {
 
         const auto width = max(1.0, 1 + floor(log10(*max_element(t.vars.begin(), t.vars.end()))));
 
         for (auto var : t.vars) {
+                #ifdef PRINT_VAR_POS
+                cout << setw(width) << var_map[var] << " ";
+                #else
                 cout << setw(width) << var << " ";
+                #endif
         }
         cout << endl;
 
@@ -191,21 +199,28 @@ void remove_threshold(table &t, value threshold) {
         }
 }
 
-pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, value threshold) {
+pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, vector<size_t> const &pos, value threshold) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
-        const auto all_domains = tokenize<size_t>(f);
+        const auto domains = tokenize<size_t>(f);
         vector<table> tables(n_tables);
 
         for (auto i = 0; i < n_tables; ++i) {
 
                 table t;
                 auto temp = tokenize<value>(f);
+                auto vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                t.vars = vars;
+                sort(t.vars.begin(), t.vars.end(), compare_pos(pos));
 
-                for (auto it = temp.begin() + 1; it != temp.begin() + temp[0] + 1; ++it) {
-                        t.vars.push_back(*it);
-                        t.domains.push_back(all_domains[*it]);
+                for (auto var : t.vars) {
+                        t.domains.push_back(domains[var]);
+                }
+
+                vector<size_t> map(t.vars.size());
+                for (auto i = 0; i < t.vars.size(); ++i) {	
+                        map[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();	
                 }
 
                 vector<size_t> pfx_prod(t.domains.size());
@@ -217,7 +232,7 @@ pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, value 
                         const value val = row[row.size() - 1];
                         auto idx = 0;
                         for (auto k = 0; k < row.size() - 1; ++k) {
-                                idx += row[k] * pfx_prod[k];
+                                idx += row[k] * pfx_prod[map[k]];
                         }
                         t.rows[idx].second = val;
                 }
@@ -231,5 +246,39 @@ pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, value 
         }
 
         f.close();
-        return make_pair(all_domains, tables);
+        return make_pair(domains, tables);
+}
+
+void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp) {
+
+        ostringstream oss;
+        size_t n_funcs = 0;
+
+        for (auto bucket : buckets) {
+                n_funcs += bucket.size();
+        }
+
+        oss << wcsp << " ";
+        oss << domains.size() << " ";
+        oss << *max_element(domains.begin(), domains.end()) << " ";
+        oss << n_funcs << " ";
+        oss << numeric_limits<int>::max() << endl;
+        oss << vec2str(domains, nullptr, " ", nullptr, nullptr) << endl;
+
+        for (auto bucket : buckets) {
+                for (auto a : bucket) {
+                        const auto t = compute_table(a);
+                        oss << t.vars.size() << " ";
+                        oss << vec2str(t.vars, nullptr, " ", nullptr, nullptr) << " ";
+                        oss << numeric_limits<int>::max() << " ";
+                        oss << t.rows.size() << endl;
+                        for (auto r : t.rows) {
+                                oss << vec2str(r.first, nullptr, " ", nullptr, nullptr) << " " << r.second << endl;
+                        }
+                }
+        }
+
+        ofstream f(wcsp);
+        f << oss.str();
+        f.close();
 }

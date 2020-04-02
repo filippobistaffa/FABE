@@ -336,6 +336,8 @@ void fa_filter_letter(struct fa *fa, size_t n, char ch);
 
 void fa_collapse_level(struct fa *fa, size_t level);
 
+void fa_add_level(struct fa *fa, size_t level, char max);
+
 #ifdef __cplusplus
 }
 #endif

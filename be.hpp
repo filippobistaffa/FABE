@@ -1,6 +1,8 @@
 #ifndef BE_HPP_
 #define BE_HPP_
 
+//#define PRINT_TABLES
+
 #include <numeric>      // accumulate
 
 #include "libfa/fa.h"
@@ -9,22 +11,23 @@
 #include "util.hpp"
 #include "order.hpp"
 #include "io.hpp"
+#include "conversion.hpp"
 
-template <typename T>
-size_t push_bucket(T const &f, vector<vector<T>> &buckets, vector<size_t> const &pos) {
+__attribute__((always_inline)) inline
+size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
 
-        const size_t b = *max_element(f.vars.begin(), f.vars.end(), compare_pos(pos));
-        buckets[b].push_back(f);
+        const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_pos(pos));
+        buckets[b].push_back(a);
         return b;
 }
 
-template <typename T>
-vector<vector<T>> compute_buckets(vector<T> const &functions, vector<size_t> const &pos) {
+__attribute__((always_inline)) inline
+vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vector<size_t> const &pos) {
 
-        vector<vector<T>> buckets(pos.size(), vector<T>());
+        vector<vector<automata>> buckets(pos.size(), vector<automata>());
 
-        for (T const &f : functions) {
-                push_bucket(f, buckets, pos);
+        for (automata const &a : automatas) {
+                push_bucket(a, buckets, pos);
         }
 
         return buckets;
@@ -44,11 +47,11 @@ void free_bucket(vector<automata> &bucket) {
 }
 
 __attribute__((always_inline)) inline
-automata copy_automata(automata const &a) {
+automata clone_automata(automata const &a) {
 
         automata res = {
-                a.vars,
-                a.domains,
+                vector<size_t>(a.vars),
+                vector<size_t>(a.domains),
                 unordered_map<value, struct fa *>()
         };
 
@@ -59,8 +62,8 @@ automata copy_automata(automata const &a) {
         return res;
 }
 
-void bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
-                        vector<size_t> const &pos, vector<size_t> const &domains,
-                        size_t max_iter = numeric_limits<size_t>::max());
+value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
+                         vector<size_t> const &pos, vector<size_t> const &domains,
+                         size_t max_iter = numeric_limits<size_t>::max());
 
 #endif /* BE_HPP_ */
