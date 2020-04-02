@@ -2,6 +2,7 @@
 
 bin="./fabe"
 qcachegrind="./qcachegrind"
+trace="trace"
 
 if [ "$#" -ne 1 ]
 then
@@ -10,7 +11,6 @@ then
 fi
 
 time -p $bin $1
-trace=`ls *.prof`
-trace=${trace%.prof}
+=`ls *.prof`
 pprof --callgrind ${bin} ${trace}.prof > ${trace}.callgrind
 ${qcachegrind} ${trace}.callgrind
