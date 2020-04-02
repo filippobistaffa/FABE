@@ -4639,60 +4639,6 @@ void fa_make_dot(struct fa *fa, const char *format, ...) {
     fclose(fp);  
 }
 
-static struct fa *fa_subfa(struct fa *fa, struct state *st) {
-    struct fa *result = NULL;
-    struct state_set *set = state_set_init(-1, S_DATA|S_SORTED);
-    int r;
-    if (fa == NULL || set == NULL || ALLOC(result) < 0)
-        goto error;
-    result->deterministic = fa->deterministic;
-    result->minimal = fa->minimal;
-    result->nocase = fa->nocase;
-    struct state_set *worklist = state_set_init(-1, S_NONE);
-    E(worklist == NULL);
-    list_for_each(s, fa->initial) {
-        s->visited = 0;
-    }
-    //puts("Beginning DFS");
-    for (struct state *s = st; s != NULL; s = state_set_pop(worklist)) {
-        if (!s->visited) {
-            //printf("%p\n", s);
-            s->visited = 1;
-            int i = state_set_push(set, s);
-            E(i < 0);
-            struct state *q = add_state(result, s->accept);
-            if (q == NULL)
-                goto error;
-            set->data[i] = q;
-            q->live = s->live;
-            q->reachable = s->reachable;
-            for_each_trans(t, s) {
-                F(state_set_push(worklist, t->to));
-            }
-        }
-    }
-    for (int i=0; i < set->used; i++) {
-        struct state *s = set->states[i];
-        struct state *sc = set->data[i];
-        for_each_trans(t, s) {
-            int to = state_set_index(set, t->to);
-            assert(to >= 0);
-            struct state *toc = set->data[to];
-            r = add_new_trans(sc, toc, t->min, t->max);
-            if (r < 0)
-                goto error;
-        }
-    }
-    state_set_free(worklist);
-    state_set_free(set);
-    return result;
- error:
-    state_set_free(worklist);
-    state_set_free(set);
-    fa_free(result);
-    return NULL;
-}
-
 static void do_at_level(struct fa *fa, struct state *st, size_t level,
                         void (*f)(struct fa *, struct state *, void *), void *data) {
     if (!st->lev_vis) {
@@ -4707,41 +4653,20 @@ static void do_at_level(struct fa *fa, struct state *st, size_t level,
     }
 }
 
-static void collapse_level(struct fa *fa, struct state *st, void *data) {
-    //puts("RUNNING PAYLOAD");
-    struct fa *un = fa_make_empty();
-    //int i = 0;
-    for_each_trans(t, st) {
-        struct fa *subfa = fa_subfa(fa, t->to);
-        //fa_make_dot(subfa, "dot/%p-%i.dot", st, i++);
-        union_in_place(un, &subfa);
-    }
-    //fa_make_dot(un, "dot/%p.dot", st);
-    free_trans(st);
-    add_epsilon_trans(st, un->initial);
-    fa_merge(fa, &un);
-}
-
-void fa_collapse_level(struct fa *fa, size_t level) {
-    //fa_make_dot(fa, "dot/initial.dot");
+size_t fa_remove_last(struct fa *fa) {
+    size_t na = 0; // number of resulting accepting states
     list_for_each(s, fa->initial) {
-        s->lev_vis = 0;
-    }
-    do_at_level(fa, fa->initial, level, collapse_level, NULL);
-    collect(fa);
-    // unique accept state
-    // maybe sub-optimal
-    struct state *accept = add_state(fa, 1);
-    list_for_each(st, fa->initial) {
-        for_each_trans(t, st) {
-            if (t->to->accept) {
-                t->to = accept;
+        if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
+            s->accept = 1;
+            na++;
+            for_each_trans(t, s) {
+                t->to->live = 0;
             }
         }
     }
-    // ensures complete minimization
-    minimize_brzozowski(fa);
-    //fa_make_dot(fa, "dot/final.dot");
+    collect_trans(fa);
+    collect_dead_states(fa);
+    return na;
 }
 
 static void add_level(struct fa *fa, struct state *st, void *data) {

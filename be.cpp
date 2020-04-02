@@ -124,8 +124,7 @@ static value reduce_last_var(automata &a) {
         cout << endl;
         #endif
 
-        // level to remove
-        const auto i = a.vars.size() - 1;
+        //automata_dot(a, "dot");
 
         // remove last variable and domain
         a.vars.pop_back();
@@ -134,9 +133,13 @@ static value reduce_last_var(automata &a) {
         cout << "Collapsing levels..." << endl;
 
         for (auto &[ v, fa ] : a.rows) {
-                fa_collapse_level(fa, i);
+                //BREAKPOINT("DELETE DOTS");
+                fa_remove_last(fa);
+                //BREAKPOINT("CHECK DOTS");
                 keys.push_back(v);
         }
+
+        //automata_dot(a, "dot");
 
         #ifdef REDUCTION_MIN
         sort(keys.begin(), keys.end());
@@ -183,6 +186,8 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                         cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
                         auto h = join_bucket(buckets[*it], pos, domains);
                         //automata_dot(h, "dot");
+                        //if (max_iter == 1)
+                        //        BREAKPOINT("DELETE DOTS");
                         optimal += reduce_last_var(h);
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
