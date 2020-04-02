@@ -1,0 +1,62 @@
+#!/bin/bash
+
+declare -A opt
+opt["./datasets/wcsp/test/0.wcsp"]="191"
+opt["./datasets/wcsp/test/1.wcsp"]="199"
+opt["./datasets/wcsp/test/2.wcsp"]="234"
+opt["./datasets/wcsp/test/3.wcsp"]="192"
+opt["./datasets/wcsp/test/4.wcsp"]="258"
+opt["./datasets/wcsp/test/5.wcsp"]="210"
+opt["./datasets/wcsp/test/6.wcsp"]="289"
+opt["./datasets/wcsp/test/7.wcsp"]="224"
+opt["./datasets/wcsp/test/8.wcsp"]="256"
+opt["./datasets/wcsp/test/9.wcsp"]="242"
+opt["./datasets/wcsp/test/10.wcsp"]="242"
+opt["./datasets/wcsp/test/11.wcsp"]="230"
+opt["./datasets/wcsp/test/12.wcsp"]="279"
+opt["./datasets/wcsp/test/13.wcsp"]="235"
+opt["./datasets/wcsp/test/14.wcsp"]="230"
+opt["./datasets/wcsp/test/15.wcsp"]="207"
+opt["./datasets/wcsp/test/16.wcsp"]="211"
+opt["./datasets/wcsp/test/17.wcsp"]="237"
+opt["./datasets/wcsp/test/18.wcsp"]="196"
+opt["./datasets/wcsp/test/19.wcsp"]="199"
+opt["./datasets/wcsp/test/20.wcsp"]="241"
+opt["./datasets/wcsp/test/21.wcsp"]="221"
+opt["./datasets/wcsp/test/22.wcsp"]="229"
+opt["./datasets/wcsp/test/23.wcsp"]="227"
+opt["./datasets/wcsp/test/24.wcsp"]="259"
+opt["./datasets/wcsp/test/25.wcsp"]="233"
+opt["./datasets/wcsp/test/26.wcsp"]="220"
+opt["./datasets/wcsp/test/27.wcsp"]="236"
+opt["./datasets/wcsp/test/28.wcsp"]="269"
+opt["./datasets/wcsp/test/29.wcsp"]="245"
+opt["./datasets/wcsp/test/30.wcsp"]="210"
+opt["./datasets/wcsp/test/31.wcsp"]="248"
+opt["./datasets/wcsp/test/32.wcsp"]="157"
+opt["./datasets/wcsp/test/33.wcsp"]="233"
+opt["./datasets/wcsp/test/34.wcsp"]="240"
+opt["./datasets/wcsp/test/35.wcsp"]="238"
+opt["./datasets/wcsp/test/36.wcsp"]="277"
+opt["./datasets/wcsp/test/37.wcsp"]="245"
+opt["./datasets/wcsp/test/38.wcsp"]="233"
+opt["./datasets/wcsp/test/39.wcsp"]="210"
+opt["./datasets/wcsp/test/40.wcsp"]="212"
+
+bin=./fabe
+
+function check {
+
+        echo -n "$1 (expected value = ${opt[$1]})... " 
+        val=`${bin} $1 | tail -n 1`
+        echo $val
+        if [ $val != ${opt[$1]} ]; 
+        then
+                echo "FAILED: $1"
+                exit 1
+        fi
+}
+
+while IFS= read -rd $'\0' file; do
+    check "$file"
+done < <(find ./datasets/wcsp/test -name "*.wcsp" -type f -print0)

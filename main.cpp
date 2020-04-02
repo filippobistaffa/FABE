@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
         cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
 
         const auto optimal = bucket_elimination(buckets, order, pos, domains, max_iter);
-        cout << "Optimal value = " << optimal << endl;
+        cout << optimal << endl;
 
         return EXIT_SUCCESS;
 }
