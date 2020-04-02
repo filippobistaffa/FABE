@@ -6,4 +6,10 @@
 #include "conversion.hpp"
 #include "be.hpp"
 
+#define PROFILE "trace.prof"
+
+#ifdef PROFILE
+#include <gperftools/profiler.h>
+#endif
+
 #endif /* MAIN_H_ */

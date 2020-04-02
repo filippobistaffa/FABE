@@ -63,7 +63,16 @@ int main(int argc, char *argv[]) {
         cout << vec2str(pos, "Pos.") << endl;
         cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
 
+        #ifdef PROFILE
+        ProfilerStart(PROFILE);
+        #endif
+
         const auto optimal = bucket_elimination(buckets, order, pos, domains, max_iter);
+
+        #ifdef PROFILE
+        ProfilerStop();
+        #endif
+
         cout << endl << optimal << endl;
 
         return EXIT_SUCCESS;

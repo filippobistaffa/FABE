@@ -15,8 +15,8 @@ WARN+=-Wno-misleading-indentation -Wno-format-overflow -Wno-nonnull-compare
 OPTIM=-Ofast -march=native -funroll-loops -funsafe-loop-optimizations -falign-functions=16 -falign-loops=16 -fopenmp
 NOOPTIM=-O0 -march=native -fopenmp
 DBG=-g ${NOOPTIM}
-PROF=-g -DWITHGPERFTOOLS ${OPTIM}
-LINK=-lpthread
+PROF=-g ${OPTIM}
+LINK=-lpthread -lprofiler
 
 SRC_C=$(shell find "${SRCDIR_C}" -name "*.c")
 SRC_CPP=$(shell find "${SRCDIR_CPP}" -name "*.cpp")
@@ -28,12 +28,7 @@ ECHOCC=>&2 echo "[\033[01;33m  C  \033[0m]"
 ECHOCP=>&2 echo "[\033[01;33m C++ \033[0m]"
 ECHOLD=>&2 echo "[\033[01;36m  L  \033[0m]"
 
-ifeq ($(PROFILE),1)
-OPT=${PROF}
-LINK+=-lprofiler
-else
-OPT=${OPTIM} # Put desired optimisation level here
-endif
+OPT=${PROF} # Put desired optimisation level here
 
 define compilecpp
 ${ECHOCP} $< ;\
