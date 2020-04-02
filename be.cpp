@@ -18,7 +18,6 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
         #endif
 
         automata join;
-
         SET_OP(set_union, a1.vars, a2.vars, join.vars, compare_pos(pos));
 
         for (auto var : join.vars) {
@@ -43,6 +42,7 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                 padd2.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_pos(pos)) - join.vars.begin());
         }
 
+        /*
         cout << vec2str(a1.vars, "v1") << endl;
         cout << vec2str(a2.vars, "v2") << endl;
         cout << vec2str(join.vars, "vj") << endl;
@@ -50,15 +50,15 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
         cout << vec2str(add2, "add2") << endl;
         cout << vec2str(padd1, "padd1") << endl;
         cout << vec2str(padd2, "padd2") << endl;
+        */
 
-        cout << "cloning1" << endl;
-
+        cout << "Cloning first function..." << endl;
         auto a1c = clone_automata(a1);
+        cout << "Cloning second function..." << endl;
         auto a2c = clone_automata(a2);
         a1c.vars = a2c.vars = join.vars;
         a1c.domains = a2c.domains = join.domains;
-
-        cout << "filling levels" << endl;
+        cout << "Filling levels..." << endl;
 
         for (auto &[ v, fa ] : a1c.rows) {
                 for (auto i = 0; i < add1.size(); ++i) {
@@ -72,9 +72,9 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                 }
         }
 
-        cout << "joining" << endl;
         //print_table(compute_table(a1c));
         //print_table(compute_table(a2c));
+        cout << "Joining..." << endl;
 
         for (auto &[ v1, fa1 ] : a1c.rows) {
                 for (auto &[ v2, fa2 ] : a2c.rows) {
@@ -98,12 +98,8 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                 }
         }
 
-        cout << "done" << endl;
-
+        cout << "Done joining." << endl;
         //print_table(compute_table(join));
-
-        //BREAKPOINT("");
-        
         return join;
 }
 
@@ -116,40 +112,31 @@ static automata join_bucket(vector<automata> &bucket, vector<size_t> const &pos,
 	        res = join(old, *it, pos, domains);
 	}
 
-        cout << "added all" << endl;
-
+        cout << "Joined all functions." << endl;
         return res;
 }
 
-static value reduce_var(automata &a, size_t var) {
+static value reduce_last_var(automata &a) {
 
         #ifdef PRINT_TABLES
-        cout << endl;
-        cout << "Reducing var " << var << ":" << endl;
         cout << endl;
         print_table(compute_table(a));
         cout << endl;
         #endif
 
-        const auto i = find(a.vars.begin(), a.vars.end(), var) - a.vars.begin();
-        a.vars.erase(a.vars.begin() + i);
-        a.domains.erase(a.domains.begin() + i);
-        vector<value> keys;
+        // level to remove
+        const auto i = a.vars.size() - 1;
 
-        cout << "collapsing" << endl;
+        // remove last variable and domain
+        a.vars.pop_back();
+        a.domains.pop_back();
+        vector<value> keys;
+        cout << "Collapsing levels..." << endl;
 
         for (auto &[ v, fa ] : a.rows) {
-                //if (v == 17)
-                //        BREAKPOINT("DELETE DOTS");
                 fa_collapse_level(fa, i);
-                //if (v == 17)
-                //        BREAKPOINT("CHECK DOTS");
                 keys.push_back(v);
         }
-
-        cout << "done" << endl;
-
-        //automata_dot(a, "dot");
 
         #ifdef REDUCTION_MIN
         sort(keys.begin(), keys.end());
@@ -162,7 +149,7 @@ static value reduce_var(automata &a, size_t var) {
         }
 
         vector<value> empty;
-        cout << "minimizing" << endl;
+        cout << "Minimizing..." << endl;
 
         for (auto it = next(keys.begin()); it != keys.end(); ++it) {
                 for (auto prev = keys.begin(); prev != it; ++prev) {
@@ -178,13 +165,11 @@ static value reduce_var(automata &a, size_t var) {
                 a.rows.erase(e);
         }
 
-        cout << "done" << endl;
-
+        cout << "Done minimizing." << endl;
         #ifdef PRINT_TABLES
         print_table(compute_table(a));
         cout << endl;
         #endif
-
         return 0;
 }
 
@@ -195,22 +180,15 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
 
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
                 if (buckets[*it].size()) {
-                        //if (max_iter == 1) {
-                        //        BREAKPOINT("DELETE DOTS");
-                        //}
                         cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
-                        //for (auto a : buckets[*it])
-                        //        print_table(compute_table(a));
                         auto h = join_bucket(buckets[*it], pos, domains);
-                        cout << "now reduce" << endl;
                         //automata_dot(h, "dot");
-                        optimal += reduce_var(h, *it);
+                        optimal += reduce_last_var(h);
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
                                 cout << "Placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
                         }
                 }
-
                 if (--max_iter == 0) {
                         return optimal;
                 }

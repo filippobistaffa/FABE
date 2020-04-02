@@ -219,8 +219,8 @@ pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, vector
                 }
 
                 vector<size_t> map(t.vars.size());
-                for (auto i = 0; i < t.vars.size(); ++i) {	
-                        map[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();	
+                for (auto i = 0; i < t.vars.size(); ++i) {
+                        map[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();
                 }
 
                 vector<size_t> pfx_prod(t.domains.size());

@@ -69,20 +69,4 @@ int main(int argc, char *argv[]) {
         cout << "Optimal value = " << optimal << endl;
 
         return EXIT_SUCCESS;
-
-        for (auto it = order.rbegin(); it != order.rend() - (order.size() - max_iter); ++it) {
-                buckets[*it].clear();
-                table t = {
-                        vector<size_t>{ *it },
-                        vector<size_t>{ domains[*it] },
-                };
-                for (size_t i = 0; i < domains[*it]; ++i) {
-                        t.rows.push_back(make_pair(vector<size_t>{ i }, 0));
-                }
-                buckets[*it].push_back(compute_automata(t));
-        }
-
-        export_wcsp(buckets, domains, "test.wcsp");
-
-        return EXIT_SUCCESS;
 }

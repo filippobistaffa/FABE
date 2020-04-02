@@ -4,7 +4,6 @@
 //#define PRINT_TABLES
 
 #include <numeric>      // accumulate
-
 #include "libfa/fa.h"
 #include "types.hpp"
 #include "bitset.hpp"
