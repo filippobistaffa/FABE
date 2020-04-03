@@ -16,7 +16,7 @@ __attribute__((always_inline)) inline
 size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
 
         const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_pos(pos));
-        buckets[b].push_back(a);
+        buckets[b].push_back(move(a));
         return b;
 }
 
