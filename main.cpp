@@ -59,8 +59,8 @@ int main(int argc, char *argv[]) {
                 }
         }*/
 
-        cout << vec2str(order, "Ord.") << endl;
-        cout << vec2str(pos, "Pos.") << endl;
+        //cout << vec2str(order, "Ord.") << endl;
+        //cout << vec2str(pos, "Pos.") << endl;
         cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
 
         #ifdef PROFILE
