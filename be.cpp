@@ -162,6 +162,7 @@ static value reduce_last_var(automata &a) {
         }
 
         for (auto e : empty) {
+                fa_free(a.rows[e]);
                 a.rows.erase(e);
         }
 
