@@ -13,4 +13,4 @@ fi
 time -p $bin $1
 =`ls *.prof`
 pprof --callgrind ${bin} ${trace}.prof > ${trace}.callgrind
-${qcachegrind} ${trace}.callgrind
+${qcachegrind} ${trace}.callgrind &
