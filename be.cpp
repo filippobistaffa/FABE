@@ -111,21 +111,15 @@ static value reduce_last_var(automata &a) {
         cout << endl;
         #endif
 
-        //automata_dot(a, "dot");
-
         // remove last variable and domain
         a.vars.pop_back();
         a.domains.pop_back();
         vector<value> keys;
 
         for (auto &[ v, fa ] : a.rows) {
-                //BREAKPOINT("DELETE DOTS");
                 fa_remove_last(fa);
-                //BREAKPOINT("CHECK DOTS");
                 keys.push_back(v);
         }
-
-        //automata_dot(a, "dot");
 
         #ifdef REDUCTION_MIN
         sort(keys.begin(), keys.end());
@@ -145,7 +139,6 @@ static value reduce_last_var(automata &a) {
                                 OP_FREE_OLD(fa_minus, fa_free, a.rows[*it], a.rows[*prev]);
                         }
                 }
-                //fa_minimize(a.rows[*it]);
                 if (fa_is_basic(a.rows[*it], FA_EMPTY)) {
                         empty.push_back(*it);
                 }
