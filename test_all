@@ -56,6 +56,8 @@ function check {
         val=`${bin} $1 | tail -n 1`
         end=`date +%s.%N`
         runtime=$(echo "$end - $start" | bc | awk '{printf "%f", $0}')
+        total_time=$(echo "$total_time + $runtime" | bc)
+        n_tests=$(( $n_tests + 1 ))
         rem=$(( $(tput cols) - $current - ${#val} ))
         printf " %s%${rem}s\n" "$val" "[${runtime}]"
         if [ $val != ${opt[$1]} ]; 
@@ -65,8 +67,16 @@ function check {
         fi
 }
 
+total_time=0
+n_tests=0
+
 check "./datasets/wcsp/spot5/54.wcsp"
 
 while IFS= read -rd $'\0' file; do
     check "$file"
 done < <(find ./datasets/wcsp/test -name "*.wcsp" -type f -print0)
+
+echo
+echo -e "Tot. runtime = $total_time"
+#echo "Tests = $n_tests"
+echo -e "Avg. runtime = "`python -c "print($total_time/$n_tests)"`
