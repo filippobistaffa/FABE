@@ -11,6 +11,14 @@ opt["./datasets/wcsp/spot5/503.wcsp"]="11113"
 opt["./datasets/wcsp/spot5/505b.wcsp"]="21251"
 opt["./datasets/wcsp/spot5/54.wcsp"]="37"
 
+# mastermind dataset
+opt["./datasets/wcsp/mastermind/mastermind_03_08_03.wcsp"]="79"
+opt["./datasets/wcsp/mastermind/mastermind_03_08_04.wcsp"]="138"
+opt["./datasets/wcsp/mastermind/mastermind_03_08_05.wcsp"]="172"
+opt["./datasets/wcsp/mastermind/mastermind_04_08_03.wcsp"]="90"
+opt["./datasets/wcsp/mastermind/mastermind_04_08_04.wcsp"]="119"
+opt["./datasets/wcsp/mastermind/mastermind_10_08_03.wcsp"]="111"
+
 # test dataset
 opt["./datasets/wcsp/test/0.wcsp"]="191"
 opt["./datasets/wcsp/test/1.wcsp"]="199"
@@ -78,7 +86,7 @@ function check {
 total_time=0
 n_tests=0
 
-for dataset in "spot5" #"test"
+for dataset in "spot5" #"mastermind" "test"
 do
         while IFS= read -rd $'\0' file
         do
