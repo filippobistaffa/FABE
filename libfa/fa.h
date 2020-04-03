@@ -338,6 +338,8 @@ void fa_add_level(struct fa *fa, size_t level, char max);
 
 size_t fa_remove_last(struct fa *fa);
 
+void fa_merge_accept(struct fa *fa);
+
 #ifdef __cplusplus
 }
 #endif

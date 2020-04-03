@@ -4686,6 +4686,17 @@ size_t fa_remove_last(struct fa *fa) {
     return na;
 }
 
+void fa_merge_accept(struct fa *fa) {
+    struct state *accept = add_state(fa, 1);
+    list_for_each(st, fa->initial) {
+        for_each_trans(t, st) {
+            if (t->to->accept) {
+                t->to = accept;
+            }
+        }
+    }
+}
+
 /*
  * Local variables:
  *  indent-tabs-mode: nil
