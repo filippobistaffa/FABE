@@ -4652,22 +4652,6 @@ static void do_at_level(struct fa *fa, struct state *st, size_t level,
     }
 }
 
-size_t fa_remove_last(struct fa *fa) {
-    size_t na = 0; // number of resulting accepting states
-    list_for_each(s, fa->initial) {
-        if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
-            s->accept = 1;
-            na++;
-            for_each_trans(t, s) {
-                t->to->live = 0;
-            }
-        }
-    }
-    collect_trans(fa);
-    collect_dead_states(fa);
-    return na;
-}
-
 static void add_level(struct fa *fa, struct state *st, void *data) {
     char *max = (char *)data;
     struct state *add = add_state(fa, st->accept);
@@ -4684,6 +4668,22 @@ void fa_add_level(struct fa *fa, size_t level, char max) {
         s->visited = 0;
     }
     do_at_level(fa, fa->initial, level, add_level, &max);
+}
+
+size_t fa_remove_last(struct fa *fa) {
+    size_t na = 0; // number of resulting accepting states
+    list_for_each(s, fa->initial) {
+        if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
+            s->accept = 1;
+            na++;
+            for_each_trans(t, s) {
+                t->to->live = 0;
+            }
+        }
+    }
+    collect_trans(fa);
+    collect_dead_states(fa);
+    return na;
 }
 
 /*

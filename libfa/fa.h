@@ -334,9 +334,9 @@ void fa_make_dot(struct fa *fa, const char *format, ...);
 
 int fa_union_in_place(struct fa *fa1, struct fa **fa2);
 
-size_t fa_remove_last(struct fa *fa);
-
 void fa_add_level(struct fa *fa, size_t level, char max);
+
+size_t fa_remove_last(struct fa *fa);
 
 #ifdef __cplusplus
 }
