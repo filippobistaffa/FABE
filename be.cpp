@@ -76,21 +76,19 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                         if (fa_is_basic(in, FA_EMPTY)) { // these two rows do not have any common variable
                                 fa_free(in);             // assignment of shared variables
                         } else {
-                                //fa_make_dot(fa1, "dot/v1=%.0f.dot", v1);
-                                //fa_make_dot(fa2, "dot/v2=%.0f.dot", v2);
                                 const value v1v2 = JOIN_OP(v1, v2);
                                 auto it = join.rows.find(v1v2);
                                 if (it == join.rows.end()) {
                                         join.rows.insert({ v1v2, in });
-                                        //fa_make_dot(in, "dot/r-v1v2=%.0f.dot", v1v2);
                                 } else {
                                         fa_union_in_place(it->second, &in);
-                                        //OP_FREE_OLD(fa_union, fa_free, it->second, in);
-                                        fa_minimize(it->second);
-                                        //fa_make_dot(it->second, "dot/v1v2=%.0f.dot", v1v2);
                                 }
                         }
                 }
+        }
+
+        for (auto &[ v, fa ] : join.rows) {
+                fa_minimize(fa);
         }
 
         cout << "Done joining." << endl;
