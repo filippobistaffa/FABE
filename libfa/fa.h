@@ -332,8 +332,6 @@ int fa_state_trans(struct state *st, size_t i,
 
 void fa_make_dot(struct fa *fa, const char *format, ...);
 
-void fa_filter_letter(struct fa *fa, size_t n, char ch);
-
 size_t fa_remove_last(struct fa *fa);
 
 void fa_add_level(struct fa *fa, size_t level, char max);
