@@ -12,7 +12,7 @@
 #include "io.hpp"
 #include "conversion.hpp"
 
-#define PROFILE "trace.prof"
+//#define PROFILE "trace.prof"
 
 #ifdef PROFILE
 #include <gperftools/profiler.h>
