@@ -147,16 +147,20 @@ static value reduce_last_var(automata &a) {
                 return keys.front();
         }
 
+        vector<struct fa *> pfx_union(keys.size());
+        pfx_union[0] = fa_make_basic(FA_EMPTY);
+
+        for (auto i = 1; i < keys.size(); ++i) {
+                pfx_union[i] = fa_union(a.rows[keys[i - 1]], pfx_union[i - 1]);
+                fa_minimize(pfx_union[i]);
+        }
+
         vector<value> empty;
 
-        for (auto it = next(keys.begin()); it != keys.end(); ++it) {
-                for (auto prev = keys.begin(); prev != it; ++prev) {
-                        if (!fa_is_basic(a.rows[*prev], FA_EMPTY)) {
-                                OP_FREE_OLD(fa_minus, fa_free, a.rows[*it], a.rows[*prev]);
-                        }
-                }
-                if (fa_is_basic(a.rows[*it], FA_EMPTY)) {
-                        empty.push_back(*it);
+        for (auto i = 1; i < keys.size(); ++i) {
+                OP_FREE_OLD(fa_minus, fa_free, a.rows[keys[i]], pfx_union[i]);
+                if (fa_is_basic(a.rows[keys[i]], FA_EMPTY)) {
+                        empty.push_back(keys[i]);
                 }
         }
 
