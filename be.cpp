@@ -87,7 +87,10 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                 fa_minimize(fa);
         }
 
-        //print_table(compute_table(join));
+        #ifdef PRINT_TABLES
+        cout << "Result:" << endl << endl;
+        print_table(compute_table(join));
+        #endif
         return join;
 }
 
@@ -106,7 +109,7 @@ static automata join_bucket(vector<automata> &bucket, vector<size_t> const &pos,
 static value reduce_last_var(automata &a) {
 
         #ifdef PRINT_TABLES
-        cout << endl;
+        cout << endl << "Minimising:" << endl << endl;
         print_table(compute_table(a));
         cout << endl;
         #endif
