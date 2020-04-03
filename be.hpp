@@ -1,8 +1,6 @@
 #ifndef BE_HPP_
 #define BE_HPP_
 
-//#define PRINT_TABLES
-
 #include <numeric>      // accumulate
 #include "libfa/fa.h"
 #include "types.hpp"

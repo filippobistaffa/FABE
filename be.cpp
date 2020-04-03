@@ -1,5 +1,7 @@
 #include "be.hpp"
 
+//#define PRINT_TABLES
+
 #define REDUCTION_MIN
 //#define REDUCTION_MAX
 
