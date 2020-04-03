@@ -1940,7 +1940,7 @@ static int case_expand(struct fa *fa);
 
 /* Compute FA1|FA2 and set FA1 to that automaton. FA2 is freed */
 ATTRIBUTE_RETURN_CHECK
-static int union_in_place(struct fa *fa1, struct fa **fa2) {
+int fa_union_in_place(struct fa *fa1, struct fa **fa2) {
     struct state *s;
     int r;
 
@@ -1976,7 +1976,7 @@ struct fa *fa_union(struct fa *fa1, struct fa *fa2) {
     if (fa1 == NULL || fa2 == NULL)
         goto error;
 
-    F(union_in_place(fa1, &fa2));
+    F(fa_union_in_place(fa1, &fa2));
 
     return fa1;
  error:
@@ -3062,7 +3062,7 @@ static struct fa *fa_from_re(struct re *re) {
             struct fa *fa2 = fa_from_re(re->exp2);
             if (fa2 == NULL)
                 goto error;
-            if (union_in_place(result, &fa2) < 0)
+            if (fa_union_in_place(result, &fa2) < 0)
                 goto error;
         }
         break;

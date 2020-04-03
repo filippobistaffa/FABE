@@ -52,32 +52,24 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
         cout << vec2str(padd2, "padd2") << endl;
         */
 
-        cout << "Cloning first function..." << endl;
-        auto a1c = clone_automata(a1);
-        cout << "Cloning second function..." << endl;
-        auto a2c = clone_automata(a2);
-        a1c.vars = a2c.vars = join.vars;
-        a1c.domains = a2c.domains = join.domains;
         cout << "Filling levels..." << endl;
 
-        for (auto &[ v, fa ] : a1c.rows) {
+        for (auto &[ v, fa ] : a1.rows) {
                 for (auto i = 0; i < add1.size(); ++i) {
                         fa_add_level(fa, padd1[i], ALPHABET[domains[add1[i]] - 1]);
                 }
         }
 
-        for (auto &[ v, fa ] : a2c.rows) {
+        for (auto &[ v, fa ] : a2.rows) {
                 for (auto i = 0; i < add2.size(); ++i) {
                         fa_add_level(fa, padd2[i], ALPHABET[domains[add2[i]] - 1]);
                 }
         }
 
-        //print_table(compute_table(a1c));
-        //print_table(compute_table(a2c));
         cout << "Joining..." << endl;
 
-        for (auto &[ v1, fa1 ] : a1c.rows) {
-                for (auto &[ v2, fa2 ] : a2c.rows) {
+        for (auto &[ v1, fa1 ] : a1.rows) {
+                for (auto &[ v2, fa2 ] : a2.rows) {
                         auto in = fa_intersect(fa1, fa2);
                         if (fa_is_basic(in, FA_EMPTY)) { // these two rows do not have any common variable
                                 fa_free(in);             // assignment of shared variables
@@ -90,7 +82,8 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                                         join.rows.insert({ v1v2, in });
                                         //fa_make_dot(in, "dot/r-v1v2=%.0f.dot", v1v2);
                                 } else {
-                                        OP_FREE_OLD(fa_union, fa_free, it->second, in);
+                                        fa_union_in_place(it->second, &in);
+                                        //OP_FREE_OLD(fa_union, fa_free, it->second, in);
                                         fa_minimize(it->second);
                                         //fa_make_dot(it->second, "dot/v1v2=%.0f.dot", v1v2);
                                 }
@@ -105,7 +98,7 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
 
 static automata join_bucket(vector<automata> &bucket, vector<size_t> const &pos, vector<size_t> const &domains) {
 
-        auto res = clone_automata(bucket.front());
+        auto res = bucket.front();
 
 	for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
 	        auto old = res;
