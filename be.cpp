@@ -169,7 +169,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                         optimal += reduce_last_var(h);
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
-                                cout << "Placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
+                                cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
                         }
                 }
                 if (--max_iter == 0) {
