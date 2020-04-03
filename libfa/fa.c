@@ -4687,7 +4687,7 @@ size_t fa_remove_last(struct fa *fa) {
 }
 
 void fa_merge_accept(struct fa *fa) {
-    struct state *accept = add_state(fa, 1);
+    struct state *accept = add_state(fa, 0);
     list_for_each(st, fa->initial) {
         for_each_trans(t, st) {
             if (t->to->accept) {
@@ -4695,6 +4695,7 @@ void fa_merge_accept(struct fa *fa) {
             }
         }
     }
+    accept->accept = 1;
 }
 
 /*

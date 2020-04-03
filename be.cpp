@@ -121,7 +121,7 @@ static value reduce_last_var(automata &a) {
 
         for (auto &[ v, fa ] : a.rows) {
                 if (fa_remove_last(fa) > 1) {
-                        //fa_merge_accept(fa);
+                        fa_merge_accept(fa);
                 }
                 keys.push_back(v);
         }
