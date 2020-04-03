@@ -33,7 +33,16 @@ int main(int argc, char *argv[]) {
         var_map = pos;
         #endif
 
-        auto [ domains, tables ] = read_domains_tables(argv[1], pos);
+        // look for a known threshold to remove rows
+        value threshold = numeric_limits<value>::max();
+
+        for (auto i = 0; i < N_DATASETS; ++i) {
+                if (strstr(argv[1], datasets[i]) != NULL) {
+                        threshold = thresholds[i];
+                }
+        }
+
+        auto [ domains, tables ] = read_domains_tables(argv[1], pos, threshold);
 
         /*for (auto const &table : tables) {
                 print_table(table);

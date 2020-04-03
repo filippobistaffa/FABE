@@ -12,4 +12,17 @@
 #include <gperftools/profiler.h>
 #endif
 
+// known threshold values to remove rows
+static const char* datasets[] = { "spot5",
+                                  "mastermind",
+                                  "iscas89"
+                                };
+
+static const value thresholds[] = { 100000,
+                                    100,
+                                    100
+                                  };
+
+#define N_DATASETS (sizeof(datasets) / sizeof(char*))
+
 #endif /* MAIN_H_ */

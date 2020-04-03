@@ -1,15 +1,6 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
-// threshold value to remove rows
-#define THRESHOLD_VALUE (100000)
-//#define THRESHOLD_VALUE (100)
-//#define THRESHOLD_VALUE (10)
-
-#ifndef THRESHOLD_VALUE
-#define THRESHOLD_VALUE (numeric_limits<value>::max())
-#endif
-
 // print variables' positions instead of variables
 //#define PRINT_VAR_POS
 
@@ -57,7 +48,7 @@ void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
 vector<boost::dynamic_bitset<>> read_adj(const char *wcsp);
 
-pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, vector<size_t> const &pos, value threshold = THRESHOLD_VALUE);
+pair<vector<size_t>, vector<table>> read_domains_tables(const char *wcsp, vector<size_t> const &pos, value threshold);
 
 void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
 
