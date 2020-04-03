@@ -45,22 +45,6 @@ void free_bucket(vector<automata> &bucket) {
         bucket.clear();
 }
 
-__attribute__((always_inline)) inline
-automata clone_automata(automata const &a) {
-
-        automata res = {
-                vector<size_t>(a.vars),
-                vector<size_t>(a.domains),
-                unordered_map<value, struct fa *>()
-        };
-
-        for (auto& [ v, fa ] : a.rows) {
-                res.rows.insert({ v, fa_clone(fa) });
-        }
-
-        return res;
-}
-
 value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
                          vector<size_t> const &pos, vector<size_t> const &domains,
                          size_t max_iter = numeric_limits<size_t>::max());
