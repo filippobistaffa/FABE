@@ -7,6 +7,15 @@
 #define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
+// measure sections of code
+/*
+#include <chrono>
+static chrono::duration<double> total_t;
+#define START_CLOCK auto start_t = chrono::high_resolution_clock::now()
+#define STOP_CLOCK total_t += chrono::high_resolution_clock::now() - start_t
+#define TOTAL_TIME total_t.count()
+*/
+
 static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES
