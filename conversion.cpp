@@ -39,8 +39,6 @@ automata compute_automata(table const &t, value tolerance) {
                 while (end != t.rows.end() && are_equal(end->second, begin->second, tolerance)) {
                         end++;
                 }
-                //cout << "begin " << begin - in.rows.begin() << endl;
-                //cout << "end " << end - in.rows.begin() << endl;
                 res.rows.insert({ begin->second, fa_compile_minimise(begin, end) });
                 begin = end;
         }

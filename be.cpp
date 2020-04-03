@@ -54,8 +54,6 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
         cout << vec2str(padd2, "padd2") << endl;
         */
 
-        cout << "Filling levels..." << endl;
-
         for (auto &[ v, fa ] : a1.rows) {
                 for (auto i = 0; i < add1.size(); ++i) {
                         fa_add_level(fa, padd1[i], ALPHABET[domains[add1[i]] - 1]);
@@ -67,8 +65,6 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                         fa_add_level(fa, padd2[i], ALPHABET[domains[add2[i]] - 1]);
                 }
         }
-
-        cout << "Joining..." << endl;
 
         for (auto &[ v1, fa1 ] : a1.rows) {
                 for (auto &[ v2, fa2 ] : a2.rows) {
@@ -91,7 +87,6 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
                 fa_minimize(fa);
         }
 
-        cout << "Done joining." << endl;
         //print_table(compute_table(join));
         return join;
 }
@@ -105,7 +100,6 @@ static automata join_bucket(vector<automata> &bucket, vector<size_t> const &pos,
 	        res = join(old, *it, pos, domains);
 	}
 
-        cout << "Joined all functions." << endl;
         return res;
 }
 
@@ -123,7 +117,6 @@ static value reduce_last_var(automata &a) {
         a.vars.pop_back();
         a.domains.pop_back();
         vector<value> keys;
-        cout << "Collapsing levels..." << endl;
 
         for (auto &[ v, fa ] : a.rows) {
                 //BREAKPOINT("DELETE DOTS");
@@ -145,7 +138,6 @@ static value reduce_last_var(automata &a) {
         }
 
         vector<value> empty;
-        cout << "Minimizing..." << endl;
 
         for (auto it = next(keys.begin()); it != keys.end(); ++it) {
                 for (auto prev = keys.begin(); prev != it; ++prev) {
@@ -164,7 +156,6 @@ static value reduce_last_var(automata &a) {
                 a.rows.erase(e);
         }
 
-        cout << "Done minimizing." << endl;
         #ifdef PRINT_TABLES
         print_table(compute_table(a));
         cout << endl;
@@ -182,8 +173,6 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                         cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
                         auto h = join_bucket(buckets[*it], pos, domains);
                         //automata_dot(h, "dot");
-                        //if (max_iter == 1)
-                        //        BREAKPOINT("DELETE DOTS");
                         optimal += reduce_last_var(h);
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
