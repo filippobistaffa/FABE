@@ -4638,36 +4638,34 @@ void fa_make_dot(struct fa *fa, const char *format, ...) {
     fclose(fp);  
 }
 
-static void do_at_level(struct fa *fa, struct state *st, size_t level,
-                        void (*f)(struct fa *, struct state *, void *), void *data) {
-    if (!st->visited) {
-        st->visited = 1;
-        if (level) {
-            for_each_trans(t, st) {
-                do_at_level(fa, t->to, level - 1, f, data);
-            }
-        } else {
-            f(fa, st, data);
-        }
-    }
-}
-
-static void add_level(struct fa *fa, struct state *st, void *data) {
-    char *max = (char *)data;
-    struct state *add = add_state(fa, st->accept);
-    st->accept = 0;
-    for_each_trans(t, st) {
-        add_new_trans(add, t->to, t->min, t->max);
-    }
-    free_trans(st);
-    add_new_trans(st, add, '0', *max);
-}
-
 void fa_add_level(struct fa *fa, size_t level, char max) {
+    struct state_set *worklist = state_set_init(-1, S_NONE);
+    E(worklist == NULL);
     list_for_each(s, fa->initial) {
         s->visited = 0;
     }
-    do_at_level(fa, fa->initial, level, add_level, &max);
+    fa->initial->level = 0;
+    for (struct state *s = fa->initial; s != NULL; s = state_set_pop(worklist)) {
+        if (s->level == level) {
+            struct state *add = add_state(fa, s->accept);
+            s->accept = 0;
+            for_each_trans(t, s) {
+                add_new_trans(add, t->to, t->min, t->max);
+            }
+            free_trans(s);
+            add_new_trans(s, add, '0', max);
+        } else {
+            for_each_trans(t, s) {
+                if (!t->to->visited) {
+                    t->to->visited = 1;
+                    t->to->level = s->level + 1;
+                    F(state_set_push(worklist, t->to));
+                }
+            }
+        }
+    }
+ error:
+    state_set_free(worklist);
 }
 
 size_t fa_remove_last(struct fa *fa) {
