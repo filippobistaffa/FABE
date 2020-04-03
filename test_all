@@ -2,8 +2,16 @@
 
 declare -A opt
 
+# SPOT5 dataset
+opt["./datasets/wcsp/spot5/29.wcsp"]="8059"
+opt["./datasets/wcsp/spot5/404.wcsp"]="114"
+opt["./datasets/wcsp/spot5/408b.wcsp"]="6225"
+opt["./datasets/wcsp/spot5/42b.wcsp"]="155050"
+opt["./datasets/wcsp/spot5/503.wcsp"]="11113"
+opt["./datasets/wcsp/spot5/505b.wcsp"]="21251"
 opt["./datasets/wcsp/spot5/54.wcsp"]="37"
 
+# test dataset
 opt["./datasets/wcsp/test/0.wcsp"]="191"
 opt["./datasets/wcsp/test/1.wcsp"]="199"
 opt["./datasets/wcsp/test/2.wcsp"]="234"
@@ -70,11 +78,13 @@ function check {
 total_time=0
 n_tests=0
 
-check "./datasets/wcsp/spot5/54.wcsp"
-
-while IFS= read -rd $'\0' file; do
-    check "$file"
-done < <(find ./datasets/wcsp/test -name "*.wcsp" -type f -print0)
+for dataset in "spot5" "test"
+do
+        while IFS= read -rd $'\0' file
+        do
+                check "$file"
+        done < <(find ./datasets/wcsp/$dataset -name "*.wcsp" -type f -print0)
+done
 
 echo
 echo -e "Tot. runtime = $total_time"
