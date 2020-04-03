@@ -1,6 +1,9 @@
 #!/bin/bash
 
 declare -A opt
+
+opt["./datasets/wcsp/spot5/54.wcsp"]="37"
+
 opt["./datasets/wcsp/test/0.wcsp"]="191"
 opt["./datasets/wcsp/test/1.wcsp"]="199"
 opt["./datasets/wcsp/test/2.wcsp"]="234"
@@ -46,16 +49,23 @@ opt["./datasets/wcsp/test/40.wcsp"]="212"
 bin=./fabe
 
 function check {
-
-        echo -n "$1 (expected value = ${opt[$1]})... " 
+        msg="$1 (expected value = ${opt[$1]})... "
+        current=${#msg}
+        echo -n $msg
+        start=`date +%s.%N`
         val=`${bin} $1 | tail -n 1`
-        echo $val
+        end=`date +%s.%N`
+        runtime=$(echo "$end - $start" | bc | awk '{printf "%f", $0}')
+        rem=$(( $(tput cols) - $current - ${#val} ))
+        printf " %s%${rem}s\n" "$val" "[${runtime}]"
         if [ $val != ${opt[$1]} ]; 
         then
                 echo "FAILED: $1"
                 exit 1
         fi
 }
+
+check "./datasets/wcsp/spot5/54.wcsp"
 
 while IFS= read -rd $'\0' file; do
     check "$file"
