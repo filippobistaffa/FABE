@@ -18,6 +18,8 @@ static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vect
         #endif
 
         automata join;
+
+        // compute variables (and their domains) of join function
         SET_OP(set_union, a1.vars, a2.vars, join.vars, compare_pos(pos));
 
         for (auto var : join.vars) {
