@@ -86,7 +86,14 @@ function check {
 total_time=0
 n_tests=0
 
-for dataset in "spot5" #"mastermind" "test"
+check "./datasets/wcsp/mastermind/mastermind_03_08_03.wcsp"
+#check "./datasets/wcsp/mastermind/mastermind_03_08_04.wcsp"
+#check "./datasets/wcsp/mastermind/mastermind_03_08_05.wcsp"
+check "./datasets/wcsp/mastermind/mastermind_04_08_03.wcsp"
+#check "./datasets/wcsp/mastermind/mastermind_04_08_04.wcsp"
+#check "./datasets/wcsp/mastermind/mastermind_10_08_03.wcsp"
+
+for dataset in "spot5" "test"
 do
         while IFS= read -rd $'\0' file
         do
