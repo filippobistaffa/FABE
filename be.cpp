@@ -151,7 +151,9 @@ static value reduce_last_var(automata &a) {
 
         for (auto it = next(keys.begin()); it != keys.end(); ++it) {
                 for (auto prev = keys.begin(); prev != it; ++prev) {
-                        OP_FREE_OLD(fa_minus, fa_free, a.rows[*it], a.rows[*prev]);
+                        if (!fa_is_basic(a.rows[*prev], FA_EMPTY)) {
+                                OP_FREE_OLD(fa_minus, fa_free, a.rows[*it], a.rows[*prev]);
+                        }
                 }
                 //fa_minimize(a.rows[*it]);
                 if (fa_is_basic(a.rows[*it], FA_EMPTY)) {
