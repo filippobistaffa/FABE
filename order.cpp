@@ -95,7 +95,7 @@ size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> 
         vector<boost::dynamic_bitset<>> tmp_adj(adj);
 	size_t w = 0;
 
-        for (auto i = order.begin(); i != order.end(); ++i) {
+        for (auto i = order.rbegin(); i != order.rend(); ++i) {
                 w = max(w, tmp_adj[*i].count());
                 for EACH_SET_BIT(tmp_adj[*i], n1) {
                         tmp_adj[n1].reset(*i);
