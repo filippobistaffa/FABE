@@ -78,7 +78,7 @@ function check {
 total_time=0
 n_tests=0
 
-for dataset in "spot5" "test"
+for dataset in "spot5" #"test"
 do
         while IFS= read -rd $'\0' file
         do
