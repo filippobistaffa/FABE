@@ -173,6 +173,10 @@ static value reduce_last_var(automata &a) {
 value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
                          vector<size_t> const &pos, vector<size_t> const &domains, size_t max_iter) {
 
+        #ifdef PROFILE
+        ProfilerStart(PROFILE);
+        #endif
+
         value optimal = 0;
 
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
@@ -190,6 +194,12 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                         return optimal;
                 }
         }
+
+        #ifdef PROFILE
+        ProfilerStop();
+        #endif
+
+        //cout << endl << "Section time = " << TOTAL_TIME << endl;
 
         return optimal;
 }

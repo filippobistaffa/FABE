@@ -6,12 +6,6 @@
 #include "conversion.hpp"
 #include "be.hpp"
 
-#define PROFILE "trace.prof"
-
-#ifdef PROFILE
-#include <gperftools/profiler.h>
-#endif
-
 // known threshold values to remove rows
 static const char* datasets[] = { "spot5",
                                   "mastermind",

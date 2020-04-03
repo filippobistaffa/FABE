@@ -12,6 +12,12 @@
 #include "io.hpp"
 #include "conversion.hpp"
 
+#define PROFILE "trace.prof"
+
+#ifdef PROFILE
+#include <gperftools/profiler.h>
+#endif
+
 __attribute__((always_inline)) inline
 size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
 
