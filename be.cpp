@@ -1,6 +1,10 @@
 #include "be.hpp"
 
+// print tables during execution
 //#define PRINT_TABLES
+
+// enable profiling
+//#define PROFILE "trace.prof"
 
 #define REDUCTION_MIN
 //#define REDUCTION_MAX
@@ -10,13 +14,20 @@
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 // measure sections of code
-/*
 #include <chrono>
 static chrono::duration<double> total_t;
 #define START_CLOCK auto start_t = chrono::high_resolution_clock::now()
 #define STOP_CLOCK total_t += chrono::high_resolution_clock::now() - start_t
 #define TOTAL_TIME total_t.count()
-*/
+
+#ifdef PROFILE
+#include <gperftools/profiler.h>
+#endif
+
+#ifdef PRINT_TABLES
+#include "conversion.hpp"
+#include "io.hpp"
+#endif
 
 static automata join(automata &a1, automata &a2, vector<size_t> const &pos, vector<size_t> const &domains) {
 
@@ -147,6 +158,8 @@ static value reduce_last_var(automata &a) {
                 return keys.front();
         }
 
+        START_CLOCK;
+
         vector<struct fa *> pfx_union(keys.size());
         pfx_union[0] = fa_make_basic(FA_EMPTY);
 
@@ -154,6 +167,8 @@ static value reduce_last_var(automata &a) {
                 pfx_union[i] = fa_union(a.rows[keys[i - 1]], pfx_union[i - 1]);
                 fa_minimize(pfx_union[i]);
         }
+
+        STOP_CLOCK;
 
         vector<value> empty;
 
@@ -205,7 +220,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
         ProfilerStop();
         #endif
 
-        //cout << endl << "Section time = " << TOTAL_TIME << endl;
+        cout << endl << "Section time = " << TOTAL_TIME << endl;
 
         return optimal;
 }
