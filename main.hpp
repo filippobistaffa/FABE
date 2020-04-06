@@ -6,6 +6,8 @@
 #include "conversion.hpp"
 #include "be.hpp"
 
+#include <chrono>
+
 // known threshold values to remove rows
 static const char* datasets[] = { "spot5",
                                   "mastermind",

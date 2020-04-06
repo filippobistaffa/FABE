@@ -11,6 +11,8 @@ int main(int argc, char *argv[]) {
                 return EXIT_FAILURE;
         }
 
+        auto start_t = chrono::high_resolution_clock::now();
+
         size_t max_iter = numeric_limits<size_t>::max();
 
         if (argc == 3) {
@@ -74,7 +76,9 @@ int main(int argc, char *argv[]) {
 
         const auto optimal = bucket_elimination(buckets, order, pos, domains, max_iter);
 
-        cout << endl << optimal << endl;
+        chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
+        cout << endl << runtime.count() << endl;
+        cout << optimal << endl;
 
         return EXIT_SUCCESS;
 }
