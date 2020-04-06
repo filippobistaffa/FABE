@@ -1967,6 +1967,7 @@ int fa_union_in_place(struct fa *fa1, struct fa **fa2) {
     fa_merge(fa1, fa2);
 
     set_initial(fa1, s);
+    fa_merge_accept(fa1);
 
     return 0;
 }
