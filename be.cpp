@@ -14,11 +14,12 @@
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 // measure sections of code
-#include <chrono>
+/*#include <chrono>
 static chrono::duration<double> total_t;
 #define START_CLOCK auto start_t = chrono::high_resolution_clock::now()
 #define STOP_CLOCK total_t += chrono::high_resolution_clock::now() - start_t
 #define TOTAL_TIME total_t.count()
+*/
 
 #ifdef PROFILE
 #include <gperftools/profiler.h>
@@ -158,7 +159,7 @@ static value reduce_last_var(automata &a) {
                 return keys.front();
         }
 
-        START_CLOCK;
+        //START_CLOCK;
 
         vector<struct fa *> pfx_union(keys.size());
         pfx_union[0] = fa_make_basic(FA_EMPTY);
@@ -168,7 +169,7 @@ static value reduce_last_var(automata &a) {
                 fa_minimize(pfx_union[i]);
         }
 
-        STOP_CLOCK;
+        //STOP_CLOCK;
 
         vector<value> empty;
 
@@ -220,7 +221,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
         ProfilerStop();
         #endif
 
-        cout << endl << "Section time = " << TOTAL_TIME << endl;
+        //cout << endl << "Section time = " << TOTAL_TIME << endl;
 
         return optimal;
 }
