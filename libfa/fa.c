@@ -4758,7 +4758,33 @@ static void sig_destroy(hnode_t *node, ATTRIBUTE_UNUSED void *ctx) {
     free(node);
 }
 
+static void minimize_bubenzer_rec(struct fa *fa, struct state *st, hash_t *reg) {
+    for_each_trans(t, st) {
+        if (!t->to->repr) {
+            minimize_bubenzer_rec(fa, t->to, reg);
+        }
+        t->to = t->to->repr;
+    }
+    const struct signature *sig = sig_create(st);
+    const hnode_t *node = hash_lookup(reg, sig);
+    if (node) {
+        st->repr = (struct state *) hnode_get(node);
+        st->live = 0; // has to be deleted
+    } else {
+        hash_alloc_insert(reg, sig, st);
+        st->repr = st; // representative
+    }
+}
+
 static int minimize_bubenzer(struct fa *fa) {
+    determinize(fa, NULL);
+    hash_t *reg = hash_create(HASHCOUNT_T_MAX, sig_cmp, sig_hash);
+    hash_set_allocator(reg, NULL, sig_destroy, NULL);
+    minimize_bubenzer_rec(fa, fa->initial, reg);
+    hash_free_nodes(reg);
+    hash_destroy(reg);
+    collect_dead_states(fa);
+    //reduce(fa);
     return 0;
 }
 
