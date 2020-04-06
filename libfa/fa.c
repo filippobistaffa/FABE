@@ -461,6 +461,7 @@ static int add_new_trans(struct state *from, struct state *to,
             return -1;
         from->tsize = tsize;
     }
+    memset(from->trans + from->tused, 0, sizeof(struct trans));
     from->trans[from->tused].to  = to;
     from->trans[from->tused].min = min;
     from->trans[from->tused].max = max;
