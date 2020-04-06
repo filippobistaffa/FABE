@@ -25,7 +25,6 @@
 
 #include "list.h"
 #include "datadir.h"
-#include "augeas.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -37,6 +36,7 @@
 #include <assert.h>
 #include <locale.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 /*
  * Various parameters about env vars, special tree nodes etc.
