@@ -9,7 +9,7 @@ DEPDIR=dep
 
 CMP_CPP=g++ -std=c++1z -Wno-register
 CMP_C=gcc
-INC=-I/usr/include/libxml2 -I$(shell pwd)/libfa
+INC=-I$(shell pwd) -I$(shell pwd)/libfa
 WARN=-Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-sign-compare -Wno-maybe-uninitialized -Wno-ignored-attributes -Wno-strict-aliasing 
 WARN+=-Wno-misleading-indentation -Wno-format-overflow -Wno-nonnull-compare
 OPTIM=-Ofast -march=native -funroll-loops -funsafe-loop-optimizations -falign-functions=16 -falign-loops=16 -fopenmp
