@@ -4727,6 +4727,11 @@ struct signature {
     int          n;
 };
 
+static hash_val_t sig_hash(const void *key) {
+    const struct signature *sig = key;
+    return jenkins_hash(sig->trans, sizeof(struct trans) * sig->n);
+}
+
 static int sig_cmp(const void *key1, const void *key2) {
     const struct signature *sig1 = key1;
     const struct signature *sig2 = key2;
@@ -4739,14 +4744,10 @@ static int sig_cmp(const void *key1, const void *key2) {
     }
 }
 
-static hash_val_t sig_hash(const void *key) {
-    const struct signature *sig = key;
-    return jenkins_hash(sig->trans, sizeof(struct trans) * sig->n);
-}
-
 static struct signature *sig_create(struct state *st) {
     struct signature *sig = malloc(sizeof(struct signature));
-    sig->trans = st->trans,
+    qsort(st->trans, st->tused, sizeof(*st->trans), trans_to_cmp);
+    sig->trans = st->trans;
     sig->n = st->tused;
     return sig;
 }
