@@ -62,7 +62,8 @@ enum fa_basic {
  */
 enum fa_minimization_algorithms {
     FA_MIN_HOPCROFT,
-    FA_MIN_BRZOZOWSKI
+    FA_MIN_BRZOZOWSKI,
+    FA_MIN_BUBENZER
 };
 
 /* Which minimization algorithm to use in FA_MINIMIZE. The library

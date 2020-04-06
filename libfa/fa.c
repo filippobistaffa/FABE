@@ -1770,6 +1770,8 @@ static int minimize_brzozowski(struct fa *fa) {
     return -1;
 }
 
+static int minimize_bubenzer(struct fa *fa);
+
 int fa_minimize(struct fa *fa) {
     int r;
 
@@ -1778,10 +1780,15 @@ int fa_minimize(struct fa *fa) {
     if (fa->minimal)
         return 0;
 
-    if (fa_minimization_algorithm == FA_MIN_BRZOZOWSKI) {
-        r = minimize_brzozowski(fa);
-    } else {
-        r = minimize_hopcroft(fa);
+    switch (fa_minimization_algorithm) {
+        case FA_MIN_BRZOZOWSKI:
+            r = minimize_brzozowski(fa);
+            break;
+        case FA_MIN_BUBENZER:
+            r = minimize_bubenzer(fa);
+            break;
+        default:
+            r = minimize_hopcroft(fa);
     }
 
     if (r == 0)
@@ -4696,6 +4703,12 @@ void fa_merge_accept(struct fa *fa) {
         }
     }
     accept->accept = 1;
+}
+
+/* --- Bubenzer minimization --- */
+
+static int minimize_bubenzer(struct fa *fa) {
+    return 0;
 }
 
 /*
