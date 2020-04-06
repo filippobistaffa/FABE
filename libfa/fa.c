@@ -88,6 +88,7 @@ struct state {
     size_t        tused;
     size_t        tsize;
     struct trans *trans;
+    struct state *repr; // used for Bubenzer's algorithm
 };
 
 /* A transition. If the input has a character in the inclusive
@@ -4706,6 +4707,55 @@ void fa_merge_accept(struct fa *fa) {
 }
 
 /* --- Bubenzer minimization --- */
+
+static hash_val_t jenkins_hash(const void *p, size_t byte_size) {
+    hash_val_t hash = 0;
+    char *c = (char *) p;
+    for (int i = 0; i < byte_size; i++) {
+        hash += c[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash;
+}
+
+struct signature {
+    struct trans *trans;
+    int          n;
+};
+
+static int sig_cmp(const void *key1, const void *key2) {
+    const struct signature *sig1 = key1;
+    const struct signature *sig2 = key2;
+    const int n = sig1->n <= sig2->n ? sig1->n : sig2->n;
+    const int cmp = memcmp(sig1->trans, sig2->trans, sizeof(struct trans) * n);
+    if (cmp == 0) {
+        return sig1->n - sig2->n;
+    } else {
+        return cmp;
+    }
+}
+
+static hash_val_t sig_hash(const void *key) {
+    const struct signature *sig = key;
+    return jenkins_hash(sig->trans, sizeof(struct trans) * sig->n);
+}
+
+static struct signature *sig_create(struct state *st) {
+    struct signature *sig = malloc(sizeof(struct signature));
+    sig->trans = st->trans,
+    sig->n = st->tused;
+    return sig;
+}
+
+static void sig_destroy(hnode_t *node, ATTRIBUTE_UNUSED void *ctx) {
+    struct signature *sig = (struct signature *) hnode_getkey(node);
+    free(sig);
+    free(node);
+}
 
 static int minimize_bubenzer(struct fa *fa) {
     return 0;
