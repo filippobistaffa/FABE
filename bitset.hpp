@@ -2,7 +2,6 @@
 #define BITSET_H_
 
 #include <boost/dynamic_bitset.hpp>
-#include <boost/function_output_iterator.hpp>
 
 using namespace std;
 
