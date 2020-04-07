@@ -10,11 +10,13 @@
 
 // known threshold values to remove rows
 static const char* datasets[] = { "spot5",
+                                  "celar6",
                                   "mastermind",
                                   "iscas89"
                                 };
 
 static const value thresholds[] = { 100000,
+                                    1000,
                                     100,
                                     100
                                   };
