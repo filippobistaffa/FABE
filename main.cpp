@@ -14,10 +14,25 @@ int main(int argc, char *argv[]) {
         const size_t ibound = (argc == 3) ? max(0, atoi(argv[2])) : 0;
         auto start_t = chrono::high_resolution_clock::now();
 
+        if (ibound) {
+                cout << "I-bound = " << ibound << endl;
+        }
+
+        // look for a known threshold to remove rows
+        value threshold = numeric_limits<value>::max();
+
+        for (auto i = 0; i < N_DATASETS; ++i) {
+                if (strstr(argv[1], datasets[i]) != NULL) {
+                        threshold = thresholds[i];
+                        cout << "Thresholds value = " << threshold << endl;
+                }
+        }
+
         auto adj = read_adj(argv[1]);
         //print_adj(adj);
         //cout << endl;
 
+        cout << "Computing variable order..." << endl << endl;
         auto order = greedy_order(adj);
         reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
@@ -29,16 +44,6 @@ int main(int argc, char *argv[]) {
         #ifdef PRINT_VAR_POS
         var_map = pos;
         #endif
-
-        // look for a known threshold to remove rows
-        value threshold = numeric_limits<value>::max();
-
-        for (auto i = 0; i < N_DATASETS; ++i) {
-                if (strstr(argv[1], datasets[i]) != NULL) {
-                        threshold = thresholds[i];
-                        cout << "Thresholds value = " << threshold << endl << endl;
-                }
-        }
 
         auto [ domains, tables ] = read_domains_tables(argv[1], pos, threshold);
 
@@ -70,7 +75,7 @@ int main(int argc, char *argv[]) {
         //cout << vec2str(pos, "Pos.") << endl;
         //cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
 
-        const auto optimal = bucket_elimination(buckets, order, pos, domains);
+        const auto optimal = bucket_elimination(buckets, order, pos, domains, ibound);
 
         chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
         cout << endl << runtime.count() << endl;
