@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
         for (auto i = 0; i < N_DATASETS; ++i) {
                 if (strstr(argv[1], datasets[i]) != NULL) {
                         threshold = thresholds[i];
+                        cout << "Thresholds value = " << threshold << endl << endl;
                 }
         }
 
