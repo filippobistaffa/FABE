@@ -79,7 +79,7 @@ function check {
         n_tests=$(( $n_tests + 1 ))
         rem=$(( $(tput cols) - $current - ${#val} ))
         printf " %s%${rem}s\n" "$val" "[${runtime}]"
-        if [ $val != ${opt[$1]} ]; 
+        if [ $val != ${opt[$1]} ]
         then
                 echo "${red}FAILED: $1${normal}"
                 exit 1
