@@ -40,6 +40,6 @@ void free_bucket(vector<automata> &bucket) {
 }
 
 value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
-                         vector<size_t> const &pos, vector<size_t> const &domains);
+                         vector<size_t> const &pos, vector<size_t> const &domains, size_t ibound = 0);
 
 #endif /* BE_HPP_ */
