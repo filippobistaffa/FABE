@@ -210,9 +210,35 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
         return res;
 }
 
-static inline vector<vector<automata>> mini_buckets(vector<automata> const &bucket, size_t ibound) {
+static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, size_t ibound,
+                                                    vector<size_t> const &pos) {
 
-        vector<vector<automata>> mini_buckets;
+        // doing a simple FFD bin packing
+        sort(bucket.begin(), bucket.end(), [](automata const &x, automata const &y) {
+                return (x.vars.size() > y.vars.size());
+        });
+
+        // initialise first mini-bucket with first (larger) function
+        vector<vector<size_t>> bucket_vars = { bucket.front().vars };
+        vector<vector<automata>> mini_buckets = { { move(bucket.front()) } };
+
+        for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
+                auto mb = 0;
+                for (; mb < mini_buckets.size(); ++mb) {
+                        vector<size_t> tmp;
+                        SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_pos(pos));
+                        if (tmp.size() <= ibound) { // function fits in this mini-bucket
+                                mini_buckets[mb].push_back(move(*it));
+                                bucket_vars[mb] = tmp;
+                                break;
+                        }
+                }
+                if (mb == mini_buckets.size()) { // could not find any bucket
+                        bucket_vars.push_back({ it->vars });
+                        mini_buckets.push_back({ move(*it) });
+                }
+        }
+
         return mini_buckets;
 }
 
@@ -227,8 +253,8 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
 
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
                 cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
-                if (ibound) {
-                        auto mb = mini_buckets(buckets[*it], ibound);
+                if (ibound && buckets[*it].size() > 1) {
+                        auto mb = mini_buckets(buckets[*it], ibound, pos);
                         for (auto &bucket : mb) {
                                 optimal += process_bucket(bucket, buckets, pos, domains);
                         }
