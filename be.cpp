@@ -193,7 +193,7 @@ static value reduce_last_var(automata &a) {
 }
 
 value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
-                         vector<size_t> const &pos, vector<size_t> const &domains, size_t max_iter) {
+                         vector<size_t> const &pos, vector<size_t> const &domains) {
 
         #ifdef PROFILE
         ProfilerStart(PROFILE);
@@ -211,9 +211,6 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                                 //automata_dot(h, "dot");
                                 cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
                         }
-                }
-                if (--max_iter == 0) {
-                        return optimal;
                 }
         }
 
