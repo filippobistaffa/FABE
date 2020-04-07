@@ -7,10 +7,11 @@ extern vector<size_t> var_map;
 int main(int argc, char *argv[]) {
 
         if (argc != 2 && argc != 3) {
-                cout << "Usage: " << argv[0] << " wcsp_instance" << endl;
+                cout << "Usage: " << argv[0] << " wcsp_instance [i-bound]" << endl;
                 return EXIT_FAILURE;
         }
 
+        const size_t ibound = (argc == 3) ? max(0, atoi(argv[2])) : 0;
         auto start_t = chrono::high_resolution_clock::now();
 
         auto adj = read_adj(argv[1]);
