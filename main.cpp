@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
         const auto optimal = bucket_elimination(buckets, order, pos, domains, ibound);
 
         chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
-        cout << endl << runtime.count() << endl;
+        cout << endl << "Time elapsed = " << runtime.count() << endl;
         cout << optimal << endl;
 
         return EXIT_SUCCESS;
