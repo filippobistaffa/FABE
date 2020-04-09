@@ -88,6 +88,7 @@ struct state {
     size_t        tused;
     size_t        tsize;
     struct trans *trans;
+    struct state *repr; // used for Bubenzer's algorithm
 };
 
 /* A transition. If the input has a character in the inclusive
@@ -461,6 +462,7 @@ static int add_new_trans(struct state *from, struct state *to,
             return -1;
         from->tsize = tsize;
     }
+    memset(from->trans + from->tused, 0, sizeof(struct trans));
     from->trans[from->tused].to  = to;
     from->trans[from->tused].min = min;
     from->trans[from->tused].max = max;
@@ -1769,6 +1771,8 @@ static int minimize_brzozowski(struct fa *fa) {
     return -1;
 }
 
+static int minimize_bubenzer(struct fa *fa);
+
 int fa_minimize(struct fa *fa) {
     int r;
 
@@ -1777,10 +1781,15 @@ int fa_minimize(struct fa *fa) {
     if (fa->minimal)
         return 0;
 
-    if (fa_minimization_algorithm == FA_MIN_BRZOZOWSKI) {
-        r = minimize_brzozowski(fa);
-    } else {
-        r = minimize_hopcroft(fa);
+    switch (fa_minimization_algorithm) {
+        case FA_MIN_BRZOZOWSKI:
+            r = minimize_brzozowski(fa);
+            break;
+        case FA_MIN_BUBENZER:
+            r = minimize_bubenzer(fa);
+            break;
+        default:
+            r = minimize_hopcroft(fa);
     }
 
     if (r == 0)
@@ -1966,6 +1975,7 @@ int fa_union_in_place(struct fa *fa1, struct fa **fa2) {
     fa_merge(fa1, fa2);
 
     set_initial(fa1, s);
+    fa_merge_accept(fa1);
 
     return 0;
 }
@@ -4694,6 +4704,88 @@ void fa_merge_accept(struct fa *fa) {
         }
     }
     accept->accept = 1;
+}
+
+/* --- Bubenzer minimization --- */
+
+static hash_val_t jenkins_hash(const void *p, size_t byte_size) {
+    hash_val_t hash = 0;
+    char *c = (char *) p;
+    for (int i = 0; i < byte_size; i++) {
+        hash += c[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+    return hash;
+}
+
+struct signature {
+    struct trans *trans;
+    int          n;
+};
+
+static hash_val_t sig_hash(const void *key) {
+    const struct signature *sig = key;
+    return jenkins_hash(sig->trans, sizeof(struct trans) * sig->n);
+}
+
+static int sig_cmp(const void *key1, const void *key2) {
+    const struct signature *sig1 = key1;
+    const struct signature *sig2 = key2;
+    const int n = sig1->n <= sig2->n ? sig1->n : sig2->n;
+    const int cmp = memcmp(sig1->trans, sig2->trans, sizeof(struct trans) * n);
+    if (cmp == 0) {
+        return sig1->n - sig2->n;
+    } else {
+        return cmp;
+    }
+}
+
+static struct signature *sig_create(struct state *st) {
+    struct signature *sig = malloc(sizeof(struct signature));
+    qsort(st->trans, st->tused, sizeof(*st->trans), trans_to_cmp);
+    sig->trans = st->trans;
+    sig->n = st->tused;
+    return sig;
+}
+
+static void sig_destroy(hnode_t *node, ATTRIBUTE_UNUSED void *ctx) {
+    struct signature *sig = (struct signature *) hnode_getkey(node);
+    free(sig);
+    free(node);
+}
+
+static void minimize_bubenzer_rec(struct fa *fa, struct state *st, hash_t *reg) {
+    for_each_trans(t, st) {
+        if (!t->to->repr) {
+            minimize_bubenzer_rec(fa, t->to, reg);
+        }
+        t->to = t->to->repr;
+    }
+    const struct signature *sig = sig_create(st);
+    const hnode_t *node = hash_lookup(reg, sig);
+    if (node) {
+        st->repr = (struct state *) hnode_get(node);
+        st->live = 0; // has to be deleted
+    } else {
+        hash_alloc_insert(reg, sig, st);
+        st->repr = st; // representative
+    }
+}
+
+static int minimize_bubenzer(struct fa *fa) {
+    determinize(fa, NULL);
+    hash_t *reg = hash_create(HASHCOUNT_T_MAX, sig_cmp, sig_hash);
+    hash_set_allocator(reg, NULL, sig_destroy, NULL);
+    minimize_bubenzer_rec(fa, fa->initial, reg);
+    hash_free_nodes(reg);
+    hash_destroy(reg);
+    collect_dead_states(fa);
+    //reduce(fa);
+    return 0;
 }
 
 /*

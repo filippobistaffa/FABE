@@ -54,7 +54,8 @@ int main(int argc, char *argv[]) {
 
         vector<automata> automatas(tables.size());
         // change minimisation algorithm
-        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
+        //fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
+        fa_minimization_algorithm = FA_MIN_BUBENZER;
 
         //#pragma omp parallel for
         for (auto i = 0; i < tables.size(); ++i) {
