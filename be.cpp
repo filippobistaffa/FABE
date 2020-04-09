@@ -185,6 +185,10 @@ static inline value reduce_last_var(automata &a) {
                 a.rows.erase(e);
         }
 
+        for (auto a : pfx_union) {
+                fa_free(a);
+        }
+
         #ifdef PRINT_TABLES
         print_table(compute_table(a));
         cout << endl;
