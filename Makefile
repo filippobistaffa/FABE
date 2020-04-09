@@ -7,7 +7,7 @@ SRCDIR_CPP=.
 OBJDIR=obj
 DEPDIR=dep
 
-CMP_CPP=g++ -std=c++1z -Wno-register
+CMP_CPP=g++ -std=c++1z
 CMP_C=gcc
 INC=-I$(shell pwd) -I$(shell pwd)/libfa
 WARN=-Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-sign-compare -Wno-maybe-uninitialized -Wno-ignored-attributes -Wno-strict-aliasing 
