@@ -108,6 +108,7 @@
  *
  * Returns -1 on failure to allocate, zero on success
  */
+__attribute__((always_inline))
 static inline int mem_alloc_n(void *ptrptr, size_t size, size_t count)
 {
     if (AUGEAS_UNLIKELY(size == 0 || count == 0)) {
@@ -135,6 +136,7 @@ static inline int mem_alloc_n(void *ptrptr, size_t size, size_t count)
  *
  * Returns -1 on failure to allocate, zero on success
  */
+__attribute__((always_inline))
 static inline int mem_realloc_n(void *ptrptr, size_t size, size_t count)
 {
     void *tmp;
