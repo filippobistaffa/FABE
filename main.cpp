@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
         // change minimisation algorithm
         fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
 
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for (auto i = 0; i < tables.size(); ++i) {
                 automatas[i] = compute_automata(tables[i]);
         }
