@@ -24,9 +24,18 @@ OBJF=${SRC_C:.c=.o} ${SRC_CPP:.cpp=.o}
 OBJB=$(notdir ${OBJF})
 OBJ=$(addprefix ${OBJDIR}/,${OBJB})
 
-ECHOCC=>&2 echo "[\033[01;33m  C  \033[0m]"
-ECHOCP=>&2 echo "[\033[01;33m C++ \033[0m]"
-ECHOLD=>&2 echo "[\033[01;36m  L  \033[0m]"
+BOLD=$$(tput bold)
+RED=$$(tput setaf 1)
+GREEN=$$(tput setaf 2)
+YELLOW=$$(tput setaf 3)
+BLUE=$$(tput setaf 4)
+MAGENTA=$$(tput setaf 5)
+CYAN=$$(tput setaf 6)
+NORMAL=$$(tput sgr0)
+
+ECHOCC=>&2 echo "[${BOLD}${YELLOW}  C  ${NORMAL}]"
+ECHOCP=>&2 echo "[${BOLD}${YELLOW} C++ ${NORMAL}]"
+ECHOLD=>&2 echo "[${BOLD}${CYAN}  L  ${NORMAL}]"
 
 OPT=${PROF} # Put desired optimisation level here
 
