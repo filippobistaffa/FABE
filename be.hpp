@@ -27,16 +27,12 @@ vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vect
 }
 
 __attribute__((always_inline)) inline
-void free_bucket(vector<automata> &bucket) {
+void free_automata(automata &a) {
 
-        for (auto& a : bucket) {
-                for (auto& [ v, fa ] : a.rows) {
-                        fa_free(fa);
-                }
-                a.rows.clear();
+        for (auto& [ v, fa ] : a.rows) {
+                fa_free(fa);
         }
-
-        bucket.clear();
+        a.rows.clear();
 }
 
 value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,

@@ -16,7 +16,7 @@ OPTIM=-Ofast -march=native -funroll-loops -funsafe-loop-optimizations -falign-fu
 NOOPTIM=-O0 -march=native -fopenmp
 DBG=-g ${NOOPTIM}
 PROF=-g ${OPTIM}
-LINK=-lpthread -lprofiler
+LINK=-lpthread -lprofiler -ltcmalloc
 
 SRC_C=$(shell find "${SRCDIR_C}" -name "*.c")
 SRC_CPP=$(shell find "${SRCDIR_CPP}" -name "*.cpp")

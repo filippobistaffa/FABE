@@ -1,34 +1,33 @@
 #include "be.hpp"
 
+#define REDUCTION_MIN
+//#define REDUCTION_MAX
+
 // print tables during execution
 //#define PRINT_TABLES
 
 // enable profiling
-//#define PROFILE "trace.prof"
+//#define CPU_PROFILER
+//#define HEAP_PROFILER
 
-#define REDUCTION_MIN
-//#define REDUCTION_MAX
-
-#define JOIN_OP(X, Y) (X + Y)
-#define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
-#define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
-
-// measure sections of code
-/*#include <chrono>
-static chrono::duration<double> total_t;
-#define START_CLOCK auto start_t = chrono::high_resolution_clock::now()
-#define STOP_CLOCK total_t += chrono::high_resolution_clock::now() - start_t
-#define TOTAL_TIME total_t.count()
-*/
-
-#ifdef PROFILE
+#ifdef CPU_PROFILER
+#define CPU_PROFILER_OUTPUT "trace.prof"
 #include <gperftools/profiler.h>
+#endif
+
+#ifdef HEAP_PROFILER
+#define HEAP_PROFILER_PREFIX "memory/memory"
+#include <gperftools/heap-profiler.h>
 #endif
 
 #ifdef PRINT_TABLES
 #include "conversion.hpp"
 #include "io.hpp"
 #endif
+
+#define JOIN_OP(X, Y) (X + Y)
+#define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
+#define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 static inline automata join(automata &a1, automata &a2, vector<size_t> const &pos, vector<size_t> const &domains) {
 
@@ -122,8 +121,20 @@ static inline automata join_bucket(vector<automata> &bucket, vector<size_t> cons
         auto res = bucket.front();
 
 	for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
-	        auto old = res;
-	        res = join(old, *it, pos, domains);
+                auto old = res;
+                #ifdef HEAP_PROFILER
+                HeapProfilerDump("pre-join");
+                #endif
+                res = join(old, *it, pos, domains);
+                #ifdef HEAP_PROFILER
+                HeapProfilerDump("post-join");
+                #endif
+                free_automata(old);
+                free_automata(*it);
+                #ifdef HEAP_PROFILER
+                HeapProfilerDump("post-free");
+                #endif
+                cout << "Joined " << (it - bucket.begin()) + 1 << " functions" << endl;
 	}
 
         return res;
@@ -249,8 +260,12 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
 value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
                          vector<size_t> const &pos, vector<size_t> const &domains, size_t ibound) {
 
-        #ifdef PROFILE
-        ProfilerStart(PROFILE);
+        #ifdef CPU_PROFILER
+        ProfilerStart(CPU_PROFILER_OUTPUT);
+        #endif
+
+        #ifdef HEAP_PROFILER
+        HeapProfilerStart(HEAP_PROFILER_PREFIX);
         #endif
 
         value optimal = 0;
@@ -267,8 +282,12 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                 }
         }
 
-        #ifdef PROFILE
+        #ifdef CPU_PROFILER
         ProfilerStop();
+        #endif
+
+        #ifdef HEAP_PROFILER
+        HeapProfilerStop();
         #endif
 
         //cout << endl << "Section time = " << TOTAL_TIME << endl;
