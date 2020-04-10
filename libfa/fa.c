@@ -4765,11 +4765,12 @@ static void minimize_bubenzer_rec(struct fa *fa, struct state *st, hash_t *reg) 
         }
         t->to = t->to->repr;
     }
-    const struct signature *sig = sig_create(st);
+    struct signature *sig = sig_create(st);
     const hnode_t *node = hash_lookup(reg, sig);
     if (node) {
         st->repr = (struct state *) hnode_get(node);
         st->live = 0; // has to be deleted
+        free(sig);
     } else {
         hash_alloc_insert(reg, sig, st);
         st->repr = st; // representative
