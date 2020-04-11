@@ -4792,7 +4792,6 @@ static int minimize_bubenzer(struct fa *fa) {
     hash_free_nodes(reg);
     hash_destroy(reg);
     collect_dead_states(fa);
-    //reduce(fa);
     return 0;
 }
 
@@ -4839,12 +4838,13 @@ static int minimize_bubenzer(struct fa *fa) {
     hash_set_allocator(reg, NULL, sig_destroy, NULL);
     for (struct state_list_node *cur = queue->last; cur != NULL; cur = cur->prev) {
         minimize_state_bubenzer(cur->state, reg);
+        if (!cur->prev || cur->prev->state->level != cur->state->level) {
+            hash_free_nodes(reg);
+        }
     }
-    hash_free_nodes(reg);
     hash_destroy(reg);
     state_list_free(queue);
     collect_dead_states(fa);
-    //reduce(fa);
     return 0;
  error:
     return -1;
