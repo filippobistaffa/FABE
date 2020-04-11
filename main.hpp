@@ -7,6 +7,7 @@
 #include "be.hpp"
 
 #include <chrono>
+#include <numeric>      // accumulate
 
 // known threshold values to remove rows
 static const char* datasets[] = { "spot5",

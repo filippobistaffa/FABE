@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
         //print_adj(adj);
         //cout << endl;
 
-        cout << "Computing variable order..." << endl << endl;
+        cout << "Computing variable order..." << endl;
         auto order = greedy_order(adj);
         reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
@@ -57,10 +57,19 @@ int main(int argc, char *argv[]) {
         //fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
         fa_minimization_algorithm = FA_MIN_BUBENZER;
 
+        double total_rows = 0;
+        double actual_rows = 0;
+
         //#pragma omp parallel for
         for (auto i = 0; i < tables.size(); ++i) {
                 automatas[i] = compute_automata(tables[i]);
+                actual_rows += automatas[i].rows.size();
+                total_rows += accumulate(automatas[i].domains.begin(),
+                                         automatas[i].domains.end(),
+                                         1, multiplies<size_t>());
         }
+
+        cout << "Redundancy = " << 1 - actual_rows / total_rows << endl << endl;
 
         auto buckets = compute_buckets(automatas, pos);
 
