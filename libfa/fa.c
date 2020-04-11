@@ -4761,6 +4761,8 @@ static void sig_destroy(hnode_t *node, ATTRIBUTE_UNUSED void *ctx) {
     free(node);
 }
 
+#ifdef RECURSIVE
+
 static void minimize_bubenzer_rec(struct fa *fa, struct state *st, hash_t *reg) {
     for_each_trans(t, st) {
         if (!t->to->repr) {
@@ -4791,6 +4793,62 @@ static int minimize_bubenzer(struct fa *fa) {
     //reduce(fa);
     return 0;
 }
+
+#else
+
+// process node assuming that all children have already been processed
+static void minimize_state_bubenzer(struct state *st, hash_t *reg) {
+    for_each_trans(t, st) {
+        t->to = t->to->repr;
+    }
+    struct signature *sig = sig_create(st);
+    const hnode_t *node = hash_lookup(reg, sig);
+    if (node) {
+        st->repr = (struct state *) hnode_get(node);
+        st->live = 0; // has to be deleted
+        free(sig);
+    } else {
+        hash_alloc_insert(reg, sig, st);
+        st->repr = st; // representative
+    }
+}
+
+static int minimize_bubenzer(struct fa *fa) {
+    determinize(fa, NULL);
+    // compute BFS order
+    struct state_list *queue = NULL;
+    F(ALLOC(queue));
+    list_for_each(s, fa->initial) {
+        s->visited = 0;
+    }
+    F(state_list_add(queue, fa->initial));
+    fa->initial->visited = 1; // not really necessary
+    fa->initial->level = 0;
+    for (struct state_list_node *cur = queue->first; cur != NULL; cur = cur->next) {
+        for_each_trans(t, cur->state) {
+            if (!t->to->visited) {
+                t->to->visited = 1;
+                t->to->level = cur->state->level + 1;
+                F(state_list_add(queue, t->to));
+            }
+        }
+    }
+    hash_t *reg = hash_create(HASHCOUNT_T_MAX, sig_cmp, sig_hash);
+    hash_set_allocator(reg, NULL, sig_destroy, NULL);
+    for (struct state_list_node *cur = queue->last; cur != NULL; cur = cur->prev) {
+        minimize_state_bubenzer(cur->state, reg);
+    }
+    hash_free_nodes(reg);
+    hash_destroy(reg);
+    state_list_free(queue);
+    collect_dead_states(fa);
+    //reduce(fa);
+    return 0;
+ error:
+    return -1;
+}
+
+#endif
 
 /*
  * Local variables:
