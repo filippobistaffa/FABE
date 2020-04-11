@@ -83,7 +83,7 @@ struct state {
     unsigned int  reachable : 1;
     unsigned int  visited : 1;   /* Used in various places to track progress */
     //unsigned int  level;
-    unsigned char level;
+    uchar         level;
     /* Array of transitions. The TUSED first entries are used, the array
        has allocated room for TSIZE */
     //size_t        tused;
