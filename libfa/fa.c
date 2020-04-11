@@ -1287,7 +1287,9 @@ static int collect(struct fa *fa) {
         collect_trans(fa);
         collect_dead_states(fa);
     }
-    reduce(fa);
+    if (fa_minimization_algorithm != FA_MIN_BUBENZER) {
+        reduce(fa);
+    }
     return 0;
  error:
     return -1;
