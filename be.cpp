@@ -29,6 +29,8 @@
 #define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
+extern bool parallel;
+
 static inline automata join(automata &a1, automata &a2, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES

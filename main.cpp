@@ -4,31 +4,88 @@
 extern vector<size_t> var_map;
 #endif
 
+bool parallel;
+
+static void print_usage(const char *bin) {
+
+        cout << "Usage: " << bin << " [-h] [-p] [-a bub|brz|hop] [-i bound] -f instance" << endl;
+}
+
 int main(int argc, char *argv[]) {
 
-        if (argc != 2 && argc != 3) {
-                cout << "Usage: " << argv[0] << " wcsp_instance [i-bound]" << endl;
-                return EXIT_FAILURE;
+        fa_minimization_algorithm = FA_MIN_BUBENZER;
+        size_t ibound = 0;
+        char *instance = NULL;
+        int opt;
+
+        while ((opt = getopt(argc, argv, "a:i:f:ph")) != -1) {
+                switch (opt) {
+                        case 'a':
+                                if (strcmp(optarg, "bub") == 0) {
+                                        fa_minimization_algorithm = FA_MIN_BUBENZER;
+                                } else if (strcmp(optarg, "brz") == 0) {
+                                        fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
+                                } else if (strcmp(optarg, "hop") == 0) {
+                                        fa_minimization_algorithm = FA_MIN_HOPCROFT;
+                                } else {
+                                        cerr << argv[0] << ": invalid minimisation algorithm -- '" << optarg << "'" << endl;
+                                        print_usage(argv[0]);
+                                        return EXIT_FAILURE;
+                                }
+                                continue;
+                        case 'p':
+                                parallel = true;
+                                continue;
+                        case 'i':
+                                ibound = max(0, atoi(optarg));
+                                continue;
+                        case 'f':
+                                FILE *file;
+                                if (!(file = fopen(optarg, "r"))) {
+                                        cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
+                                        print_usage(argv[0]);
+                                        return EXIT_FAILURE;
+                                } else {
+                                        instance = optarg;
+                                        fclose(file);
+                                }
+                                continue;
+                        case 'h':
+                        default :
+                                print_usage(argv[0]);
+                                return EXIT_FAILURE;
+                }
         }
 
-        const size_t ibound = (argc == 3) ? max(0, atoi(argv[2])) : 0;
-        auto start_t = chrono::high_resolution_clock::now();
+        if (!instance) {
+                cerr << argv[0] << ": instance not specified!" << endl;
+                print_usage(argv[0]);
+                return EXIT_FAILURE;
+        }
 
         if (ibound) {
                 cout << "I-bound = " << ibound << endl;
         }
 
+        if (parallel) {
+                cout << "Parallelism enabled" << endl;
+        }
+
+        string algorithms[] = { "Hopcroft", "Brzozowski", "Bubenzer" };
+        cout << "Minimisation algorithm = " << algorithms[fa_minimization_algorithm] << endl;
+        auto start_t = chrono::high_resolution_clock::now();
+
         // look for a known threshold to remove rows
         value threshold = numeric_limits<value>::max();
 
         for (auto i = 0; i < N_DATASETS; ++i) {
-                if (strstr(argv[1], datasets[i]) != NULL) {
+                if (strstr(instance, datasets[i]) != NULL) {
                         threshold = thresholds[i];
                         cout << "Thresholds value = " << threshold << endl;
                 }
         }
 
-        auto adj = read_adj(argv[1]);
+        auto adj = read_adj(instance);
         //print_adj(adj);
         //cout << endl;
 
@@ -45,7 +102,7 @@ int main(int argc, char *argv[]) {
         var_map = pos;
         #endif
 
-        auto [ domains, tables ] = read_domains_tables(argv[1], pos, threshold);
+        auto [ domains, tables ] = read_domains_tables(instance, pos, threshold);
 
         /*for (auto const &table : tables) {
                 print_table(table);
@@ -53,14 +110,10 @@ int main(int argc, char *argv[]) {
         }*/
 
         vector<automata> automatas(tables.size());
-        // change minimisation algorithm
-        //fa_minimization_algorithm = FA_MIN_BRZOZOWSKI;
-        fa_minimization_algorithm = FA_MIN_BUBENZER;
-
         double total_rows = 0;
         double actual_rows = 0;
 
-        //#pragma omp parallel for
+        #pragma omp parallel for if (parallel)
         for (auto i = 0; i < tables.size(); ++i) {
                 automatas[i] = compute_automata(tables[i]);
                 actual_rows += automatas[i].rows.size();
