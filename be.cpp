@@ -90,6 +90,8 @@ static inline automata join(automata &a1, automata &a2, vector<size_t> const &po
                 }
         }
 
+        vector<value> keys;
+
         for (auto &[ v1, fa1 ] : a1.rows) {
                 for (auto &[ v2, fa2 ] : a2.rows) {
                         auto in = fa_intersect(fa1, fa2);
@@ -100,6 +102,7 @@ static inline automata join(automata &a1, automata &a2, vector<size_t> const &po
                                 auto it = join.rows.find(v1v2);
                                 if (it == join.rows.end()) {
                                         join.rows.insert({ v1v2, in });
+                                        keys.push_back(v1v2);
                                 } else {
                                         fa_union_in_place(it->second, &in);
                                 }
@@ -107,8 +110,9 @@ static inline automata join(automata &a1, automata &a2, vector<size_t> const &po
                 }
         }
 
-        for (auto &[ v, fa ] : join.rows) {
-                fa_minimize(fa);
+        #pragma omp parallel for schedule(dynamic) if (parallel)
+        for (auto k : keys) {
+                fa_minimize(join.rows[k]);
         }
 
         #ifdef PRINT_TABLES
