@@ -112,6 +112,7 @@ int main(int argc, char *argv[]) {
         vector<automata> automatas(tables.size());
         double total_rows = 0;
         double actual_rows = 0;
+        cout << "Computing automata..." << endl;
 
         #pragma omp parallel for if (parallel)
         for (auto i = 0; i < tables.size(); ++i) {
