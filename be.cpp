@@ -111,8 +111,8 @@ static inline automata join(automata &a1, automata &a2, vector<size_t> const &po
         }
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
-        for (auto k : keys) {
-                fa_minimize(join.rows[k]);
+        for (auto i = 0; i < keys.size(); ++i) {
+                fa_minimize(join.rows[keys[i]]);
         }
 
         #ifdef PRINT_TABLES
