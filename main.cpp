@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
         double actual_rows = 0;
         cout << "Computing automata..." << endl;
 
-        #pragma omp parallel for if (parallel)
+        #pragma omp parallel for schedule(dynamic) if (parallel)
         for (auto i = 0; i < tables.size(); ++i) {
                 automatas[i] = compute_automata(tables[i]);
                 actual_rows += automatas[i].rows.size();
