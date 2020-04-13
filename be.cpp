@@ -1,8 +1,5 @@
 #include "be.hpp"
 
-#define REDUCTION_MIN
-//#define REDUCTION_MAX
-
 // print tables during execution
 //#define PRINT_TABLES
 
@@ -25,13 +22,12 @@
 #include "io.hpp"
 #endif
 
-#define JOIN_OP(X, Y) (X + Y)
 #define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 extern bool parallel;
 
-static inline automata join(automata &a1, automata &a2, vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline automata join(automata &a1, automata &a2, int inner, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Joining:" << endl << endl;
@@ -98,7 +94,7 @@ static inline automata join(automata &a1, automata &a2, vector<size_t> const &po
                         if (fa_is_basic(in, FA_EMPTY)) { // these two rows do not have any common variable
                                 fa_free(in);             // assignment of shared variables
                         } else {
-                                const value v1v2 = JOIN_OP(v1, v2);
+                                const value v1v2 = (inner == BE_SUM) ? v1 + v2 : v1 * v2;
                                 auto it = join.rows.find(v1v2);
                                 if (it == join.rows.end()) {
                                         join.rows.insert({ v1v2, in });
@@ -122,7 +118,7 @@ static inline automata join(automata &a1, automata &a2, vector<size_t> const &po
         return join;
 }
 
-static inline automata join_bucket(vector<automata> &bucket, vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline automata join_bucket(vector<automata> &bucket, int inner, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         auto res = bucket.front();
 
@@ -131,7 +127,7 @@ static inline automata join_bucket(vector<automata> &bucket, vector<size_t> cons
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("pre-join");
                 #endif
-                res = join(old, *it, pos, domains);
+                res = join(old, *it, inner, pos, domains);
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("post-join");
                 #endif
@@ -146,7 +142,7 @@ static inline automata join_bucket(vector<automata> &bucket, vector<size_t> cons
         return res;
 }
 
-static inline value reduce_last_var(automata &a) {
+static inline value reduce_last_var(automata &a, int outer) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Minimising:" << endl << endl;
@@ -166,11 +162,11 @@ static inline value reduce_last_var(automata &a) {
                 keys.push_back(v);
         }
 
-        #ifdef REDUCTION_MIN
-        sort(keys.begin(), keys.end());
-        #else
-        sort(keys.begin(), keys.end(), greater<value>());
-        #endif
+        if (outer == BE_MIN) {
+                sort(keys.begin(), keys.end());
+        } else {
+                sort(keys.begin(), keys.end(), greater<value>());
+        }
 
         if (a.vars.size() == 0) {
                 return keys.front();
@@ -213,15 +209,15 @@ static inline value reduce_last_var(automata &a) {
         return 0;
 }
 
-static inline value process_bucket(vector<automata> &bucket, vector<vector<automata>> &buckets,
-                                   vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline value process_bucket(vector<automata> &bucket, vector<vector<automata>> &buckets, int inner,
+                                   int outer, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         value res = 0;
 
         if (bucket.size()) {
-                auto h = join_bucket(bucket, pos, domains);
+                auto h = join_bucket(bucket, inner, pos, domains);
                 //automata_dot(h, "dot");
-                res += reduce_last_var(h);
+                res += reduce_last_var(h, outer);
                 if (h.vars.size() > 0) {
                         //automata_dot(h, "dot");
                         cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
@@ -263,8 +259,9 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
         return mini_buckets;
 }
 
-value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
-                         vector<size_t> const &pos, vector<size_t> const &domains, size_t ibound) {
+value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
+                         vector<size_t> const &order, vector<size_t> const &pos,
+                         vector<size_t> const &domains, size_t ibound) {
 
         #ifdef CPU_PROFILER
         ProfilerStart(CPU_PROFILER_OUTPUT);
@@ -281,10 +278,10 @@ value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const
                 if (ibound && buckets[*it].size() > 1) {
                         auto mb = mini_buckets(buckets[*it], ibound, pos);
                         for (auto &bucket : mb) {
-                                optimal += process_bucket(bucket, buckets, pos, domains);
+                                optimal += process_bucket(bucket, buckets, inner, outer, pos, domains);
                         }
                 } else {
-                        optimal += process_bucket(buckets[*it], buckets, pos, domains);
+                        optimal += process_bucket(buckets[*it], buckets, inner, outer, pos, domains);
                 }
         }
 

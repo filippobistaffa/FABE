@@ -6,6 +6,21 @@
 #include "types.hpp"
 #include "order.hpp"
 
+enum be_instance {
+        BE_WCSP,
+        BE_MPE
+};
+
+enum be_inner_op {
+        BE_SUM,
+        BE_PROD
+};
+
+enum be_outer_op {
+        BE_MIN,
+        BE_MAX
+};
+
 __attribute__((always_inline)) inline
 size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
 
@@ -35,7 +50,8 @@ void free_automata(automata &a) {
         a.rows.clear();
 }
 
-value bucket_elimination(vector<vector<automata>> &buckets, vector<size_t> const &order,
-                         vector<size_t> const &pos, vector<size_t> const &domains, size_t ibound = 0);
+value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
+                         vector<size_t> const &order, vector<size_t> const &pos,
+                         vector<size_t> const &domains, size_t ibound = 0);
 
 #endif /* BE_HPP_ */

@@ -63,6 +63,16 @@ int main(int argc, char *argv[]) {
                 return EXIT_FAILURE;
         }
 
+        int inst_type;
+
+        if (strstr(instance, "wcsp")) {
+                cout << "Found WCSP instance: executing MIN-SUM algorithm" << endl;
+                inst_type = BE_WCSP;
+        } else {
+                cout << "Found MPE instance: executing MAX-PROD algorithm" << endl;
+                inst_type = BE_MPE;
+        }
+
         if (ibound) {
                 cout << "I-bound = " << ibound << endl;
         }
@@ -139,7 +149,9 @@ int main(int argc, char *argv[]) {
         //cout << vec2str(pos, "Pos.") << endl;
         //cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
 
-        const auto optimal = bucket_elimination(buckets, order, pos, domains, ibound);
+        const int inner = (inst_type == BE_WCSP) ? BE_SUM : BE_PROD;
+        const int outer = (inst_type == BE_WCSP) ? BE_MIN : BE_MAX;
+        const auto optimal = bucket_elimination(buckets, inner, outer, order, pos, domains, ibound);
 
         chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
         cout << endl << "Time elapsed = " << runtime.count() << endl;
