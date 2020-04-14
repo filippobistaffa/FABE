@@ -5,6 +5,7 @@
 #include <sstream>      // ostringstream
 #include <iostream>     // cout
 #include <cstring>      // strlen
+#include <numeric>      // accumulate
 
 #include "types.hpp"
 #include "libfa/fa.h"

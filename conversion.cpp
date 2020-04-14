@@ -53,9 +53,11 @@ table compute_table(automata const &a) {
                 vector<size_t>(a.domains),
         };
 
+        const auto max_rows = accumulate(a.domains.begin(), a.domains.end(), 1, multiplies<size_t>());
+
         for (auto const &[ v, fa ] : a.rows) {
                 char **rows;
-                const size_t n_rows = fa_enumerate(fa, numeric_limits<int>::max(), &rows);
+                const size_t n_rows = fa_enumerate(fa, max_rows, &rows);
                 for (auto r = 0; r < n_rows; ++r) {
                         vector<size_t> row = vector<size_t>(res.vars.size());
                         for (auto v = 0; v < row.size(); ++v) {
