@@ -10,7 +10,7 @@ using namespace std;
 #define EACH_SET_BIT_2(B, I) (auto I = (B).find_first(); I != boost::dynamic_bitset<>::npos; I = (B).find_next(I))
 #define EACH_SET_BIT_3(B, I, S) (auto I = (B).find_next(S); I != boost::dynamic_bitset<>::npos; I = (B).find_next(I))
 
-__attribute__((always_inline)) inline
+/*__attribute__((always_inline)) inline
 size_t nth_bit(boost::dynamic_bitset<> const &b, int i) {
 
         size_t ret = b.find_first();
@@ -18,6 +18,6 @@ size_t nth_bit(boost::dynamic_bitset<> const &b, int i) {
                 ret = b.find_next(ret);
         }
         return ret;
-}
+}*/
 
 #endif /* BITSET_H_ */
