@@ -6,7 +6,7 @@ java -cp ../caos/ RandomInstance test.wcsp $1 $2 $RANDOM
 opt=`../caos/aolib/aolib -f test.wcsp | grep Solution`
 opt=${opt##* }
 opt=${opt%.*}
-fabe=`./fabe test.wcsp | tail -n 1`
+fabe=`./fabe -f test.wcsp | tail -n 1`
 if [ $opt != $fabe ]
 then
         exit 0
