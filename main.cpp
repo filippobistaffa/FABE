@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
         // look for a known threshold to remove rows
         value threshold = numeric_limits<value>::max();
 
-        for (auto i = 0; i < N_DATASETS; ++i) {
+        for (size_t i = 0; i < N_DATASETS; ++i) {
                 if (strstr(instance, datasets[i]) != NULL) {
                         threshold = thresholds[i];
                         cout << "Thresholds value = " << threshold << endl;
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
         vector<size_t> pos(order.size());
         cout << "Induced width = " << induced_width(adj, order, pos) << endl;
 
-        for (auto i = 0; i < order.size(); ++i) {
+        for (size_t i = 0; i < order.size(); ++i) {
                 pos[order[i]] = i;
         }
 
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
         cout << "Computing automata..." << endl;
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
-        for (auto i = 0; i < tables.size(); ++i) {
+        for (size_t i = 0; i < tables.size(); ++i) {
                 automatas[i] = compute_automata(tables[i]);
                 actual_rows += automatas[i].rows.size();
                 total_rows += accumulate(automatas[i].domains.begin(),

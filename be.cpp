@@ -75,13 +75,13 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         */
 
         for (auto &[ v, fa ] : a1.rows) {
-                for (auto i = 0; i < add1.size(); ++i) {
+                for (size_t i = 0; i < add1.size(); ++i) {
                         fa_add_level(fa, padd1[i], ALPHABET[domains[add1[i]] - 1]);
                 }
         }
 
         for (auto &[ v, fa ] : a2.rows) {
-                for (auto i = 0; i < add2.size(); ++i) {
+                for (size_t i = 0; i < add2.size(); ++i) {
                         fa_add_level(fa, padd2[i], ALPHABET[domains[add2[i]] - 1]);
                 }
         }
@@ -107,7 +107,7 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         }
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
-        for (auto i = 0; i < keys.size(); ++i) {
+        for (size_t i = 0; i < keys.size(); ++i) {
                 fa_minimize(join.rows[keys[i]]);
         }
 
@@ -178,7 +178,7 @@ static inline value reduce_last_var(automata &a, int outer) {
         vector<struct fa *> pfx_union(keys.size());
         pfx_union[0] = fa_make_basic(FA_EMPTY);
 
-        for (auto i = 1; i < keys.size(); ++i) {
+        for (size_t i = 1; i < keys.size(); ++i) {
                 pfx_union[i] = fa_union(a.rows[keys[i - 1]], pfx_union[i - 1]);
                 fa_minimize(pfx_union[i]);
         }
@@ -187,7 +187,7 @@ static inline value reduce_last_var(automata &a, int outer) {
 
         vector<value> empty;
 
-        for (auto i = 1; i < keys.size(); ++i) {
+        for (size_t i = 1; i < keys.size(); ++i) {
                 OP_FREE_OLD(fa_minus, fa_free, a.rows[keys[i]], pfx_union[i]);
                 if (fa_is_basic(a.rows[keys[i]], FA_EMPTY)) {
                         empty.push_back(keys[i]);
@@ -241,7 +241,7 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
         vector<vector<automata>> mini_buckets = { { move(bucket.front()) } };
 
         for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
-                auto mb = 0;
+                size_t mb = 0;
                 for (; mb < mini_buckets.size(); ++mb) {
                         vector<size_t> tmp;
                         SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_pos(pos));

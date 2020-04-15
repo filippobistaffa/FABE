@@ -221,7 +221,7 @@ vector<boost::dynamic_bitset<>> read_adj(const char *instance, int type) {
 __attribute__((always_inline)) inline
 void preallocate_rows(table &t, value def = 0) {
 
-        const auto n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, multiplies<size_t>());
+        const size_t n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, multiplies<size_t>());
         t.rows.resize(n_rows);
 
         for (size_t i = 0; i < n_rows; ++i) {
