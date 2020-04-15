@@ -6,11 +6,6 @@
 #include "types.hpp"
 #include "order.hpp"
 
-enum be_instance {
-        BE_WCSP,
-        BE_MPE
-};
-
 enum be_inner_op {
         BE_SUM,
         BE_PROD

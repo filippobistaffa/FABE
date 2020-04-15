@@ -114,6 +114,7 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         #ifdef PRINT_TABLES
         cout << "Result:" << endl << endl;
         print_table(compute_table(join));
+        cout << endl;
         #endif
         return join;
 }

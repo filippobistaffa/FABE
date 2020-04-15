@@ -8,7 +8,7 @@ bool parallel;
 
 static void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-p] [-a bub|brz|hop] [-i bound] -f instance" << endl;
+        cout << "Usage: " << bin << " [-h] [-p] [-a bub|brz|hop] [-i bound] [-e order] -f instance" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -16,9 +16,10 @@ int main(int argc, char *argv[]) {
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
         char *instance = NULL;
+        char *exp_ord = NULL;
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:ph")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:e:ph")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -35,6 +36,9 @@ int main(int argc, char *argv[]) {
                                 continue;
                         case 'p':
                                 parallel = true;
+                                continue;
+                        case 'e':
+                                exp_ord = optarg;
                                 continue;
                         case 'i':
                                 ibound = max(0, atoi(optarg));
@@ -67,10 +71,10 @@ int main(int argc, char *argv[]) {
 
         if (strstr(instance, "wcsp")) {
                 cout << "Found WCSP instance: executing MIN-SUM algorithm" << endl;
-                inst_type = BE_WCSP;
+                inst_type = WCSP;
         } else {
                 cout << "Found MPE instance: executing MAX-PROD algorithm" << endl;
-                inst_type = BE_MPE;
+                inst_type = MPE;
         }
 
         if (ibound) {
@@ -83,7 +87,6 @@ int main(int argc, char *argv[]) {
 
         string algorithms[] = { "Hopcroft", "Brzozowski", "Bubenzer" };
         cout << "Minimisation algorithm = " << algorithms[fa_minimization_algorithm] << endl;
-        auto start_t = chrono::high_resolution_clock::now();
 
         // look for a known threshold to remove rows
         value threshold = numeric_limits<value>::max();
@@ -95,14 +98,16 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-        auto adj = read_adj(instance);
+        auto adj = read_adj(instance, inst_type);
         //print_adj(adj);
         //cout << endl;
 
         cout << "Computing variable order..." << endl;
         auto order = greedy_order(adj);
+        cout << vec2str(order, "Order") << endl;
         reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
+        cout << "Induced width = " << induced_width(adj, order, pos) << endl;
 
         for (auto i = 0; i < order.size(); ++i) {
                 pos[order[i]] = i;
@@ -112,13 +117,18 @@ int main(int argc, char *argv[]) {
         var_map = pos;
         #endif
 
-        auto [ domains, tables ] = read_domains_tables(instance, pos, threshold);
+        auto [ domains, tables ] = read_domains_tables(instance, inst_type, pos, threshold);
 
-        /*for (auto const &table : tables) {
+        if (exp_ord) {
+                export_order(order, domains, exp_ord);
+        }
+
+        for (auto const &table : tables) {
                 print_table(table);
                 cout << endl;
-        }*/
+        }
 
+        auto start_t = chrono::high_resolution_clock::now();
         vector<automata> automatas(tables.size());
         double total_rows = 0;
         double actual_rows = 0;
@@ -135,6 +145,10 @@ int main(int argc, char *argv[]) {
 
         cout << "Redundancy = " << 1 - actual_rows / total_rows << endl << endl;
 
+        /*for (auto const &a : automatas) {
+                automata_dot(a, "dot");
+        }*/
+
         auto buckets = compute_buckets(automatas, pos);
 
         /*for (auto i : order) {
@@ -145,13 +159,9 @@ int main(int argc, char *argv[]) {
                 }
         }*/
 
-        //cout << vec2str(order, "Ord.") << endl;
-        //cout << vec2str(pos, "Pos.") << endl;
-        //cout << "I.W. = " << induced_width(adj, order, pos) << endl << endl;
-
-        const int inner = (inst_type == BE_WCSP) ? BE_SUM : BE_PROD;
-        const int outer = (inst_type == BE_WCSP) ? BE_MIN : BE_MAX;
-        const auto optimal = bucket_elimination(buckets, inner, outer, order, pos, domains, ibound);
+        //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
+        //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
+        const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
 
         chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
         cout << endl << "Time elapsed = " << runtime.count() << endl;

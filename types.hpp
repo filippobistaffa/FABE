@@ -23,4 +23,9 @@ struct table {
         vector<pair<vector<size_t>, value>> rows;
 };
 
+enum instance {
+        WCSP,
+        MPE
+};
+
 #endif /* TYPES_HPP_ */

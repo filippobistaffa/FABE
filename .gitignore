@@ -4,3 +4,4 @@ dep
 trace.*
 dot
 memory
+*.vo
