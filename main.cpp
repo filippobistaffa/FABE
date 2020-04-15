@@ -123,10 +123,10 @@ int main(int argc, char *argv[]) {
                 export_order(order, domains, exp_ord);
         }
 
-        for (auto const &table : tables) {
+        /*for (auto const &table : tables) {
                 print_table(table);
                 cout << endl;
-        }
+        }*/
 
         auto start_t = chrono::high_resolution_clock::now();
         vector<automata> automatas(tables.size());
