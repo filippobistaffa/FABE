@@ -4673,7 +4673,7 @@ void fa_make_dot(struct fa *fa, const char *format, ...) {
     fclose(fp);  
 }
 
-void fa_add_level(struct fa *fa, size_t level, char max) {
+void fa_add_level(struct fa *fa, size_t level, size_t dom, const char *ab) {
     struct state_set *worklist = state_set_init(-1, S_NONE);
     E(worklist == NULL);
     list_for_each(s, fa->initial) {
@@ -4688,7 +4688,8 @@ void fa_add_level(struct fa *fa, size_t level, char max) {
                 add_new_trans(add, t->to, t->min, t->max);
             }
             free_trans(s);
-            add_new_trans(s, add, '0', max);
+            for (size_t i = 0; i < dom; ++i)
+                add_new_trans(s, add, ab[i], ab[i]);
         } else {
             for_each_trans(t, s) {
                 if (!t->to->visited) {

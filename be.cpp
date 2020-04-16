@@ -76,13 +76,14 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
 
         for (auto &[ v, fa ] : a1.rows) {
                 for (size_t i = 0; i < add1.size(); ++i) {
-                        fa_add_level(fa, padd1[i], ALPHABET[domains[add1[i]] - 1]);
+                        fa_add_level(fa, padd1[i], domains[add1[i]], ALPHABET);
                 }
         }
 
+
         for (auto &[ v, fa ] : a2.rows) {
                 for (size_t i = 0; i < add2.size(); ++i) {
-                        fa_add_level(fa, padd2[i], ALPHABET[domains[add2[i]] - 1]);
+                        fa_add_level(fa, padd2[i], domains[add2[i]], ALPHABET);
                 }
         }
 
