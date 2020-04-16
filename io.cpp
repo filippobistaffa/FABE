@@ -156,6 +156,7 @@ static inline vector<boost::dynamic_bitset<>> read_adj_wcsp(const char *wcsp) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
+        assert(max_domain <= ALPHABET_LENGTH);
         SKIP_LINE;
         vector<boost::dynamic_bitset<>> adj(n_vars);
 
