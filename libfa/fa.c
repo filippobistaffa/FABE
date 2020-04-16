@@ -445,23 +445,28 @@ static struct state *add_state(struct fa *fa, int accept) {
          (t - (s)->trans) < (s)->tused;                                 \
          t++)
 
+static inline int check_resize(struct state *st) {
+    if (st->tused == st->tsize) {
+        size_t tsize = st->tsize;
+        if (tsize == 0)
+            tsize = array_initial_size;
+        else if (st->tsize > array_max_expansion)
+            tsize += array_max_expansion;
+        else
+            tsize *= 2;
+        if (REALLOC_N(st->trans, tsize) == -1)
+            return -1;
+        st->tsize = tsize;
+    }
+    return 0;
+}
+
 ATTRIBUTE_RETURN_CHECK
 static int add_new_trans(struct state *from, struct state *to,
                          uchar min, uchar max) {
     assert(to != NULL);
-
-    if (from->tused == from->tsize) {
-        size_t tsize = from->tsize;
-        if (tsize == 0)
-            tsize = array_initial_size;
-        else if (from->tsize > array_max_expansion)
-            tsize += array_max_expansion;
-        else
-            tsize *= 2;
-        if (REALLOC_N(from->trans, tsize) == -1)
-            return -1;
-        from->tsize = tsize;
-    }
+    if (check_resize(from))
+        return -1;
     memset(from->trans + from->tused, 0, sizeof(struct trans));
     from->trans[from->tused].to  = to;
     from->trans[from->tused].min = min;
