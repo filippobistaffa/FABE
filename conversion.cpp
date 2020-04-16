@@ -1,5 +1,9 @@
 #include "conversion.hpp"
 
+//#define OLD
+
+#ifdef OLD
+
 static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
                                       vector<pair<vector<size_t>, value>>::const_iterator end) {
 
@@ -17,6 +21,31 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
         fa_minimize(fa);
         return fa;
 }
+
+#else
+
+static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
+                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
+
+        struct fa *fa = NULL;
+
+        for (auto row = begin; row != end; ++row) {
+                ostringstream oss;
+                for (auto i : row->first) {
+                        oss << ALPHABET[i];
+                }
+                if (fa) {
+                        fa_add_word(fa, oss.str().c_str(), oss.str().length());
+                } else {
+                        fa_compile(oss.str().c_str(), oss.str().length(), &fa);
+                }
+        }
+
+        fa_minimize(fa);
+        return fa;
+}
+
+#endif
 
 __attribute__((always_inline)) inline
 bool are_equal(value a, value b, value tolerance) {

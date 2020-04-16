@@ -4731,6 +4731,50 @@ void fa_merge_accept(struct fa *fa) {
     accept->accept = 1;
 }
 
+static bool find_trans(struct state *st, char ch, size_t *i) {
+    size_t l = 0, h = st->tused;
+    while (l < h) {
+        *i = (l + h) / 2;
+        if (st->trans[*i].min > ch)
+            h = *i;
+        else if (st->trans[*i].min < ch)
+            l = *i + 1;
+        else
+            return true;
+    }
+    *i = l;
+    return false;
+}
+
+void fa_add_word(struct fa *fa, const char *word, size_t length) {
+    struct state *cur = fa->initial;
+    struct state *accept;
+    list_for_each(st, fa->initial) {
+        if (st->accept) {
+            accept = st;
+        }
+    }
+    for (size_t i = 0; i < length; ++i) {
+        size_t idx;
+        if (find_trans(cur, word[i], &idx)) {
+            cur = cur->trans[idx].to;
+        } else {
+            check_resize(cur);
+            memmove(cur->trans + idx + 1, cur->trans + idx,
+                    sizeof(*cur->trans) * (cur->tused - idx));
+            if (i + 1 == length) {
+                cur->trans[idx].to = accept;
+            } else {
+                cur->trans[idx].to = add_state(fa, 0);
+            }
+            cur->trans[idx].min = word[i];
+            cur->trans[idx].max = word[i];
+            cur->tused++;
+            cur = cur->trans[idx].to;
+        }
+    }
+}
+
 /* --- Bubenzer minimization --- */
 
 static hash_val_t jenkins_hash(const void *p, size_t byte_size) {

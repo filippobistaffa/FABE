@@ -10,6 +10,8 @@
 #include "types.hpp"
 #include "libfa/fa.h"
 
+#include "io.hpp"
+
 using namespace std;
 
 automata compute_automata(table const &t, value tolerance = 0);
