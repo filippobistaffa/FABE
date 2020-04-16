@@ -289,6 +289,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
                 cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
                 if (ibound && buckets[*it].size() > 1) {
                         auto mb = mini_buckets(buckets[*it], ibound, pos);
+                        cout << "There are " << mb.size() << " mini-buckets" << endl;
                         for (auto &bucket : mb) {
                                 optimal += process_bucket(bucket, buckets, inner, outer, pos, domains);
                         }
