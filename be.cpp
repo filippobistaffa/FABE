@@ -256,7 +256,7 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
                 for (; mb < mini_buckets.size(); ++mb) {
                         vector<size_t> tmp;
                         SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_pos(pos));
-                        if (tmp.size() <= ibound) { // function fits in this mini-bucket
+                        if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) { // function fits in this mini-bucket
                                 mini_buckets[mb].push_back(move(*it));
                                 bucket_vars[mb] = tmp;
                                 break;
