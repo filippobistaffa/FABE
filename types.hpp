@@ -23,6 +23,11 @@ struct table {
         vector<pair<vector<size_t>, value>> rows;
 };
 
+/*struct node {
+        size_t var;
+        vector<node> ch;
+};*/
+
 enum instance {
         WCSP,
         MPE

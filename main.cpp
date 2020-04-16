@@ -4,11 +4,22 @@
 extern vector<size_t> var_map;
 #endif
 
-bool parallel;
+bool parallel = false;
 
-static void print_usage(const char *bin) {
+static inline void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-p] [-a bub|brz|hop] [-i bound] [-e order] -f instance" << endl;
+        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-p pseudotree] -f instance" << endl;
+}
+
+static inline bool exists(const char *filename) {
+
+        FILE *file = fopen(filename, "r");
+        if (!file) {
+                return false;
+        } else {
+                fclose(file);
+                return true;
+        }
 }
 
 int main(int argc, char *argv[]) {
@@ -16,10 +27,11 @@ int main(int argc, char *argv[]) {
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
         char *instance = NULL;
-        char *exp_ord = NULL;
+        char *pseudotree = NULL;
+        //char *exp_ord = NULL;
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:e:ph")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:p:h")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -34,24 +46,31 @@ int main(int argc, char *argv[]) {
                                         return EXIT_FAILURE;
                                 }
                                 continue;
-                        case 'p':
+                        /*case 'P':
                                 parallel = true;
                                 continue;
                         case 'e':
                                 exp_ord = optarg;
-                                continue;
+                                continue;*/
                         case 'i':
                                 ibound = max(0, atoi(optarg));
                                 continue;
                         case 'f':
-                                FILE *file;
-                                if (!(file = fopen(optarg, "r"))) {
+                                if (exists(optarg)) {
+                                        instance = optarg;
+                                } else {
                                         cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
+                                }
+                                continue;
+                        case 'p':
+                                if (exists(optarg)) {
+                                        pseudotree = optarg;
                                 } else {
-                                        instance = optarg;
-                                        fclose(file);
+                                        cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
+                                        print_usage(argv[0]);
+                                        return EXIT_FAILURE;
                                 }
                                 continue;
                         case 'h':
@@ -102,16 +121,24 @@ int main(int argc, char *argv[]) {
         //print_adj(adj);
         //cout << endl;
 
-        cout << "Computing variable order..." << endl;
-        auto order = greedy_order(adj);
+        vector<size_t> order;
+
+        if (pseudotree) {
+                cout << "Reading order from " << pseudotree << endl;
+                order = read_pseudotree_order(pseudotree);
+        } else {
+                cout << "Computing variable order..." << endl;
+                order = greedy_order(adj);
+        }
+
         cout << vec2str(order, "Order") << endl;
         reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
-        cout << "Induced width = " << induced_width(adj, order, pos) << endl;
-
         for (size_t i = 0; i < order.size(); ++i) {
                 pos[order[i]] = i;
         }
+
+        cout << "Induced width = " << induced_width(adj, order, pos) << endl;
 
         #ifdef PRINT_VAR_POS
         var_map = pos;
@@ -119,9 +146,9 @@ int main(int argc, char *argv[]) {
 
         auto [ domains, tables ] = read_domains_tables(instance, inst_type, pos, threshold);
 
-        if (exp_ord) {
+        /*if (exp_ord) {
                 export_order(order, domains, exp_ord);
-        }
+        }*/
 
         /*for (auto const &table : tables) {
                 print_table(table);

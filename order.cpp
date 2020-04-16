@@ -112,7 +112,53 @@ size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> 
 	return w;
 }
 
-void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output) {
+static inline void parse(string str, vector<size_t> &order) {
+
+        //cout << "str = " << str << endl;
+        size_t var;
+        size_t i = str.find("(");
+        //cout << "i = " << i << endl;
+        if (i != string::npos) {
+                var = atoi(str.substr(0, i).c_str());
+                auto children = str.substr(i);
+                //cout << children << endl;
+                while (children.size() > 0) {
+                        size_t j = 1;
+                        size_t b = 1;
+                        while (b) {
+                                if (children[j] == '(') {
+                                        b++;
+                                } else if (children[j] == ')') {
+                                        b--;
+                                }
+                                j++;
+                        }
+                        //cout << "\"" << children.substr(1, j - 2) << "\"" <<endl;
+                        //ret.ch.push_back(parse(children.substr(1, j - 2), order));
+                        parse(children.substr(1, j - 2), order);
+                        //cout << "\"" << children.substr(j) << "\"" <<endl;
+                        children = children.substr(j);
+                }
+        } else {
+                var = atoi(str.c_str());
+        }
+        //cout << ret.var << endl;
+        order.push_back(var);
+}
+
+vector<size_t> read_pseudotree_order(const char *filename) {
+
+        vector<size_t> order;
+        ifstream f(filename);
+        string str;
+        getline(f, str);
+        parse(str.substr(1, str.size() - 2), order);
+        order.pop_back();
+        f.close();
+        return order;
+}
+
+/*void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output) {
 
         vector<size_t> ev(order.size());
         size_t n = 0;
@@ -143,4 +189,4 @@ void export_order(vector<size_t> const &order, vector<size_t> const &domains, co
         ofstream f(output);
         f << oss.str();
         f.close();
-}
+}*/
