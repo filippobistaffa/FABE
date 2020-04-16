@@ -228,11 +228,22 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
         return res;
 }
 
+#define COMPARE_MBE
+
 static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, size_t ibound,
                                                     vector<size_t> const &pos) {
 
         // doing a simple FFD bin packing
         sort(bucket.begin(), bucket.end(), [](automata const &x, automata const &y) {
+                #ifdef COMPARE_MBE
+                if (x.vars.size() == y.vars.size()) {
+                        auto vx = x.vars;
+                        auto vy = y.vars;
+                        sort(vx.begin(), vx.end());
+                        sort(vy.begin(), vy.end());
+                        return lexicographical_compare(vx.begin(), vx.end(), vy.begin(), vy.end());
+                } else
+                #endif
                 return (x.vars.size() > y.vars.size());
         });
 
