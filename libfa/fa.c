@@ -1778,6 +1778,8 @@ static int minimize_brzozowski(struct fa *fa) {
     return -1;
 }
 
+//#define COUNT_STATES
+
 static int minimize_bubenzer(struct fa *fa);
 
 int fa_minimize(struct fa *fa) {
@@ -1785,8 +1787,16 @@ int fa_minimize(struct fa *fa) {
 
     if (fa == NULL)
         return -1;
-    if (fa->minimal)
+    if (fa->minimal) {
+        #ifdef COUNT_STATES
+        size_t n = 0;
+        list_for_each(s, fa->initial) {
+            n++;
+        }
+        printf("%zu states\n", n);
+        #endif
         return 0;
+    }
 
     switch (fa_minimization_algorithm) {
         case FA_MIN_BRZOZOWSKI:
@@ -1798,6 +1808,14 @@ int fa_minimize(struct fa *fa) {
         default:
             r = minimize_hopcroft(fa);
     }
+
+    #ifdef COUNT_STATES
+    size_t n = 0;
+    list_for_each(s, fa->initial) {
+        n++;
+    }
+    printf("%zu states\n", n);
+    #endif
 
     if (r == 0)
         fa->minimal = 1;
