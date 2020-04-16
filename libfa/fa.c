@@ -4793,7 +4793,7 @@ static hash_val_t jenkins_hash(const void *p, size_t byte_size) {
 
 struct signature {
     struct trans *trans;
-    int          n;
+    size_t       n;
 };
 
 static hash_val_t sig_hash(const void *key) {
