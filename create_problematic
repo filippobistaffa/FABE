@@ -3,7 +3,7 @@
 while [ 1 -eq 1 ]
 do
 java -cp ../caos/ RandomInstance test.wcsp $1 $2 $RANDOM
-opt=`../caos/aolib/aolib -f test.wcsp | grep Solution`
+opt=`../aolib/aolib -f test.wcsp | grep Solution`
 opt=${opt##* }
 opt=${opt%.*}
 fabe=`./fabe -f test.wcsp | tail -n 1`
