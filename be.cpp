@@ -218,11 +218,13 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
 
         if (bucket.size()) {
                 auto h = join_bucket(bucket, inner, pos, domains);
-                //automata_dot(h, "dot");
-                res += reduce_last_var(h, outer);
-                if (h.vars.size() > 0) {
+                if (h.rows.size() > 0) {
                         //automata_dot(h, "dot");
-                        cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
+                        res += reduce_last_var(h, outer);
+                        if (h.vars.size() > 0) {
+                                //automata_dot(h, "dot");
+                                cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
+                        }
                 }
         }
 
