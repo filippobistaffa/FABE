@@ -229,7 +229,7 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
         return res;
 }
 
-#define COMPARE_MBE
+//#define COMPARE_MBE
 
 static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, size_t ibound,
                                                     vector<size_t> const &pos) {
