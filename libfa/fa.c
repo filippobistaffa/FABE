@@ -50,6 +50,32 @@ typedef unsigned char uchar;
 /* Which algorithm to use in FA_MINIMIZE */
 int fa_minimization_algorithm = FA_MIN_HOPCROFT;
 
+//#define PROFILE_VARS
+
+#ifdef PROFILE_VARS
+struct record {
+    size_t n;
+    double tot;
+    size_t max;
+};
+
+static inline void print_record(struct record *r, const char *name) {
+    printf("%s : max = %zu, avg = %f\n", name, r->max, r->tot / r->n);
+}
+
+static inline void update_record(struct record *r, size_t val) {
+    r->tot += val;
+    r->n++;
+    if (val > r->max)
+        r->max = val;
+}
+
+struct record tsize_g;
+struct record tused_g;
+struct record level_g;
+#endif
+
+
 /* A finite automaton. INITIAL is both the initial state and the head of
  * the list of all states. Any state that is allocated for this automaton
  * is put on this list. Dead/unreachable states are cleared from the list
@@ -411,6 +437,11 @@ static void gut(struct fa *fa) {
 }
 
 void fa_free(struct fa *fa) {
+    #ifdef PROFILE_VARS
+    print_record(&level_g, "level");
+    print_record(&tused_g, "tused");
+    print_record(&tsize_g, "tsize");
+    #endif
     if (fa == NULL)
         return;
     gut(fa);
@@ -4677,6 +4708,9 @@ void fa_make_dot(struct fa *fa, const char *format, ...) {
 }
 
 void fa_add_level(struct fa *fa, size_t level, size_t dom, const char *ab) {
+    #ifdef PROFILE_VARS
+    update_record(&level_g, level);
+    #endif
     struct state_set *worklist = state_set_init(-1, S_NONE);
     E(worklist == NULL);
     list_for_each(s, fa->initial) {
@@ -4831,6 +4865,10 @@ static struct signature *sig_create(struct state *st) {
     sort_merge_trans(st);
     sig->trans = st->trans;
     sig->n = st->tused;
+    #ifdef PROFILE_VARS
+    update_record(&tused_g, st->tused);
+    update_record(&tsize_g, st->tsize);
+    #endif
     return sig;
 }
 
