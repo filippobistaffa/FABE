@@ -5,17 +5,17 @@ qcachegrind="./qcachegrind"
 trace="trace"
 heapcheck="normal" #strict draconian
 
-if [[ "$#" != 2 || ($2 != "cpu" && $2 != "leak") ]]
+if [[ $1 != "cpu" && $1 != "leak" ]]
 then
-	echo "Usage: $0 INSTANCE [cpu|leak]"
+	echo "Usage: $0 [cpu|leak] arguments"
 	exit
 fi
 
-if [[ $2 == "cpu" ]]
+if [[ $1 == "cpu" ]]
 then
-        ${bin} -f $1
+        ${bin} ${@:2}
         pprof --callgrind ${bin} ${trace}.prof > ${trace}.callgrind
         ${qcachegrind} ${trace}.callgrind &
 else
-        env PPROF_PATH=`which pprof` HEAPCHECK=${heapcheck} ${bin} -f $1
+        env PPROF_PATH=`which pprof` HEAPCHECK=${heapcheck} ${bin} ${@:2}
 fi
