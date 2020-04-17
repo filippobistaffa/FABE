@@ -1195,40 +1195,43 @@ static int trans_intv_cmp(const void *v1, const void *v2) {
     return 0;
 }
 
+static void sort_merge_trans(struct state *s) {
+    if (s->tused == 0)
+        return;
+    qsort(s->trans, s->tused, sizeof(*s->trans), trans_to_cmp);
+    int i=0, j=1;
+    struct trans *t = s->trans;
+    while (j < s->tused) {
+        if (t[i].to == t[j].to && t[j].min <= t[i].max + 1) {
+            if (t[j].max > t[i].max)
+                t[i].max = t[j].max;
+            j += 1;
+        } else {
+            i += 1;
+            if (i < j)
+                memmove(s->trans + i, s->trans + j,
+                        sizeof(*s->trans) * (s->tused - j));
+            s->tused -= j - i;
+            j = i + 1;
+        }
+    }
+    s->tused = i+1;
+    /* Shrink if we use less than half the allocated size */
+    if (s->tsize > array_initial_size && 2*s->tused < s->tsize) {
+        int r;
+        r = REALLOC_N(s->trans, s->tsize);
+        if (r == 0)
+            s->tsize = s->tused;
+    }
+}
+
 /*
  * Reduce an automaton by combining overlapping and adjacent edge intervals
  * with the same destination.
  */
 static void reduce(struct fa *fa) {
     list_for_each(s, fa->initial) {
-        if (s->tused == 0)
-            continue;
-
-        qsort(s->trans, s->tused, sizeof(*s->trans), trans_to_cmp);
-        int i=0, j=1;
-        struct trans *t = s->trans;
-        while (j < s->tused) {
-            if (t[i].to == t[j].to && t[j].min <= t[i].max + 1) {
-                if (t[j].max > t[i].max)
-                    t[i].max = t[j].max;
-                j += 1;
-            } else {
-                i += 1;
-                if (i < j)
-                    memmove(s->trans + i, s->trans + j,
-                            sizeof(*s->trans) * (s->tused - j));
-                s->tused -= j - i;
-                j = i + 1;
-            }
-        }
-        s->tused = i+1;
-        /* Shrink if we use less than half the allocated size */
-        if (s->tsize > array_initial_size && 2*s->tused < s->tsize) {
-            int r;
-            r = REALLOC_N(s->trans, s->tsize);
-            if (r == 0)
-                s->tsize = s->tused;
-        }
+        sort_merge_trans(s);
     }
 }
 
@@ -4688,8 +4691,16 @@ void fa_add_level(struct fa *fa, size_t level, size_t dom, const char *ab) {
                 add_new_trans(add, t->to, t->min, t->max);
             }
             free_trans(s);
-            for (size_t i = 0; i < dom; ++i)
-                add_new_trans(s, add, ab[i], ab[i]);
+            add_new_trans(s, add, ab[0], ab[0]);
+            struct trans *t = last_trans(s);
+            for (size_t i = 1; i < dom; ++i) {
+                if (ab[i] == t->max + 1) {
+                    t->max++;
+                } else {
+                    add_new_trans(s, add, ab[i], ab[i]);
+                    t = last_trans(s);
+                }
+            }
         } else {
             for_each_trans(t, s) {
                 if (!t->to->visited) {
@@ -4816,7 +4827,8 @@ static int sig_cmp(const void *key1, const void *key2) {
 
 static struct signature *sig_create(struct state *st) {
     struct signature *sig = malloc(sizeof(struct signature));
-    qsort(st->trans, st->tused, sizeof(*st->trans), trans_to_cmp);
+    //qsort(st->trans, st->tused, sizeof(*st->trans), trans_to_cmp);
+    sort_merge_trans(st);
     sig->trans = st->trans;
     sig->n = st->tused;
     return sig;
