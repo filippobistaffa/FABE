@@ -108,11 +108,11 @@ struct state {
     unsigned int  live : 1;
     unsigned int  reachable : 1;
     unsigned int  visited : 1;   /* Used in various places to track progress */
-    unsigned int  level;
+    unsigned int  level : 8;
     /* Array of transitions. The TUSED first entries are used, the array
        has allocated room for TSIZE */
-    size_t        tused;
-    size_t        tsize;
+    size_t        tused : 8;
+    size_t        tsize : 8;
     struct trans *trans;
     struct state *repr; // used for Bubenzer's algorithm
 };
