@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 
         if (pseudotree) {
                 cout << "Reading order from " << pseudotree << endl;
-                order = read_pseudotree_order(pseudotree);
+                order = read_pseudotree_order(pseudotree, domains);
         } else {
                 cout << "Computing variable order..." << endl;
                 order = greedy_order(adj);

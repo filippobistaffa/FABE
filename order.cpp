@@ -146,7 +146,26 @@ static inline void parse(string str, vector<size_t> &order) {
         order.push_back(var);
 }
 
-vector<size_t> read_pseudotree_order(const char *filename) {
+vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains) {
+
+        vector<size_t> vars;
+        vector<size_t> ev(domains.size());
+
+        for (size_t i = 0; i < domains.size(); ++i) {
+                if (domains[i] == 1) {
+                        vars.push_back(i);
+                        ev[i] = 1;
+                }
+        }
+
+        vector<size_t> offset(ev.size());
+        partial_sum(ev.begin(), ev.end(), offset.begin());
+
+        for (int i = offset.size(); i --> 0; ) {
+                if (ev[i]) {
+                        offset.erase(offset.begin() + i);
+                }
+        }
 
         vector<size_t> order;
         ifstream f(filename);
@@ -155,6 +174,13 @@ vector<size_t> read_pseudotree_order(const char *filename) {
         parse(str.substr(1, str.size() - 2), order);
         order.pop_back();
         f.close();
+
+        for (size_t i = 0; i < order.size(); ++i) {
+                order[i] += offset[order[i]];
+        }
+
+        order.insert(order.begin(), vars.begin(), vars.end());
+
         return order;
 }
 
