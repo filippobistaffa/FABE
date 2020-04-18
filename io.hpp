@@ -1,9 +1,6 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
-// print variables' positions instead of variables
-//#define PRINT_VAR_POS
-
 #include <iostream>                     // cout
 #include <sstream>                      // ostringstream
 #include <fstream>                      // ifstream, getline
@@ -46,10 +43,10 @@ void automata_dot(automata const &c, const char *root_dir = ".");
 
 void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
-vector<boost::dynamic_bitset<>> read_adj(const char *instance, int type);
+pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj(const char *instance, int type);
 
-pair<vector<size_t>, vector<table>> read_domains_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
+vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
 
-void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
+//void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
 
 #endif /* IO_HPP_ */

@@ -1,8 +1,6 @@
 #include "main.hpp"
 
-#ifdef PRINT_VAR_POS
-extern vector<size_t> var_map;
-#endif
+//#define RANDOM_ORDER
 
 bool parallel = false;
 
@@ -117,7 +115,7 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-        auto adj = read_adj(instance, inst_type);
+        auto [ domains, adj ] = read_domains_adj(instance, inst_type);
         //print_adj(adj);
         //cout << endl;
 
@@ -127,8 +125,16 @@ int main(int argc, char *argv[]) {
                 cout << "Reading order from " << pseudotree << endl;
                 order = read_pseudotree_order(pseudotree);
         } else {
-                cout << "Computing variable order..." << endl;
+                #ifdef RANDOM_ORDER
+                cout << "Computing RANDOM variable order..." << endl;
+                order.resize(domains.size());
+                iota(order.begin(), order.end(), 0);
+                srand(unsigned (std::time(0)));
+                random_shuffle(order.begin(), order.end());
+                #else
+                cout << "Computing MIN-FILL variable order..." << endl;
                 order = greedy_order(adj);
+                #endif
         }
 
         cout << vec2str(order, "Order") << endl;
@@ -139,12 +145,7 @@ int main(int argc, char *argv[]) {
         }
 
         cout << "Induced width = " << induced_width(adj, order, pos) << endl;
-
-        #ifdef PRINT_VAR_POS
-        var_map = pos;
-        #endif
-
-        auto [ domains, tables ] = read_domains_tables(instance, inst_type, pos, threshold);
+        auto tables = read_tables(instance, inst_type, pos, threshold);
 
         /*if (exp_ord) {
                 export_order(order, domains, exp_ord);
