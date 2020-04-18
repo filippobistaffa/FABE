@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-        auto adj = read_adj(instance, inst_type);
+        auto [ domains, adj ] = read_domains_adj(instance, inst_type);
         //print_adj(adj);
         //cout << endl;
 
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         var_map = pos;
         #endif
 
-        auto [ domains, tables ] = read_domains_tables(instance, inst_type, pos, threshold);
+        auto tables = read_tables(instance, inst_type, pos, threshold);
 
         /*if (exp_ord) {
                 export_order(order, domains, exp_ord);

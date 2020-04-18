@@ -152,12 +152,12 @@ array<T, N> tokenize(ifstream &f) {
 
 #define SKIP_LINE f.ignore(numeric_limits<streamsize>::max(), '\n')
 
-static inline vector<boost::dynamic_bitset<>> read_adj_wcsp(const char *wcsp) {
+static inline pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj_wcsp(const char *wcsp) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         assert(max_domain <= ALPHABET_LENGTH);
-        SKIP_LINE;
+        const auto domains = tokenize<size_t>(f);
         vector<boost::dynamic_bitset<>> adj(n_vars);
 
         for (size_t i = 0; i < n_vars; ++i) {
@@ -179,15 +179,15 @@ static inline vector<boost::dynamic_bitset<>> read_adj_wcsp(const char *wcsp) {
         }
 
         f.close();
-        return adj;
+        return make_pair(domains, adj);
 }
 
-static inline vector<boost::dynamic_bitset<>> read_adj_uai(const char *uai) {
+static inline pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj_uai(const char *uai) {
 
         ifstream f(uai);
         SKIP_LINE;
         auto [ n_vars ] = tokenize<size_t, 0, 1>(f);
-        SKIP_LINE;
+        auto domains = tokenize<size_t>(f);
         auto [ n_tables ] = tokenize<size_t, 0, 1>(f);
         vector<boost::dynamic_bitset<>> adj(n_vars);
 
@@ -207,15 +207,15 @@ static inline vector<boost::dynamic_bitset<>> read_adj_uai(const char *uai) {
         }
 
         f.close();
-        return adj;
+        return make_pair(domains, adj);
 }
 
-vector<boost::dynamic_bitset<>> read_adj(const char *instance, int type) {
+pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj(const char *instance, int type) {
 
         if (type == WCSP) {
-                return read_adj_wcsp(instance);
+                return read_domains_adj_wcsp(instance);
         } else {
-                return read_adj_uai(instance);
+                return read_domains_adj_uai(instance);
         }
 }
 
@@ -248,7 +248,7 @@ void remove_threshold(table &t, value threshold) {
         }
 }
 
-static inline pair<vector<size_t>, vector<table>> read_domains_tables_wcsp(const char *wcsp, vector<size_t> const &pos, value threshold) {
+static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> const &pos, value threshold) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
@@ -295,10 +295,10 @@ static inline pair<vector<size_t>, vector<table>> read_domains_tables_wcsp(const
         }
 
         f.close();
-        return make_pair(domains, tables);
+        return tables;
 }
 
-static inline pair<vector<size_t>, vector<table>> read_domains_tables_uai(const char *uai, vector<size_t> const &pos, value threshold) {
+static inline vector<table> read_tables_uai(const char *uai, vector<size_t> const &pos, value threshold) {
 
         ifstream f(uai);
         SKIP_LINE;
@@ -366,15 +366,15 @@ static inline pair<vector<size_t>, vector<table>> read_domains_tables_uai(const 
         }
 
         f.close();
-        return make_pair(domains, tables);
+        return tables;
 }
 
-pair<vector<size_t>, vector<table>> read_domains_tables(const char *instance, int type, vector<size_t> const &pos, value threshold) {
+vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold) {
 
         if (type == WCSP) {
-                return read_domains_tables_wcsp(instance, pos, threshold);
+                return read_tables_wcsp(instance, pos, threshold);
         } else {
-                return read_domains_tables_uai(instance, pos, threshold);
+                return read_tables_uai(instance, pos, threshold);
         }
 }
 
