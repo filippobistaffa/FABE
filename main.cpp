@@ -1,5 +1,7 @@
 #include "main.hpp"
 
+//#define RANDOM_ORDER
+
 bool parallel = false;
 
 static inline void print_usage(const char *bin) {
@@ -123,8 +125,16 @@ int main(int argc, char *argv[]) {
                 cout << "Reading order from " << pseudotree << endl;
                 order = read_pseudotree_order(pseudotree);
         } else {
-                cout << "Computing variable order..." << endl;
+                #ifdef RANDOM_ORDER
+                cout << "Computing RANDOM variable order..." << endl;
+                order.resize(domains.size());
+                iota(order.begin(), order.end(), 0);
+                srand(unsigned (std::time(0)));
+                random_shuffle(order.begin(), order.end());
+                #else
+                cout << "Computing MIN-FILL variable order..." << endl;
                 order = greedy_order(adj);
+                #endif
         }
 
         cout << vec2str(order, "Order") << endl;
