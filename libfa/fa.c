@@ -108,14 +108,14 @@ struct state {
     unsigned int  live : 1;
     unsigned int  reachable : 1;
     unsigned int  visited : 1;   /* Used in various places to track progress */
-    unsigned int  level : 8;
+    uchar         level;
     /* Array of transitions. The TUSED first entries are used, the array
        has allocated room for TSIZE */
-    size_t        tused : 8;
-    size_t        tsize : 8;
+    uchar         tused;
+    uchar         tsize;
     struct trans *trans;
     struct state *repr; // used for Bubenzer's algorithm
-};
+} __attribute__((packed));
 
 /* A transition. If the input has a character in the inclusive
  * range [MIN, MAX], move to TO
@@ -4839,8 +4839,8 @@ static hash_val_t jenkins_hash(const void *p, size_t byte_size) {
 
 struct signature {
     struct trans *trans;
-    size_t        n : 8;
-};
+    uchar         n;
+} __attribute__((packed));
 
 static hash_val_t sig_hash(const void *key) {
     const struct signature *sig = key;
