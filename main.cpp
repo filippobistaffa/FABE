@@ -1,9 +1,5 @@
 #include "main.hpp"
 
-#ifdef PRINT_VAR_POS
-extern vector<size_t> var_map;
-#endif
-
 bool parallel = false;
 
 static inline void print_usage(const char *bin) {
@@ -139,11 +135,6 @@ int main(int argc, char *argv[]) {
         }
 
         cout << "Induced width = " << induced_width(adj, order, pos) << endl;
-
-        #ifdef PRINT_VAR_POS
-        var_map = pos;
-        #endif
-
         auto tables = read_tables(instance, inst_type, pos, threshold);
 
         /*if (exp_ord) {

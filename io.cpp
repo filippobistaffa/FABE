@@ -1,19 +1,11 @@
 #include "io.hpp"
 
-#ifdef PRINT_VAR_POS
-vector<size_t> var_map;
-#endif
-
 void print_table(table const &t) {
 
         const size_t width = max(1.0, 1 + floor(log10(*max_element(t.vars.begin(), t.vars.end()))));
 
         for (auto var : t.vars) {
-                #ifdef PRINT_VAR_POS
-                cout << setw(width) << var_map[var] << " ";
-                #else
                 cout << setw(width) << var << " ";
-                #endif
         }
         cout << endl;
 

@@ -1,9 +1,6 @@
 #ifndef IO_HPP_
 #define IO_HPP_
 
-// print variables' positions instead of variables
-//#define PRINT_VAR_POS
-
 #include <iostream>                     // cout
 #include <sstream>                      // ostringstream
 #include <fstream>                      // ifstream, getline
