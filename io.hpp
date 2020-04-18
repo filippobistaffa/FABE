@@ -50,6 +50,6 @@ pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj(const cha
 
 vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
 
-void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
+//void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
 
 #endif /* IO_HPP_ */

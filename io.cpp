@@ -378,7 +378,7 @@ vector<table> read_tables(const char *instance, int type, vector<size_t> const &
         }
 }
 
-void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp) {
+/*void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp) {
 
         ostringstream oss;
         size_t n_funcs = 0;
@@ -410,4 +410,4 @@ void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains
         ofstream f(wcsp);
         f << oss.str();
         f.close();
-}
+}*/
