@@ -118,6 +118,7 @@ int main(int argc, char *argv[]) {
         auto [ domains, adj, weights ] = read_domains_adj_weights(instance, inst_type);
         //print_adj(adj);
         //cout << endl;
+        //cout << vec2str(weights, "Weights") << endl;
 
         vector<size_t> order;
 

@@ -157,26 +157,42 @@ read_domains_adj_weights_wcsp(const char *wcsp) {
                 adj[i] = boost::dynamic_bitset<>(n_vars);
         }
 
+        auto weights = vector<float>(n_vars);
+        auto n = vector<size_t>(n_vars);
+
         for (size_t i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
                 vector<size_t> vars(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                size_t n_rows = 1;
                 for (auto it = vars.begin(); it != vars.end(); ++it) {
                         for (auto it1 = it + 1; it1 != vars.end(); ++it1) {
                                 adj[*it].set(*it1);
                                 adj[*it1].set(*it);
                         }
+                        n_rows *= domains[*it];
                 }
+                vector<value> values(1, temp[temp[0] + 1]);
                 for (size_t j = 0; j < temp[temp[0] + 2]; ++j) {
-                        SKIP_LINE;
+                        auto row = tokenize<value>(f);
+                        values.push_back(row.back());
+                }
+                sort(values.begin(), values.end());
+                const float u = unique(values.begin(), values.end()) - values.begin();
+                for (auto var : vars) {
+                        weights[var] += u / n_rows;
+                        n[var]++;
                 }
         }
 
+        for (size_t i = 0; i < n_vars; ++i) {
+                weights[i] /= n[i];
+        }
+
         f.close();
-        auto weights = vector<float>(domains.size(), 1.0);
         return make_tuple(domains, adj, weights);
 }
 
-static inline tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>> 
+static inline tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>>
 read_domains_adj_weights_uai(const char *uai) {
 
         ifstream f(uai);
@@ -190,23 +206,46 @@ read_domains_adj_weights_uai(const char *uai) {
                 adj[i] = boost::dynamic_bitset<>(n_vars);
         }
 
+        auto weights = vector<float>(n_vars);
+        auto n = vector<size_t>(n_vars);
+        vector<vector<size_t>> vars(n_tables);
+
         for (size_t i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
-                vector<size_t> vars(temp.begin() + 1, temp.begin() + temp[0] + 1);
-                for (auto it = vars.begin(); it != vars.end(); ++it) {
-                        for (auto it1 = it + 1; it1 != vars.end(); ++it1) {
+                vars[i] = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                for (auto it = vars[i].begin(); it != vars[i].end(); ++it) {
+                        for (auto it1 = it + 1; it1 != vars[i].end(); ++it1) {
                                 adj[*it].set(*it1);
                                 adj[*it1].set(*it);
                         }
                 }
         }
 
+        for (size_t i = 0; i < n_tables; ++i) {
+                SKIP_LINE;
+                auto [ n_rows ] = tokenize<size_t, 0, 1>(f);
+                vector<value> values;
+                while (values.size() < n_rows) {
+                        auto temp = tokenize<value>(f);
+                        values.insert(values.end(), temp.begin(), temp.end());
+                }
+                sort(values.begin(), values.end());
+                const float u = unique(values.begin(), values.end()) - values.begin();
+                for (auto var : vars[i]) {
+                        weights[var] += u / n_rows;
+                        n[var]++;
+                }
+        }
+
+        for (size_t i = 0; i < n_vars; ++i) {
+                weights[i] /= n[i];
+        }
+
         f.close();
-        auto weights = vector<float>(domains.size(), 1.0);
         return make_tuple(domains, adj, weights);
 }
 
-tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>> 
+tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>>
 read_domains_adj_weights(const char *instance, int type) {
 
         if (type == WCSP) {

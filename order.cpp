@@ -35,7 +35,7 @@ auto fill(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic
                 for EACH_SET_BIT(tmp, j, i) {
                         if (!(adj[i] & mask).test(j)) {
                                 #ifdef WEIGHTEDMINFILL
-                                fill += weights[i] * weights[j];
+                                fill += weights[i] + weights[j];
                                 #else
                                 fill++;
                                 #endif
