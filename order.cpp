@@ -15,21 +15,21 @@
 #endif
 
 __attribute__((always_inline)) inline
-auto degree(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask) {
+auto degree(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask, vector<float> const &weights) {
 
         return (adj[row] & mask).count();
 }
 
 __attribute__((always_inline)) inline
-auto fill(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask) {
+auto fill(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask, vector<float> const &weights) {
 
-        size_t fill = 0;
+        float fill = 0;
         auto tmp = adj[row] & mask;
 
         for EACH_SET_BIT(tmp, i) {
                 for EACH_SET_BIT(tmp, j, i) {
                         if (!(adj[i] & mask).test(j)) {
-                                fill++;
+                                fill += weights[i] * weights[j];
                         }
                 }
         }
@@ -50,7 +50,7 @@ void connect_neighbours(size_t row, vector<boost::dynamic_bitset<>> &adj, boost:
         }
 }
 
-vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj) {
+vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj, vector<float> const &weights) {
 
         vector<size_t> order;
 
@@ -70,9 +70,10 @@ vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj) {
 
         while (not_assigned.any()) {
                 //cout << not_assigned << endl;
-                size_t min_node, min_metric = numeric_limits<size_t>::max();
+                size_t min_node;
+                auto min_metric = numeric_limits<float>::max();
                 for EACH_SET_BIT(not_assigned, i) {
-                        auto metric = METRIC(i, tmp_adj, not_assigned);
+                        auto metric = METRIC(i, tmp_adj, not_assigned, weights);
                         //cout << i << " -> " << metric << endl;
                         if (metric < min_metric) {
                                 min_metric = metric;

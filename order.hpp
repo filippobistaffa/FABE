@@ -21,7 +21,7 @@ struct compare_pos {
 
 using namespace std;
 
-vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj);
+vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj, vector<float> const &weights);
 
 size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> const &order, vector<size_t> const &pos);
 

@@ -132,8 +132,9 @@ int main(int argc, char *argv[]) {
                 srand(unsigned (std::time(0)));
                 random_shuffle(order.begin(), order.end());
                 #else
-                cout << "Computing MIN-FILL variable order..." << endl;
-                order = greedy_order(adj);
+                cout << "Computing WEIGHTED-MIN-FILL variable order..." << endl;
+                auto weights = vector<float>(domains.size(), 1.0);
+                order = greedy_order(adj, weights);
                 #endif
         }
 
