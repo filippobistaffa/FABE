@@ -144,7 +144,8 @@ array<T, N> tokenize(ifstream &f) {
 
 #define SKIP_LINE f.ignore(numeric_limits<streamsize>::max(), '\n')
 
-static inline pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj_wcsp(const char *wcsp) {
+static inline tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>>
+read_domains_adj_weights_wcsp(const char *wcsp) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
@@ -171,10 +172,12 @@ static inline pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains
         }
 
         f.close();
-        return make_pair(domains, adj);
+        auto weights = vector<float>(domains.size(), 1.0);
+        return make_tuple(domains, adj, weights);
 }
 
-static inline pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj_uai(const char *uai) {
+static inline tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>> 
+read_domains_adj_weights_uai(const char *uai) {
 
         ifstream f(uai);
         SKIP_LINE;
@@ -199,15 +202,17 @@ static inline pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains
         }
 
         f.close();
-        return make_pair(domains, adj);
+        auto weights = vector<float>(domains.size(), 1.0);
+        return make_tuple(domains, adj, weights);
 }
 
-pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj(const char *instance, int type) {
+tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>> 
+read_domains_adj_weights(const char *instance, int type) {
 
         if (type == WCSP) {
-                return read_domains_adj_wcsp(instance);
+                return read_domains_adj_weights_wcsp(instance);
         } else {
-                return read_domains_adj_uai(instance);
+                return read_domains_adj_weights_uai(instance);
         }
 }
 

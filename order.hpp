@@ -3,7 +3,8 @@
 
 //#define MINWIDTH
 //#define MININDUCEDWIDTH
-#define MINFILL
+//#define MINFILL
+#define WEIGHTEDMINFILL
 
 #include <boost/dynamic_bitset.hpp>     // bitset
 

@@ -14,6 +14,11 @@
 #define CONNECT
 #endif
 
+#ifdef WEIGHTEDMINFILL
+#define METRIC fill
+#define CONNECT
+#endif
+
 __attribute__((always_inline)) inline
 auto degree(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask, vector<float> const &weights) {
 
@@ -29,7 +34,11 @@ auto fill(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic
         for EACH_SET_BIT(tmp, i) {
                 for EACH_SET_BIT(tmp, j, i) {
                         if (!(adj[i] & mask).test(j)) {
+                                #ifdef WEIGHTEDMINFILL
                                 fill += weights[i] * weights[j];
+                                #else
+                                fill++;
+                                #endif
                         }
                 }
         }

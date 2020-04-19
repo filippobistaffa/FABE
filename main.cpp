@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
                 }
         }
 
-        auto [ domains, adj ] = read_domains_adj(instance, inst_type);
+        auto [ domains, adj, weights ] = read_domains_adj_weights(instance, inst_type);
         //print_adj(adj);
         //cout << endl;
 
@@ -132,8 +132,7 @@ int main(int argc, char *argv[]) {
                 srand(unsigned (std::time(0)));
                 random_shuffle(order.begin(), order.end());
                 #else
-                cout << "Computing WEIGHTED-MIN-FILL variable order..." << endl;
-                auto weights = vector<float>(domains.size(), 1.0);
+                cout << "Computing greedy variable order..." << endl;
                 order = greedy_order(adj, weights);
                 #endif
         }

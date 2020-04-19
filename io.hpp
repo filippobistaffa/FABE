@@ -43,7 +43,7 @@ void automata_dot(automata const &c, const char *root_dir = ".");
 
 void print_adj(vector<boost::dynamic_bitset<>> const &adj);
 
-pair<vector<size_t>, vector<boost::dynamic_bitset<>>> read_domains_adj(const char *instance, int type);
+tuple<vector<size_t>, vector<boost::dynamic_bitset<>>, vector<float>> read_domains_adj_weights(const char *instance, int type);
 
 vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
 
