@@ -114,14 +114,12 @@ size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> 
 
 static inline void parse(string str, vector<size_t> &order) {
 
-        //cout << "str = " << str << endl;
         size_t var;
         size_t i = str.find("(");
-        //cout << "i = " << i << endl;
+
         if (i != string::npos) {
                 var = atoi(str.substr(0, i).c_str());
                 auto children = str.substr(i);
-                //cout << children << endl;
                 while (children.size() > 0) {
                         size_t j = 1;
                         size_t b = 1;
@@ -133,16 +131,13 @@ static inline void parse(string str, vector<size_t> &order) {
                                 }
                                 j++;
                         }
-                        //cout << "\"" << children.substr(1, j - 2) << "\"" <<endl;
-                        //ret.ch.push_back(parse(children.substr(1, j - 2), order));
                         parse(children.substr(1, j - 2), order);
-                        //cout << "\"" << children.substr(j) << "\"" <<endl;
                         children = children.substr(j);
                 }
         } else {
                 var = atoi(str.c_str());
         }
-        //cout << ret.var << endl;
+
         order.push_back(var);
 }
 
