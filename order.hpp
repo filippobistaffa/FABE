@@ -25,7 +25,7 @@ vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj);
 
 size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> const &order, vector<size_t> const &pos);
 
-vector<size_t> read_pseudotree_order(const char *filename);
+vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains);
 
 //void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output);
 
