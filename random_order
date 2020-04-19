@@ -2,7 +2,7 @@
 
 out_dir="./random"
 bin="./fabe"
-n=2
+n=20
 
 mkdir -p ${out_dir}
 rm -rf ${out_dir}/*
