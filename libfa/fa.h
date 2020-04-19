@@ -343,6 +343,8 @@ void fa_merge_accept(struct fa *fa);
 
 void fa_add_word(struct fa *fa, const char *word, size_t length);
 
+size_t fa_n_states(struct fa *fa);
+
 #ifdef __cplusplus
 }
 #endif

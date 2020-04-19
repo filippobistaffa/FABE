@@ -6,6 +6,7 @@
 // enable profiling
 //#define CPU_PROFILER
 //#define HEAP_PROFILER
+//#define COUNT_STATES
 
 #ifdef CPU_PROFILER
 #define CPU_PROFILER_OUTPUT "trace.prof"
@@ -15,6 +16,10 @@
 #ifdef HEAP_PROFILER
 #define HEAP_PROFILER_PREFIX "memory/memory"
 #include <gperftools/heap-profiler.h>
+#endif
+
+#ifdef COUNT_STATES
+size_t tot_states;
 #endif
 
 #ifdef PRINT_TABLES
@@ -140,6 +145,12 @@ static inline automata join_bucket(vector<automata> &bucket, int inner, vector<s
                 #endif
                 cout << "Joined " << (it - bucket.begin()) + 1 << " functions" << endl;
 	}
+
+        #ifdef COUNT_STATES
+        for (auto &[ v, fa ] : res.rows) {
+                tot_states += fa_n_states(fa);
+        }
+        #endif
 
         return res;
 }
@@ -307,6 +318,10 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
 
         #ifdef HEAP_PROFILER
         HeapProfilerStop();
+        #endif
+
+        #ifdef COUNT_STATES
+        cout << endl << "Total number of states = " << tot_states << endl;
         #endif
 
         //cout << endl << "Section time = " << TOTAL_TIME << endl;

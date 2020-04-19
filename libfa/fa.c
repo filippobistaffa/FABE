@@ -1812,6 +1812,14 @@ static int minimize_brzozowski(struct fa *fa) {
     return -1;
 }
 
+size_t fa_n_states(struct fa *fa) {
+    size_t n = 0;
+    list_for_each(s, fa->initial) {
+        n++;
+    }
+    return n;
+}
+
 //#define COUNT_STATES
 
 static int minimize_bubenzer(struct fa *fa);
@@ -1823,11 +1831,7 @@ int fa_minimize(struct fa *fa) {
         return -1;
     if (fa->minimal) {
         #ifdef COUNT_STATES
-        size_t n = 0;
-        list_for_each(s, fa->initial) {
-            n++;
-        }
-        printf("%zu states\n", n);
+        printf("%zu states\n", fa_n_states(fa));
         #endif
         return 0;
     }
@@ -1844,11 +1848,7 @@ int fa_minimize(struct fa *fa) {
     }
 
     #ifdef COUNT_STATES
-    size_t n = 0;
-    list_for_each(s, fa->initial) {
-        n++;
-    }
-    printf("%zu states\n", n);
+    printf("%zu states\n", fa_n_states(fa));
     #endif
 
     if (r == 0)
