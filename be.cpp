@@ -304,15 +304,6 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
 
         value optimal = 0;
 
-        #ifndef DEBUG_BUCKETS
-        size_t tot_func = 0;
-        vector<size_t> n_func;
-        for (auto bucket : buckets) {
-                n_func.push_back(bucket.size());
-                tot_func += bucket.size();
-        }
-        #endif
-
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
                 #ifdef DEBUG_BUCKETS
                 cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
@@ -329,7 +320,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
                         optimal += process_bucket(buckets[*it], buckets, inner, outer, pos, domains);
                 }
                 #ifndef DEBUG_BUCKETS
-                log_progress_increase(n_func[*it], tot_func);
+                log_progress_increase(1, order.size());
                 #endif
         }
 
