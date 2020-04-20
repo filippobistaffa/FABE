@@ -1,7 +1,5 @@
 #include "main.hpp"
 
-//#define RANDOM_ORDER
-
 bool parallel = false;
 
 static inline void print_usage(const char *bin) {
