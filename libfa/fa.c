@@ -99,6 +99,9 @@ struct fa {
     int           trans_re : 1;
 };
 
+// ignore optimal alignment, reduce struct size
+#define PACKED_STRUCT
+
 /* A state in a finite automaton. Transitions are never shared between
    states so that we can free the list when we need to free the state */
 struct state {
@@ -115,7 +118,11 @@ struct state {
     uchar         tsize;
     struct trans *trans;
     struct state *repr; // used for Bubenzer's algorithm
+#ifdef PACKED_STRUCT
 } __attribute__((packed));
+#else
+};
+#endif
 
 /* A transition. If the input has a character in the inclusive
  * range [MIN, MAX], move to TO
@@ -4840,7 +4847,11 @@ static hash_val_t jenkins_hash(const void *p, size_t byte_size) {
 struct signature {
     struct trans *trans;
     uchar         n;
+#ifdef PACKED_STRUCT
 } __attribute__((packed));
+#else
+};
+#endif
 
 static hash_val_t sig_hash(const void *key) {
     const struct signature *sig = key;
