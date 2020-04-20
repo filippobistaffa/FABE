@@ -72,7 +72,7 @@ function check {
         current=${#msg}
         echo -n $msg
         start=`date +%s.%N`
-        val=`${bin} -f $1 | tail -n 1`
+        val=`${bin} -f $1 | grep "Solution" | egrep -o "[0-9]+\.?[0-9]*"`
         end=`date +%s.%N`
         runtime=$(echo "$end - $start" | bc | awk '{printf "%f", $0}')
         total_time=$(echo "$total_time + $runtime" | bc)
