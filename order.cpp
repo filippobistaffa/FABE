@@ -20,30 +20,26 @@
 #endif
 
 __attribute__((always_inline)) inline
-auto degree(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask, vector<float> const &weights) {
+float metric(int order_heur, size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask, vector<float> const &weights) {
 
-        return (adj[row] & mask).count();
-}
-
-__attribute__((always_inline)) inline
-auto fill(size_t row, vector<boost::dynamic_bitset<>> const &adj, boost::dynamic_bitset<> const &mask, vector<float> const &weights) {
-
-        float fill = 0;
-        auto tmp = adj[row] & mask;
-
-        for EACH_SET_BIT(tmp, i) {
-                for EACH_SET_BIT(tmp, j, i) {
-                        if (!(adj[i] & mask).test(j)) {
-                                #ifdef WEIGHTEDMINFILL
-                                fill += weights[i] + weights[j];
-                                #else
-                                fill++;
-                                #endif
+        if (order_heur == MIN_DEGREE || order_heur == MIN_INDUCED_WIDTH) {
+                return (adj[row] & mask).count();
+        } else {
+                float fill = 0;
+                auto tmp = adj[row] & mask;
+                for EACH_SET_BIT(tmp, i) {
+                        for EACH_SET_BIT(tmp, j, i) {
+                                if (!(adj[i] & mask).test(j)) {
+                                        if (order_heur == WEIGHTED_MIN_FILL) {
+                                                fill += weights[i] + weights[j];
+                                        } else {
+                                                fill++;
+                                        }
+                                }
                         }
                 }
+                return fill;
         }
-
-        return fill;
 }
 
 __attribute__((always_inline)) inline
@@ -59,40 +55,29 @@ void connect_neighbours(size_t row, vector<boost::dynamic_bitset<>> &adj, boost:
         }
 }
 
-vector<size_t> greedy_order(vector<boost::dynamic_bitset<>> const &adj, vector<float> const &weights) {
+vector<size_t> greedy_order(int order_heur, vector<boost::dynamic_bitset<>> const &adj, vector<float> const &weights) {
 
         vector<size_t> order;
-
-        const auto n_bin_vars = adj.size();
-        boost::dynamic_bitset<> not_assigned(n_bin_vars);
+        boost::dynamic_bitset<> not_assigned(adj.size());
         not_assigned.set();
-
-        /*for (auto i = 0; i < adj.size(); ++i) {
-                if (METRIC(i, adj, not_assigned) == 0) {
-                        cout << i << " -> " << 0 << endl;
-                        order.push_back(i);
-                        not_assigned.reset(i);
-                }
-        }*/
-
         vector<boost::dynamic_bitset<>> tmp_adj(adj);
 
         while (not_assigned.any()) {
                 //cout << not_assigned << endl;
                 size_t min_node;
-                auto min_metric = numeric_limits<float>::max();
+                float min_met = numeric_limits<float>::max();
                 for EACH_SET_BIT(not_assigned, i) {
-                        auto metric = METRIC(i, tmp_adj, not_assigned, weights);
+                        float met = metric(order_heur, i, tmp_adj, not_assigned, weights);
                         //cout << i << " -> " << metric << endl;
-                        if (metric < min_metric) {
-                                min_metric = metric;
+                        if (met < min_met) {
+                                min_met = met;
                                 min_node = i;
                         }
                 }
                 order.push_back(min_node);
-                #ifdef CONNECT
-                connect_neighbours(min_node, tmp_adj, not_assigned);
-                #endif
+                if (order_heur != MIN_DEGREE) {
+                        connect_neighbours(min_node, tmp_adj, not_assigned);
+                }
                 not_assigned.reset(min_node);
                 //print_it(order);
         }

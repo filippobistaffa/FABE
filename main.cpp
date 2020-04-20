@@ -6,7 +6,7 @@ bool parallel = false;
 
 static inline void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-p pseudotree] -f instance" << endl;
+        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|rand|*.pt] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -25,11 +25,11 @@ int main(int argc, char *argv[]) {
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
         char *instance = NULL;
+        int order_heur = 0;
         char *pseudotree = NULL;
-        //char *exp_ord = NULL;
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:p:h")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:h")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -44,12 +44,6 @@ int main(int argc, char *argv[]) {
                                         return EXIT_FAILURE;
                                 }
                                 continue;
-                        /*case 'P':
-                                parallel = true;
-                                continue;
-                        case 'e':
-                                exp_ord = optarg;
-                                continue;*/
                         case 'i':
                                 ibound = max(0, atoi(optarg));
                                 continue;
@@ -62,8 +56,18 @@ int main(int argc, char *argv[]) {
                                         return EXIT_FAILURE;
                                 }
                                 continue;
-                        case 'p':
-                                if (exists(optarg)) {
+                        case 'o':
+                                if (strcmp(optarg, "wmf") == 0) {
+                                        order_heur = WEIGHTED_MIN_FILL;
+                                } else if (strcmp(optarg, "mf") == 0) {
+                                        order_heur = MIN_FILL;
+                                } else if (strcmp(optarg, "miw") == 0) {
+                                        order_heur = MIN_INDUCED_WIDTH;
+                                } else if (strcmp(optarg, "md") == 0) {
+                                        order_heur = MIN_DEGREE;
+                                } else if (strcmp(optarg, "rand") == 0) {
+                                        order_heur = RANDOM;
+                                } else if (exists(optarg)) {
                                         pseudotree = optarg;
                                 } else {
                                         cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
@@ -120,22 +124,23 @@ int main(int argc, char *argv[]) {
         //cout << endl;
         //cout << vec2str(weights, "Weights") << endl;
 
+        string heuristics[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
         vector<size_t> order;
 
         if (pseudotree) {
                 cout << "Reading order from " << pseudotree << endl;
                 order = read_pseudotree_order(pseudotree, domains);
         } else {
-                #ifdef RANDOM_ORDER
-                cout << "Computing RANDOM variable order..." << endl;
-                order.resize(domains.size());
-                iota(order.begin(), order.end(), 0);
-                srand(unsigned (std::time(0)));
-                random_shuffle(order.begin(), order.end());
-                #else
-                cout << "Computing greedy variable order..." << endl;
-                order = greedy_order(adj, weights);
-                #endif
+                if (order_heur == RANDOM) {
+                        cout << "Computing RANDOM variable order..." << endl;
+                        order.resize(domains.size());
+                        iota(order.begin(), order.end(), 0);
+                        srand(unsigned (std::time(0)));
+                        random_shuffle(order.begin(), order.end());
+                } else {
+                        cout << "Computing " << heuristics[order_heur] << " variable order..." << endl;
+                        order = greedy_order(order_heur, adj, weights);
+                }
         }
 
         cout << vec2str(order, "Order") << endl;
@@ -147,10 +152,6 @@ int main(int argc, char *argv[]) {
 
         cout << "Induced width = " << induced_width(adj, order, pos) << endl;
         auto tables = read_tables(instance, inst_type, pos, threshold);
-
-        /*if (exp_ord) {
-                export_order(order, domains, exp_ord);
-        }*/
 
         /*for (auto const &table : tables) {
                 print_table(table);
