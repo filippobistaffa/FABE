@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
         char *instance = NULL;
-        int order_heur = 0;
+        int order_heur = WEIGHTED_MIN_FILL;
         char *pseudotree = NULL;
         int opt;
 
