@@ -1827,7 +1827,7 @@ size_t fa_n_states(struct fa *fa) {
     return n;
 }
 
-//#define COUNT_STATES
+//#define DEBUG_MINIMISATION
 
 static int minimize_bubenzer(struct fa *fa);
 
@@ -1837,7 +1837,7 @@ int fa_minimize(struct fa *fa) {
     if (fa == NULL)
         return -1;
     if (fa->minimal) {
-        #ifdef COUNT_STATES
+        #ifdef DEBUG_MINIMISATION
         printf("%zu states\n", fa_n_states(fa));
         #endif
         return 0;
@@ -1854,7 +1854,7 @@ int fa_minimize(struct fa *fa) {
             r = minimize_hopcroft(fa);
     }
 
-    #ifdef COUNT_STATES
+    #ifdef DEBUG_MINIMISATION
     printf("%zu states\n", fa_n_states(fa));
     #endif
 
