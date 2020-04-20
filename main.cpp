@@ -86,26 +86,24 @@ int main(int argc, char *argv[]) {
                 return EXIT_FAILURE;
         }
 
+        log_line();
         int inst_type;
 
         if (strstr(instance, "wcsp")) {
-                cout << "Found WCSP instance: executing MIN-SUM algorithm" << endl;
+                log_value("Instance type", "WCSP");
+                log_value("BE Algorithm", "MIN-SUM");
                 inst_type = WCSP;
         } else {
-                cout << "Found MPE instance: executing MAX-PROD algorithm" << endl;
+                log_value("Instance type", "MPE");
+                log_value("BE Algorithm", "MAX-PROD");
                 inst_type = MPE;
         }
 
-        if (ibound) {
-                cout << "I-bound = " << ibound << endl;
-        }
-
-        if (parallel) {
-                cout << "Parallelism enabled" << endl;
-        }
+        log_value("I-bound", (ibound == 0) ? "+inf" : to_string(ibound));
+        log_value("Parallel mode", parallel);
 
         string algorithms[] = { "Hopcroft", "Brzozowski", "Bubenzer" };
-        cout << "Minimisation algorithm = " << algorithms[fa_minimization_algorithm] << endl;
+        log_value("Automata minimisation algorithm", algorithms[fa_minimization_algorithm]);
 
         // look for a known threshold to remove rows
         value threshold = numeric_limits<value>::max();
@@ -113,9 +111,10 @@ int main(int argc, char *argv[]) {
         for (size_t i = 0; i < N_DATASETS; ++i) {
                 if (strstr(instance, datasets[i]) != NULL) {
                         threshold = thresholds[i];
-                        cout << "Thresholds value = " << threshold << endl;
                 }
         }
+
+        log_value("Thresholds value", threshold);
 
         auto [ domains, adj, weights ] = read_domains_adj_weights(instance, inst_type);
         //print_adj(adj);
@@ -126,29 +125,29 @@ int main(int argc, char *argv[]) {
         vector<size_t> order;
 
         if (pseudotree) {
-                cout << "Reading order from " << pseudotree << endl;
+                log_value("Variable order", pseudotree);
                 order = read_pseudotree_order(pseudotree, domains);
         } else {
                 if (order_heur == RANDOM) {
-                        cout << "Computing RANDOM variable order..." << endl;
+                        log_value("Variable order", "Random");
                         order.resize(domains.size());
                         iota(order.begin(), order.end(), 0);
                         srand(unsigned (std::time(0)));
                         random_shuffle(order.begin(), order.end());
                 } else {
-                        cout << "Computing " << heuristics[order_heur] << " variable order..." << endl;
+                        log_value("Variable order", heuristics[order_heur]);
                         order = greedy_order(order_heur, adj, weights);
                 }
         }
 
-        cout << vec2str(order, "Order") << endl;
+        //cout << vec2str(order, "Order") << endl;
         reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
         for (size_t i = 0; i < order.size(); ++i) {
                 pos[order[i]] = i;
         }
 
-        cout << "Induced width = " << induced_width(adj, order, pos) << endl;
+        log_value("Induced width", induced_width(adj, order, pos));
         auto tables = read_tables(instance, inst_type, pos, threshold);
 
         /*for (auto const &table : tables) {
@@ -160,7 +159,6 @@ int main(int argc, char *argv[]) {
         vector<automata> automatas(tables.size());
         double total_rows = 0;
         double actual_rows = 0;
-        cout << "Computing automata..." << endl;
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
         for (size_t i = 0; i < tables.size(); ++i) {
@@ -171,7 +169,7 @@ int main(int argc, char *argv[]) {
                                          1, multiplies<size_t>());
         }
 
-        cout << "Redundancy = " << 1 - actual_rows / total_rows << endl << endl;
+        log_value("Redundancy", 1 - actual_rows / total_rows);
 
         /*for (auto const &a : automatas) {
                 automata_dot(a, "dot");
@@ -187,13 +185,16 @@ int main(int argc, char *argv[]) {
                 }
         }*/
 
+        log_line();
+
         //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
         //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
 
         chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
-        cout << endl << "Time elapsed = " << runtime.count() << endl;
-        cout << optimal << endl;
+        log_value("Solution", optimal);
+        log_value("Time elapsed", runtime.count());
+        log_line();
 
         return EXIT_SUCCESS;
 }

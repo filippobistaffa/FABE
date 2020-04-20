@@ -3,10 +3,13 @@
 // print tables during execution
 //#define PRINT_TABLES
 
+// print bucket debug messages
+//#define DEBUG_BUCKETS
+
 // enable profiling
 //#define CPU_PROFILER
 //#define HEAP_PROFILER
-//#define COUNT_STATES
+#define COUNT_STATES
 
 #ifdef CPU_PROFILER
 #define CPU_PROFILER_OUTPUT "trace.prof"
@@ -143,7 +146,9 @@ static inline automata join_bucket(vector<automata> &bucket, int inner, vector<s
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("post-free");
                 #endif
+                #ifdef DEBUG_BUCKETS
                 cout << "Joined " << (it - bucket.begin()) + 1 << " functions" << endl;
+                #endif
 	}
 
         #ifdef COUNT_STATES
@@ -185,8 +190,6 @@ static inline value reduce_last_var(automata &a, int outer) {
                 return keys.front();
         }
 
-        //START_CLOCK;
-
         vector<struct fa *> pfx_union(keys.size());
         pfx_union[0] = fa_make_basic(FA_EMPTY);
 
@@ -194,8 +197,6 @@ static inline value reduce_last_var(automata &a, int outer) {
                 pfx_union[i] = fa_union(a.rows[keys[i - 1]], pfx_union[i - 1]);
                 fa_minimize(pfx_union[i]);
         }
-
-        //STOP_CLOCK;
 
         vector<value> empty;
 
@@ -234,7 +235,11 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
                         res += reduce_last_var(h, outer);
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
-                                cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl << endl;
+                                #ifdef DEBUG_BUCKETS
+                                cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl;
+                                #else
+                                push_bucket(h, buckets, pos);
+                                #endif
                         }
                 }
         }
@@ -299,17 +304,33 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
 
         value optimal = 0;
 
+        #ifndef DEBUG_BUCKETS
+        size_t tot_func = 0;
+        vector<size_t> n_func;
+        for (auto bucket : buckets) {
+                n_func.push_back(bucket.size());
+                tot_func += bucket.size();
+        }
+        #endif
+
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
+                #ifdef DEBUG_BUCKETS
                 cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
+                #endif
                 if (ibound && buckets[*it].size() > 1) {
                         auto mb = mini_buckets(buckets[*it], ibound, pos);
+                        #ifdef DEBUG_BUCKETS
                         cout << "There are " << mb.size() << " mini-buckets" << endl;
+                        #endif
                         for (auto &bucket : mb) {
                                 optimal += process_bucket(bucket, buckets, inner, outer, pos, domains);
                         }
                 } else {
                         optimal += process_bucket(buckets[*it], buckets, inner, outer, pos, domains);
                 }
+                #ifndef DEBUG_BUCKETS
+                log_progress_increase(n_func[*it], tot_func);
+                #endif
         }
 
         #ifdef CPU_PROFILER
@@ -320,11 +341,11 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
         HeapProfilerStop();
         #endif
 
-        #ifdef COUNT_STATES
-        cout << endl << "Total number of states = " << tot_states << endl;
-        #endif
+        log_line();
 
-        //cout << endl << "Section time = " << TOTAL_TIME << endl;
+        #ifdef COUNT_STATES
+        log_value("Total number of states", tot_states);
+        #endif
 
         return optimal;
 }

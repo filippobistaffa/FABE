@@ -5,6 +5,7 @@
 #include "order.hpp"
 #include "conversion.hpp"
 #include "be.hpp"
+#include "log.hpp"
 
 #include <chrono>
 #include <numeric>      // accumulate

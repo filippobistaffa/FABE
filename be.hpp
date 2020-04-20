@@ -5,6 +5,7 @@
 #include "libfa/fa.h"
 #include "types.hpp"
 #include "order.hpp"
+#include "log.hpp"
 
 enum be_inner_op {
         BE_SUM,
