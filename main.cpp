@@ -108,15 +108,15 @@ int main(int argc, char *argv[]) {
 
         if (strstr(instance, "wcsp")) {
                 log_value("Instance type", "WCSP");
-                log_value("BE Algorithm", "MIN-SUM");
+                log_value("Bucket elimination algorithm", "MIN-SUM");
                 inst_type = WCSP;
         } else {
                 log_value("Instance type", "MPE");
-                log_value("BE Algorithm", "MAX-PROD");
+                log_value("Bucket elimination algorithm", "MIN-SUM with -log()");
                 inst_type = MPE;
         }
 
-        log_value("I-bound", (ibound == 0) ? "+inf" : to_string(ibound));
+        log_value("I-bound", (ibound == 0) ? "inf" : to_string(ibound));
         log_value("Parallel mode", parallel);
 
         string algorithms[] = { "Hopcroft", "Brzozowski", "Bubenzer" };
@@ -148,13 +148,13 @@ int main(int argc, char *argv[]) {
         } else {
                 srand(seed);
                 if (order_heur == RANDOM) {
-                        log_value("Variable order", "Random");
+                        log_value("Variable order heuristic", "Random");
                         order.resize(domains.size());
                         iota(order.begin(), order.end(), 0);
                         srand(unsigned (std::time(0)));
                         random_shuffle(order.begin(), order.end());
                 } else {
-                        log_value("Variable order", heuristics[order_heur]);
+                        log_value("Variable order heuristic", heuristics[order_heur]);
                         order = greedy_order(adj, order_heur);
                 }
         }
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
                                          1, multiplies<size_t>());
         }
 
-        log_value("Redundancy", 1 - actual_rows / total_rows);
+        log_value("Value redundancy", 1 - actual_rows / total_rows);
 
         /*for (auto const &a : automatas) {
                 automata_dot(a, "dot");
