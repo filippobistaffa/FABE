@@ -1,14 +1,7 @@
 #ifndef MAIN_H_
 #define MAIN_H_
 
-#include "io.hpp"
-#include "order.hpp"
-#include "conversion.hpp"
-#include "be.hpp"
-#include "log.hpp"
-
-#include <chrono>
-#include <numeric>      // accumulate
+#include "types.hpp"
 
 // known threshold values to remove rows
 static const char* datasets[] = { "spot5",

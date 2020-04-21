@@ -1,5 +1,12 @@
 #include "be.hpp"
 
+#include <numeric>      // accumulate
+#include <algorithm>    // max_element, sort
+
+#include "libfa/fa.h"
+#include "order.hpp"
+#include "log.hpp"
+
 // print tables during execution
 //#define PRINT_TABLES
 
@@ -128,6 +135,14 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         return join;
 }
 
+static inline void free_automata(automata &a) {
+
+        for (auto& [ v, fa ] : a.rows) {
+                fa_free(fa);
+        }
+        a.rows.clear();
+}
+
 static inline automata join_bucket(vector<automata> &bucket, int inner, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         auto res = bucket.front();
@@ -223,6 +238,13 @@ static inline value reduce_last_var(automata &a, int outer) {
         return 0;
 }
 
+static inline size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
+
+        const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_pos(pos));
+        buckets[b].push_back(move(a));
+        return b;
+}
+
 static inline value process_bucket(vector<automata> &bucket, vector<vector<automata>> &buckets, int inner,
                                    int outer, vector<size_t> const &pos, vector<size_t> const &domains) {
 
@@ -288,6 +310,17 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
         }
 
         return mini_buckets;
+}
+
+vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vector<size_t> const &pos) {
+
+        vector<vector<automata>> buckets(pos.size(), vector<automata>());
+
+        for (automata const &a : automatas) {
+                push_bucket(a, buckets, pos);
+        }
+
+        return buckets;
 }
 
 value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,

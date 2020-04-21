@@ -1,5 +1,13 @@
 #include "conversion.hpp"
 
+#include <cmath>        // fabs
+#include <sstream>      // ostringstream
+#include <iostream>     // cout
+#include <cstring>      // strlen
+#include <numeric>      // accumulate
+
+#include "libfa/fa.h"
+
 //#define OLD
 
 #ifdef OLD

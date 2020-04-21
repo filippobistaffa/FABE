@@ -1,10 +1,7 @@
 #ifndef ORDER_HPP_
 #define ORDER_HPP_
 
-#include <boost/dynamic_bitset.hpp>     // bitset
-#include "bitset.hpp"
 #include "types.hpp"
-#include "io.hpp"
 
 enum order_heur {
         WEIGHTED_MIN_FILL,
@@ -14,22 +11,23 @@ enum order_heur {
         RANDOM
 };
 
+template <typename T>
 struct compare_pos {
-        compare_pos(vector<size_t> const &pos) : pos(pos) {};
+        compare_pos(vector<T> const &pos) : pos(pos) {};
         bool operator()(size_t const &x, size_t const &y) {
                 return pos[x] < pos[y];
         }
-        vector<size_t> pos;
+        vector<T> pos;
 };
 
 using namespace std;
 
-vector<size_t> greedy_order(int order_heur, vector<boost::dynamic_bitset<>> const &adj, vector<float> const &weights);
+vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur = 0);
 
-size_t induced_width(vector<boost::dynamic_bitset<>> const &adj, vector<size_t> const &order, vector<size_t> const &pos);
+size_t induced_width(vector<vector<float>> const &adj, vector<size_t> const &order);
 
 vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains);
 
-//void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output);
+void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output);
 
 #endif /* ORDER_HPP_ */

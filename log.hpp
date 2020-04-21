@@ -1,6 +1,11 @@
 #ifndef LOG_HPP_
 #define LOG_HPP_
 
+#include <iostream>     // cout
+#include <iomanip>      // setw
+
+using namespace std;
+
 #define TOTAL_WIDTH 79
 #define COLUMN_WIDTH ((TOTAL_WIDTH - 7) / 2)
 

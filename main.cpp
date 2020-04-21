@@ -1,5 +1,18 @@
 #include "main.hpp"
 
+#include <iostream>     // cout
+#include <chrono>       // time measurement
+#include <numeric>      // accumulate
+#include <string.h>     // strcmp
+#include <unistd.h>     // getopt
+#include <algorithm>    // reverse, random_shuffle
+
+#include "be.hpp"
+#include "io.hpp"
+#include "log.hpp"
+#include "order.hpp"
+#include "conversion.hpp"
+
 bool parallel = false;
 
 static inline void print_usage(const char *bin) {
@@ -116,10 +129,9 @@ int main(int argc, char *argv[]) {
 
         log_value("Thresholds value", threshold);
 
-        auto [ domains, adj, weights ] = read_domains_adj_weights(instance, inst_type);
+        auto [ domains, adj ] = read_domains_adj(instance, inst_type);
         //print_adj(adj);
         //cout << endl;
-        //cout << vec2str(weights, "Weights") << endl;
 
         string heuristics[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
         vector<size_t> order;
@@ -136,7 +148,7 @@ int main(int argc, char *argv[]) {
                         random_shuffle(order.begin(), order.end());
                 } else {
                         log_value("Variable order", heuristics[order_heur]);
-                        order = greedy_order(order_heur, adj, weights);
+                        order = greedy_order(adj, order_heur);
                 }
         }
 
@@ -147,7 +159,8 @@ int main(int argc, char *argv[]) {
                 pos[order[i]] = i;
         }
 
-        log_value("Induced width", induced_width(adj, order, pos));
+        export_order(order, domains, "order.vo");
+        log_value("Induced width", induced_width(adj, order));
         auto tables = read_tables(instance, inst_type, pos, threshold);
 
         /*for (auto const &table : tables) {
