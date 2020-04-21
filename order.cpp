@@ -67,7 +67,6 @@ static inline void connect_neighbours(vector<vector<float>> &adj, size_t node) {
 
 vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur) {
 
-        srand(time(NULL));
         vector<size_t> order;
         vector<vector<float>> tmp_adj(adj);
         unordered_set<size_t> not_marked(adj.size());

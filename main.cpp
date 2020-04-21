@@ -17,7 +17,7 @@ bool parallel = false;
 
 static inline void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] -f instance" << endl;
+        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] [-s seed] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -33,15 +33,15 @@ static inline bool exists(const char *filename) {
 
 int main(int argc, char *argv[]) {
 
-        auto start_t = chrono::high_resolution_clock::now();
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
         char *instance = NULL;
         int order_heur = WEIGHTED_MIN_FILL;
         char *pseudotree = NULL;
+        size_t seed = time(NULL);
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:h")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:s:h")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -86,6 +86,9 @@ int main(int argc, char *argv[]) {
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
                                 }
+                                continue;
+                        case 's':
+                                seed = atoi(optarg);
                                 continue;
                         case 'h':
                         default :
@@ -134,13 +137,16 @@ int main(int argc, char *argv[]) {
         //print_adj(adj);
         //cout << endl;
 
+        log_value("Seed", seed);
         string heuristics[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
         vector<size_t> order;
+        auto start_t = chrono::high_resolution_clock::now();
 
         if (pseudotree) {
                 log_value("Variable order", pseudotree);
                 order = read_pseudotree_order(pseudotree, domains);
         } else {
+                srand(seed);
                 if (order_heur == RANDOM) {
                         log_value("Variable order", "Random");
                         order.resize(domains.size());
@@ -160,7 +166,10 @@ int main(int argc, char *argv[]) {
                 pos[order[i]] = i;
         }
 
-        export_order(order, domains, "order.vo");
+        chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
+        log_value("Order computation runtime", runtime.count());
+        start_t = chrono::high_resolution_clock::now();
+        //export_order(order, domains, "order.vo");
         log_value("Induced width", induced_width(adj, order));
         auto tables = read_tables(instance, inst_type, pos, threshold);
 
@@ -204,9 +213,9 @@ int main(int argc, char *argv[]) {
         //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
 
-        chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
+        runtime = chrono::high_resolution_clock::now() - start_t;
         log_value("Solution", optimal);
-        log_value("Time elapsed", runtime.count());
+        log_value("Bucket elimination runtime", runtime.count());
         log_line();
 
         return EXIT_SUCCESS;
