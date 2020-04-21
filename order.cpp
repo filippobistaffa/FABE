@@ -50,12 +50,16 @@ static inline float metric(vector<vector<float>> const &adj, size_t node, int or
         }
 }
 
-static inline void connect_neighbours(vector<vector<float>> &adj, size_t node) {
+static inline void connect_neighbours(vector<vector<float>> &adj, size_t node, int order_heur) {
 
         for EACH_NONZERO(adj[node], i) {
                 for EACH_NONZERO(adj[node], j, i + 1) {
                         if (!adj[i][j]) {
-                                adj[i][j] = adj[j][i] = new_edge_value(adj, i, j);
+                                if (order_heur == O_WEIGHTED_MIN_FILL) {
+                                        adj[i][j] = adj[j][i] = new_edge_value(adj, i, j);
+                                } else {
+                                        adj[i][j] = adj[j][i] = 1;
+                                }
                                 #ifdef DEBUG_GREEDY_ORDER
                                 cout << "edge (" << i << ", " << j << ") <- " << adj[i][j] << endl;
                                 cout << "edge (" << j << ", " << i << ") <- " << adj[i][j] << endl;
@@ -115,7 +119,7 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
                 #endif
                 // connect neighbours
                 if (order_heur != O_MIN_DEGREE) {
-                        connect_neighbours(tmp_adj, sel);
+                        connect_neighbours(tmp_adj, sel, order_heur);
                 }
                 // remove node from graph
                 not_marked.erase(sel);
