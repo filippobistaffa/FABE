@@ -4,11 +4,16 @@
 #include "types.hpp"
 
 enum order_heur {
-        WEIGHTED_MIN_FILL,
-        MIN_FILL,
-        MIN_INDUCED_WIDTH,
-        MIN_DEGREE,
-        RANDOM
+        O_WEIGHTED_MIN_FILL,
+        O_MIN_FILL,
+        O_MIN_INDUCED_WIDTH,
+        O_MIN_DEGREE,
+        O_RANDOM
+};
+
+enum tie_heur {
+        T_UNIQUENESS,
+        T_RANDOM
 };
 
 template <typename T>
@@ -22,7 +27,7 @@ struct compare_vec {
 
 using namespace std;
 
-vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur = 0);
+vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL, int tie_heur = T_UNIQUENESS);
 
 size_t induced_width(vector<vector<float>> const &adj, vector<size_t> const &order);
 

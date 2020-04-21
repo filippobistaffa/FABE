@@ -17,7 +17,7 @@ bool parallel = false;
 
 static inline void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] [-s seed] -f instance" << endl;
+        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] [-t unique|random] [-s seed] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -35,13 +35,14 @@ int main(int argc, char *argv[]) {
 
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
+        int ord_heur = O_WEIGHTED_MIN_FILL;
+        int tie_heur = T_UNIQUENESS;
         char *instance = NULL;
-        int order_heur = WEIGHTED_MIN_FILL;
         char *pseudotree = NULL;
         size_t seed = time(NULL);
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:s:h")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:h")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -70,19 +71,30 @@ int main(int argc, char *argv[]) {
                                 continue;
                         case 'o':
                                 if (strcmp(optarg, "wmf") == 0) {
-                                        order_heur = WEIGHTED_MIN_FILL;
+                                        ord_heur = O_WEIGHTED_MIN_FILL;
                                 } else if (strcmp(optarg, "mf") == 0) {
-                                        order_heur = MIN_FILL;
+                                        ord_heur = O_MIN_FILL;
                                 } else if (strcmp(optarg, "miw") == 0) {
-                                        order_heur = MIN_INDUCED_WIDTH;
+                                        ord_heur = O_MIN_INDUCED_WIDTH;
                                 } else if (strcmp(optarg, "md") == 0) {
-                                        order_heur = MIN_DEGREE;
+                                        ord_heur = O_MIN_DEGREE;
                                 } else if (strcmp(optarg, "random") == 0) {
-                                        order_heur = RANDOM;
+                                        ord_heur = O_RANDOM;
                                 } else if (exists(optarg)) {
                                         pseudotree = optarg;
                                 } else {
                                         cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
+                                        print_usage(argv[0]);
+                                        return EXIT_FAILURE;
+                                }
+                                continue;
+                        case 't':
+                                if (strcmp(optarg, "unique") == 0) {
+                                        tie_heur = T_UNIQUENESS;
+                                } else if (strcmp(optarg, "random") == 0) {
+                                        tie_heur = T_RANDOM;
+                                } else {
+                                        cerr << argv[0] << ": tie-breaking heuristic not valid -- '" << optarg << "'" << endl;
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
                                 }
@@ -138,7 +150,8 @@ int main(int argc, char *argv[]) {
         //cout << endl;
 
         log_value("Seed", seed);
-        string heuristics[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
+        string ord_heur_names[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
+        string tie_heur_names[] = { "MIN-UNIQUENESS", "RANDOM" };
         vector<size_t> order;
         auto start_t = chrono::high_resolution_clock::now();
 
@@ -147,15 +160,16 @@ int main(int argc, char *argv[]) {
                 order = read_pseudotree_order(pseudotree, domains);
         } else {
                 srand(seed);
-                if (order_heur == RANDOM) {
+                if (ord_heur == O_RANDOM) {
                         log_value("Variable order heuristic", "Random");
                         order.resize(domains.size());
                         iota(order.begin(), order.end(), 0);
                         srand(unsigned (std::time(0)));
                         random_shuffle(order.begin(), order.end());
                 } else {
-                        log_value("Variable order heuristic", heuristics[order_heur]);
-                        order = greedy_order(adj, order_heur);
+                        log_value("Variable order heuristic", ord_heur_names[ord_heur]);
+                        log_value("Tie-breaking heuristic", tie_heur_names[tie_heur]);
+                        order = greedy_order(adj, ord_heur, tie_heur);
                 }
         }
 

@@ -25,14 +25,14 @@ static inline float new_edge_value(vector<vector<float>> const &adj, size_t i, s
 
 static inline float metric(vector<vector<float>> const &adj, size_t node, int order_heur) {
 
-        if (order_heur == MIN_DEGREE || order_heur == MIN_INDUCED_WIDTH) {
+        if (order_heur == O_MIN_DEGREE || order_heur == O_MIN_INDUCED_WIDTH) {
                 return accumulate(adj[node].begin(), adj[node].end(), 0.0);
         } else {
                 float fill = 0;
                 for EACH_NONZERO(adj[node], i) {
                         for EACH_NONZERO(adj[node], j, i + 1) {
                                 if (!adj[i][j]) {
-                                        if (order_heur == WEIGHTED_MIN_FILL) {
+                                        if (order_heur == O_WEIGHTED_MIN_FILL) {
                                                 #ifdef DEBUG_GREEDY_ORDER
                                                 cout << "edge (" << i << ", " << j << ") not present, adding " << new_edge_value(adj, i, j) << endl;
                                                 #endif
@@ -65,15 +65,21 @@ static inline void connect_neighbours(vector<vector<float>> &adj, size_t node) {
         }
 }
 
-vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur) {
+vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, int tie_heur) {
 
         vector<size_t> order;
         vector<vector<float>> tmp_adj(adj);
         unordered_set<size_t> not_marked(adj.size());
+        vector<float> avg_w(adj.size());
 
         for (size_t i = 0; i < adj.size(); ++i) {
                 not_marked.insert(i);
+                avg_w[i] = accumulate(adj[i].begin(), adj[i].end(), 0.0);
         }
+
+        #ifdef DEBUG_GREEDY_ORDER
+        cout << vec2str(avg_w, "avg_w") << endl;
+        #endif
 
         while (!not_marked.empty()) {
                 #ifdef DEBUG_GREEDY_ORDER
@@ -98,13 +104,17 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur) {
                 #ifdef DEBUG_GREEDY_ORDER
                 cout << vec2str(cand, "candidates") << endl;
                 #endif
-                //size_t sel = cand[0];
-                size_t sel = cand[rand() % cand.size()];
+                size_t sel;
+                if (tie_heur == T_RANDOM) {
+                        sel = cand[rand() % cand.size()];
+                } else {
+                        sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w));
+                }
                 #ifdef DEBUG_GREEDY_ORDER
                 cout << "selected = " << sel << endl;
                 #endif
                 // connect neighbours
-                if (order_heur != MIN_DEGREE) {
+                if (order_heur != O_MIN_DEGREE) {
                         connect_neighbours(tmp_adj, sel);
                 }
                 // remove node from graph
