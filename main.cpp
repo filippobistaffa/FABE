@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
                                         order_heur = MIN_INDUCED_WIDTH;
                                 } else if (strcmp(optarg, "md") == 0) {
                                         order_heur = MIN_DEGREE;
-                                } else if (strcmp(optarg, "rand") == 0) {
+                                } else if (strcmp(optarg, "random") == 0) {
                                         order_heur = RANDOM;
                                 } else if (exists(optarg)) {
                                         pseudotree = optarg;
