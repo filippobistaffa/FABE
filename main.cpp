@@ -33,6 +33,7 @@ static inline bool exists(const char *filename) {
 
 int main(int argc, char *argv[]) {
 
+        auto start_t = chrono::high_resolution_clock::now();
         fa_minimization_algorithm = FA_MIN_BUBENZER;
         size_t ibound = 0;
         char *instance = NULL;
@@ -168,7 +169,6 @@ int main(int argc, char *argv[]) {
                 cout << endl;
         }*/
 
-        auto start_t = chrono::high_resolution_clock::now();
         vector<automata> automatas(tables.size());
         double total_rows = 0;
         double actual_rows = 0;
