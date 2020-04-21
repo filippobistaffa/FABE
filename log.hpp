@@ -35,7 +35,13 @@ void log_value(string name, T val) {
         } else {
                 cout << setw(COLUMN_WIDTH) << left << name;
         }
-        cout << " | " << setw(COLUMN_WIDTH) << left << val << " |" << endl;
+        cout << " | ";
+        if constexpr (is_same<T, char *>::value) {
+                cout << string(val).substr(0, COLUMN_WIDTH - 3) << "...";
+        } else {
+                cout << setw(COLUMN_WIDTH) << left << val;
+        }
+        cout << " |" << endl;
 }
 
 __attribute__((always_inline)) inline
