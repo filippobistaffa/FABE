@@ -12,12 +12,12 @@ enum order_heur {
 };
 
 template <typename T>
-struct compare_pos {
-        compare_pos(vector<T> const &pos) : pos(pos) {};
+struct compare_vec {
+        compare_vec(vector<T> const &vec) : vec(vec) {};
         bool operator()(size_t const &x, size_t const &y) {
-                return pos[x] < pos[y];
+                return vec[x] < vec[y];
         }
-        vector<T> pos;
+        vector<T> vec;
 };
 
 using namespace std;

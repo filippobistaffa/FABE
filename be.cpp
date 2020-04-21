@@ -55,7 +55,7 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         automata join;
 
         // compute variables (and their domains) of join function
-        SET_OP(set_union, a1.vars, a2.vars, join.vars, compare_pos(pos));
+        SET_OP(set_union, a1.vars, a2.vars, join.vars, compare_vec(pos));
 
         for (auto var : join.vars) {
                 join.domains.push_back(domains[var]);
@@ -64,19 +64,19 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         // variables to be added
         vector<size_t> add1;
         vector<size_t> add2;
-        SET_OP(set_difference, a2.vars, a1.vars, add1, compare_pos(pos));
-        SET_OP(set_difference, a1.vars, a2.vars, add2, compare_pos(pos));
+        SET_OP(set_difference, a2.vars, a1.vars, add1, compare_vec(pos));
+        SET_OP(set_difference, a1.vars, a2.vars, add2, compare_vec(pos));
 
         // non-shared variables' positions in union
         vector<size_t> padd1;
         vector<size_t> padd2;
 
         for (auto var : add1) {
-                padd1.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_pos(pos)) - join.vars.begin());
+                padd1.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_vec(pos)) - join.vars.begin());
         }
 
         for (auto var : add2) {
-                padd2.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_pos(pos)) - join.vars.begin());
+                padd2.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_vec(pos)) - join.vars.begin());
         }
 
         /*
@@ -240,7 +240,7 @@ static inline value reduce_last_var(automata &a, int outer) {
 
 static inline size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
 
-        const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_pos(pos));
+        const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_vec(pos));
         buckets[b].push_back(move(a));
         return b;
 }
@@ -296,7 +296,7 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
                 size_t mb = 0;
                 for (; mb < mini_buckets.size(); ++mb) {
                         vector<size_t> tmp;
-                        SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_pos(pos));
+                        SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_vec(pos));
                         if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) { // function fits in this mini-bucket
                                 mini_buckets[mb].push_back(move(*it));
                                 bucket_vars[mb] = tmp;

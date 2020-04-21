@@ -311,7 +311,7 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
                 auto temp = tokenize<value>(f);
                 auto vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
                 t.vars = vars;
-                sort(t.vars.begin(), t.vars.end(), compare_pos(pos));
+                sort(t.vars.begin(), t.vars.end(), compare_vec(pos));
 
                 for (auto var : t.vars) {
                         t.domains.push_back(domains[var]);
@@ -369,7 +369,7 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
                 auto vars = tables[i].vars;
                 reverse(vars.begin(), vars.end());
                 vector<size_t> orig_dom;
-                sort(tables[i].vars.begin(), tables[i].vars.end(), compare_pos(pos));
+                sort(tables[i].vars.begin(), tables[i].vars.end(), compare_vec(pos));
 
                 for (auto var : vars) {
                         orig_dom.push_back(domains[var]);
