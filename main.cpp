@@ -17,7 +17,7 @@ bool parallel = false;
 
 static inline void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|rand|*.pt] -f instance" << endl;
+        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
