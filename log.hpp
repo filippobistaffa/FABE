@@ -38,10 +38,10 @@ void log_value(string name, T val, bool filename = false) {
         cout << " | ";
         if constexpr (is_same<T, char *>::value) {
                 const string str = string(val);
-                if (filename) {
+                if (str.length() > COLUMN_WIDTH) {
                         cout << "..." << str.substr(str.length() - COLUMN_WIDTH + 3);
                 } else {
-                        cout << str.substr(0, COLUMN_WIDTH - 3) << "...";
+                        cout << setw(COLUMN_WIDTH) << left << val;
                 }
         } else {
                 cout << setw(COLUMN_WIDTH) << left << val;
