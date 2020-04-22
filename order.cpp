@@ -13,20 +13,23 @@
 #define EACH_NONZERO(...) GET_MACRO(__VA_ARGS__, EACH_NONZERO_3, EACH_NONZERO_2)(__VA_ARGS__)
 #define EACH_NONZERO_2(B, I) (size_t I = 0; I < (B).size(); ++I) if ((B)[I] != 0)
 #define EACH_NONZERO_3(B, I, S) (size_t I = S; I < (B).size(); ++I) if ((B)[I] != 0)
+#define AVOID_ZERO(X) ((X) == 0 ? 1 : (X))
 
 //#define DEBUG_GREEDY_ORDER
 
-static inline float new_edge_value(vector<vector<float>> const &adj, size_t i, size_t j) {
+/*static inline float new_edge_value(vector<vector<float>> const &adj, size_t i, size_t j) {
 
         const float avg1 = accumulate(adj[i].begin(), adj[i].end(), 0.0) / adj[i].size();
         const float avg2 = accumulate(adj[j].begin(), adj[j].end(), 0.0) / adj[j].size();
         return (avg1 + avg2) / 2;
-}
+}*/
 
-static inline float metric(vector<vector<float>> const &adj, size_t node, int order_heur) {
+#define EDGE_VAL(AVG_W, I, J) ((AVG_W[I] + AVG_W[J]) / 2)
+
+static inline float metric(int order_heur, vector<vector<float>> const &adj, size_t node, vector<float> avg_w) {
 
         if (order_heur == O_MIN_DEGREE || order_heur == O_MIN_INDUCED_WIDTH) {
-                return accumulate(adj[node].begin(), adj[node].end(), 0.0);
+                return avg_w[node];
         } else {
                 float fill = 0;
                 for EACH_NONZERO(adj[node], i) {
@@ -34,9 +37,9 @@ static inline float metric(vector<vector<float>> const &adj, size_t node, int or
                                 if (!adj[i][j]) {
                                         if (order_heur == O_WEIGHTED_MIN_FILL) {
                                                 #ifdef DEBUG_GREEDY_ORDER
-                                                cout << "edge (" << i << ", " << j << ") not present, adding " << new_edge_value(adj, i, j) << endl;
+                                                cout << "edge (" << i << ", " << j << ") not present, adding " << EDGE_VAL(avg_w, i, j) << endl;
                                                 #endif
-                                                fill += new_edge_value(adj, i, j);
+                                                fill += EDGE_VAL(avg_w, i, j);
                                         } else {
                                                 #ifdef DEBUG_GREEDY_ORDER
                                                 cout << "edge (" << i << ", " << j << ") not present, adding 1" << endl;
@@ -50,13 +53,13 @@ static inline float metric(vector<vector<float>> const &adj, size_t node, int or
         }
 }
 
-static inline void connect_neighbours(vector<vector<float>> &adj, size_t node, int order_heur) {
+static inline void connect_neighbours(int order_heur, vector<vector<float>> &adj, size_t node, vector<float> avg_w) {
 
         for EACH_NONZERO(adj[node], i) {
                 for EACH_NONZERO(adj[node], j, i + 1) {
                         if (!adj[i][j]) {
                                 if (order_heur == O_WEIGHTED_MIN_FILL) {
-                                        adj[i][j] = adj[j][i] = new_edge_value(adj, i, j);
+                                        adj[i][j] = adj[j][i] = EDGE_VAL(avg_w, i, j);
                                 } else {
                                         adj[i][j] = adj[j][i] = 1;
                                 }
@@ -78,22 +81,19 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
 
         for (size_t i = 0; i < adj.size(); ++i) {
                 not_marked.insert(i);
-                avg_w[i] = accumulate(adj[i].begin(), adj[i].end(), 0.0);
+                avg_w[i] = accumulate(adj[i].begin(), adj[i].end(), 0.0) / adj.size();
         }
-
-        #ifdef DEBUG_GREEDY_ORDER
-        cout << vec2str(avg_w, "avg_w") << endl;
-        #endif
 
         while (!not_marked.empty()) {
                 #ifdef DEBUG_GREEDY_ORDER
-                cout << "current adj. matrix" << endl;
-                print_adj(tmp_adj);
+                //cout << "current adj. matrix" << endl;
+                //print_adj(tmp_adj);
+                cout << vec2str(avg_w, "avg_w") << endl;
                 #endif
                 vector<size_t> cand;
                 float min_met = numeric_limits<float>::max();
                 for (auto i : not_marked) {
-                        float met = metric(tmp_adj, i, order_heur);
+                        float met = metric(order_heur, tmp_adj, i, avg_w);
                         #ifdef DEBUG_GREEDY_ORDER
                         cout << "metric(" << i << ") = " << met << " (min = " << min_met << ")" << endl;
                         #endif
@@ -119,12 +119,15 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
                 #endif
                 // connect neighbours
                 if (order_heur != O_MIN_DEGREE) {
-                        connect_neighbours(tmp_adj, sel, order_heur);
+                        connect_neighbours(order_heur, tmp_adj, sel, avg_w);
                 }
                 // remove node from graph
                 not_marked.erase(sel);
-                for (auto &row : tmp_adj) {
-                        row[sel] = 0;
+                for (size_t i = 0; i < adj.size(); ++i) {
+                        if (tmp_adj[i][sel]) {
+                                avg_w[i] -= tmp_adj[i][sel] / adj.size();
+                                tmp_adj[i][sel] = 0;
+                        }
                 }
                 order.push_back(sel);
         }
