@@ -27,7 +27,7 @@ void log_line() {
 
 template <typename T>
 __attribute__((always_inline)) inline
-void log_value(string name, T val) {
+void log_value(string name, T val, bool filename = false) {
 
         cout << "| ";
         if (name.length() > COLUMN_WIDTH) {
@@ -37,7 +37,12 @@ void log_value(string name, T val) {
         }
         cout << " | ";
         if constexpr (is_same<T, char *>::value) {
-                cout << string(val).substr(0, COLUMN_WIDTH - 3) << "...";
+                const string str = string(val);
+                if (filename) {
+                        cout << "..." << str.substr(str.length() - COLUMN_WIDTH + 3);
+                } else {
+                        cout << str.substr(0, COLUMN_WIDTH - 3) << "...";
+                }
         } else {
                 cout << setw(COLUMN_WIDTH) << left << val;
         }
