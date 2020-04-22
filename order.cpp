@@ -81,8 +81,10 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
 
         for (size_t i = 0; i < adj.size(); ++i) {
                 not_marked.insert(i);
-                avg_w[i] = accumulate(adj[i].begin(), adj[i].end(), 0.0) / adj.size();
+                avg_w[i] = accumulate(tmp_adj[i].begin(), tmp_adj[i].end(), 0.0) / tmp_adj.size();
         }
+
+        vector<float> avg_w_in = avg_w;
 
         while (!not_marked.empty()) {
                 #ifdef DEBUG_GREEDY_ORDER
@@ -112,7 +114,7 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
                 if (tie_heur == T_RANDOM) {
                         sel = cand[rand() % cand.size()];
                 } else {
-                        sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w));
+                        sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w_in));
                 }
                 #ifdef DEBUG_GREEDY_ORDER
                 cout << "selected = " << sel << endl;
@@ -125,8 +127,8 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
                 not_marked.erase(sel);
                 for (size_t i = 0; i < adj.size(); ++i) {
                         if (tmp_adj[i][sel]) {
-                                avg_w[i] -= tmp_adj[i][sel] / adj.size();
                                 tmp_adj[i][sel] = 0;
+                                avg_w[i] = accumulate(tmp_adj[i].begin(), tmp_adj[i].end(), 0.0) / tmp_adj.size();
                         }
                 }
                 order.push_back(sel);
