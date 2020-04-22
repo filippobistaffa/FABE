@@ -116,6 +116,7 @@ int main(int argc, char *argv[]) {
         }
 
         log_line();
+        log_value("Instance", instance, true);
         int inst_type;
 
         if (strstr(instance, "wcsp")) {
@@ -156,7 +157,7 @@ int main(int argc, char *argv[]) {
         auto start_t = chrono::high_resolution_clock::now();
 
         if (pseudotree) {
-                log_value("Variable order", pseudotree);
+                log_value("Variable order heuristic", pseudotree, true);
                 order = read_pseudotree_order(pseudotree, domains);
         } else {
                 srand(seed);
