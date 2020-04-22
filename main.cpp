@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
                 log_value("Bucket elimination algorithm", "MIN-SUM");
                 inst_type = WCSP;
         } else {
-                log_value("Instance type", "MPE");
+                log_value("Instance type", "UAI");
                 log_value("Bucket elimination algorithm", "MIN-SUM with -log()");
                 inst_type = MPE;
         }
