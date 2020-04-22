@@ -84,7 +84,7 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
                 avg_w[i] = accumulate(tmp_adj[i].begin(), tmp_adj[i].end(), 0.0) / tmp_adj.size();
         }
 
-        vector<float> avg_w_in = avg_w;
+        //vector<float> avg_w_in = avg_w;
 
         while (!not_marked.empty()) {
                 #ifdef DEBUG_GREEDY_ORDER
@@ -114,7 +114,7 @@ vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur, in
                 if (tie_heur == T_RANDOM) {
                         sel = cand[rand() % cand.size()];
                 } else {
-                        sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w_in));
+                        sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w));
                 }
                 #ifdef DEBUG_GREEDY_ORDER
                 cout << "selected = " << sel << endl;
