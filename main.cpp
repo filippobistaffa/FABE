@@ -167,10 +167,9 @@ int main(int argc, char *argv[]) {
         } else {
                 srand(seed);
                 if (ord_heur == O_RANDOM) {
-                        log_value("Variable order heuristic", "Random");
+                        log_value("Variable order heuristic", "RANDOM");
                         order.resize(domains.size());
                         iota(order.begin(), order.end(), 0);
-                        srand(unsigned (std::time(0)));
                         random_shuffle(order.begin(), order.end());
                 } else {
                         log_value("Variable order heuristic", ord_heur_names[ord_heur]);
