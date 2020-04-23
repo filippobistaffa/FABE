@@ -248,7 +248,8 @@ int main(int argc, char *argv[]) {
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
         runtime = chrono::high_resolution_clock::now() - start_t;
         log_value("Solution", optimal);
-        log_value("Optimality gap", tolerance * tables.size());
+        //log_value("Optimality gap", tolerance * tables.size());
+        log_value("Optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         log_value("Bucket elimination runtime", runtime.count());
         log_line();
 
