@@ -13,6 +13,12 @@
 #include "order.hpp"
 #include "conversion.hpp"
 
+// print tables after parsing
+//#define PRINT_TABLES
+
+// export dot representation of created automata
+//#define EXPORT_AUTOMATA_DOT
+
 bool parallel = false;
 
 static inline void print_usage(const char *bin) {
@@ -192,10 +198,13 @@ int main(int argc, char *argv[]) {
         log_value("Induced width", induced_width(adj, order));
         auto tables = read_tables(instance, inst_type, pos, threshold);
 
-        /*for (auto const &table : tables) {
+        #ifdef PRINT_TABLES
+        cout << endl;
+        for (auto const &table : tables) {
                 print_table(table);
                 cout << endl;
-        }*/
+        }
+        #endif
 
         vector<automata> automatas(tables.size());
         double total_rows = 0;
@@ -212,9 +221,11 @@ int main(int argc, char *argv[]) {
 
         log_value("Value redundancy", 1 - actual_rows / total_rows);
 
-        /*for (auto const &a : automatas) {
+        #ifdef EXPORT_AUTOMATA_DOT
+        for (auto const &a : automatas) {
                 automata_dot(a, "dot");
-        }*/
+        }
+        #endif
 
         auto buckets = compute_buckets(automatas, pos);
 
