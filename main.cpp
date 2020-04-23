@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) {
         log_value("Automata minimisation algorithm", algorithms[fa_minimization_algorithm]);
 
         log_value("I-bound", (ibound == 0) ? "inf" : to_string(ibound));
-        log_value("Tolerance", to_string(tolerance));
+        log_value("Tolerance", tolerance);
         //log_value("Parallel mode", parallel ? "Enabled" : "Disabled");
 
         // look for a known threshold to remove rows
