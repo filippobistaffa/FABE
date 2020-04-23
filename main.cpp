@@ -17,7 +17,8 @@ bool parallel = false;
 
 static inline void print_usage(const char *bin) {
 
-        cout << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] [-t unique|random] [-s seed] -f instance" << endl;
+        cerr << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] ";
+        cerr << "[-t unique|random] [-s seed] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -52,7 +53,8 @@ int main(int argc, char *argv[]) {
                                 } else if (strcmp(optarg, "hop") == 0) {
                                         fa_minimization_algorithm = FA_MIN_HOPCROFT;
                                 } else {
-                                        cerr << argv[0] << ": invalid minimisation algorithm -- '" << optarg << "'" << endl;
+                                        cerr << argv[0] << ": invalid minimisation algorithm -- '";
+                                        cerr << optarg << "'" << endl;
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
                                 }
@@ -64,7 +66,8 @@ int main(int argc, char *argv[]) {
                                 if (exists(optarg)) {
                                         instance = optarg;
                                 } else {
-                                        cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
+                                        cerr << argv[0] << ": file not found -- '";
+                                        cerr << optarg << "'" << endl;
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
                                 }
@@ -83,7 +86,8 @@ int main(int argc, char *argv[]) {
                                 } else if (exists(optarg)) {
                                         pseudotree = optarg;
                                 } else {
-                                        cerr << argv[0] << ": file not found -- '" << optarg << "'" << endl;
+                                        cerr << argv[0] << ": file not found -- '";
+                                        cerr << optarg << "'" << endl;
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
                                 }
@@ -94,7 +98,8 @@ int main(int argc, char *argv[]) {
                                 } else if (strcmp(optarg, "random") == 0) {
                                         tie_heur = T_RANDOM;
                                 } else {
-                                        cerr << argv[0] << ": tie-breaking heuristic not valid -- '" << optarg << "'" << endl;
+                                        cerr << argv[0] << ": tie-breaking heuristic not valid -- '";
+                                        cerr << optarg << "'" << endl;
                                         print_usage(argv[0]);
                                         return EXIT_FAILURE;
                                 }
@@ -223,11 +228,9 @@ int main(int argc, char *argv[]) {
         }*/
 
         log_line();
-
         //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
         //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
-
         runtime = chrono::high_resolution_clock::now() - start_t;
         log_value("Solution", optimal);
         log_value("Bucket elimination runtime", runtime.count());

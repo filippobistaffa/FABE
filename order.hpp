@@ -27,7 +27,8 @@ struct compare_vec {
 
 using namespace std;
 
-vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL, int tie_heur = T_UNIQUENESS);
+vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL,
+                            int tie_heur = T_UNIQUENESS);
 
 size_t induced_width(vector<vector<float>> const &adj, vector<size_t> const &order);
 

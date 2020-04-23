@@ -37,7 +37,8 @@ static inline float metric(int order_heur, vector<vector<float>> const &adj, siz
                                 if (!adj[i][j]) {
                                         if (order_heur == O_WEIGHTED_MIN_FILL) {
                                                 #ifdef DEBUG_GREEDY_ORDER
-                                                cout << "edge (" << i << ", " << j << ") not present, adding " << EDGE_VAL(avg_w, i, j) << endl;
+                                                cout << "edge (" << i << ", " << j << ") not present, adding " ;
+                                                cout << EDGE_VAL(avg_w, i, j) << endl;
                                                 #endif
                                                 fill += EDGE_VAL(avg_w, i, j);
                                         } else {

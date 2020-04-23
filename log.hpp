@@ -55,20 +55,15 @@ void log_progress_increase(float step, float tot) {
         if (progress == tot) {
                 return;
         }
-
         if (progress == 0) {
                 cout << "|";
         }
-
         const size_t cur_p = (TOTAL_WIDTH - 2) * (progress / tot);
         const size_t new_p = (TOTAL_WIDTH - 2) * ((progress + step) / tot);
-
         for (size_t i = cur_p; i < new_p; ++i) {
                 cout << "·" << flush;;
         }
-
         progress += step;
-
         if (progress == tot) {
                 cout << "|" << endl;
         }
