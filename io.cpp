@@ -107,6 +107,9 @@ vector<T> tokenize(ifstream &f) {
 
         string str;
         getline(f, str);
+        while (str.empty()) {
+                getline(f, str);
+        }
         str = trim(str);
         char *dup = strdup(str.c_str());
         const char *sep = (strstr(dup, " ") != NULL) ? " " : "\t";
@@ -131,6 +134,9 @@ array<T, N> tokenize(ifstream &f) {
 
         string str;
         getline(f, str);
+        while (str.empty()) {
+                getline(f, str);
+        }
         str = trim(str);
         char *dup = strdup(str.c_str());
         const char *sep = (strstr(dup, " ") != NULL) ? " " : "\t";
@@ -227,7 +233,6 @@ static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_uai(c
         }
 
         for (size_t i = 0; i < n_tables; ++i) {
-                SKIP_LINE;
                 auto [ n_rows ] = tokenize<size_t, 0, 1>(f);
                 vector<value> values;
                 while (values.size() < n_rows) {
@@ -387,7 +392,6 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
                 vector<size_t> pfx_prod(tables[i].domains.size());
                 exclusive_scan(tables[i].domains.begin(), tables[i].domains.end(), pfx_prod.begin(), 1, multiplies<>{});
 
-                SKIP_LINE;
                 auto [ n_rows ] = tokenize<size_t, 0, 1>(f);
                 vector<value> values;
 
