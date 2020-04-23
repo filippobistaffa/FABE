@@ -8,7 +8,7 @@ static const char* datasets[] = { "spot5",
                                   "celar6",
                                   "mastermind",
                                   "iscas89",
-                                  "pedigree"
+                                  "uai"
                                 };
 
 static const value thresholds[] = { 100000,
