@@ -297,7 +297,8 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
                 for (; mb < mini_buckets.size(); ++mb) {
                         vector<size_t> tmp;
                         SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_vec(pos));
-                        if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) { // function fits in this mini-bucket
+                        if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) {
+                                // function fits in this mini-bucket
                                 mini_buckets[mb].push_back(move(*it));
                                 bucket_vars[mb] = tmp;
                                 break;
@@ -368,7 +369,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
         log_line();
 
         #ifdef COUNT_STATES
-        log_value("Total number of states", tot_states);
+        log_value("Total number of automata states", tot_states);
         #endif
 
         return optimal;
