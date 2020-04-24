@@ -3,7 +3,7 @@
 
 #include "types.hpp"
 
-automata compute_automata(table const &t, value tolerance = 0);
+pair<automata, value> compute_automata(table const &t, value tolerance = 0);
 
 table compute_table(automata const &a);
 

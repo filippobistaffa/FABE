@@ -6,6 +6,7 @@
 #include <string.h>     // strcmp
 #include <unistd.h>     // getopt
 #include <algorithm>    // reverse, random_shuffle
+#include <sstream>      // for ostringstream
 
 #include "be.hpp"
 #include "io.hpp"
@@ -214,10 +215,13 @@ int main(int argc, char *argv[]) {
         vector<automata> automatas(tables.size());
         double total_rows = 0;
         double actual_rows = 0;
+        value tot_error = 0;
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
         for (size_t i = 0; i < tables.size(); ++i) {
-                automatas[i] = compute_automata(tables[i], tolerance);
+                auto [ a, error ] = compute_automata(tables[i], tolerance);
+                automatas[i] = a;
+                tot_error += error;
                 actual_rows += automatas[i].rows.size();
                 total_rows += accumulate(automatas[i].domains.begin(),
                                          automatas[i].domains.end(),
@@ -248,8 +252,12 @@ int main(int argc, char *argv[]) {
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
         runtime = chrono::high_resolution_clock::now() - start_t;
         log_value("Solution value", optimal);
-        //log_value("Optimality gap", tolerance * tables.size());
-        log_value("Optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
+        //log_value("Maximum optimality gap", tolerance * tables.size());
+        //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
+        //log_value("Optimality gap", tot_error);
+        ostringstream oss;
+        oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << ")";
+        log_value("Optimality gap (%)", oss.str());
         log_value("Bucket elimination runtime", runtime.count());
         log_line();
 

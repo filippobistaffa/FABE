@@ -62,7 +62,7 @@ bool are_equal(value a, value b, value tolerance) {
         return fabs(a - b) <= tolerance + epsilon;
 };
 
-automata compute_automata(table const &t, value tolerance) {
+pair<automata, value> compute_automata(table const &t, value tolerance) {
 
         automata res = {
                 vector<size_t>(t.vars),
@@ -71,16 +71,18 @@ automata compute_automata(table const &t, value tolerance) {
 
         auto begin = t.rows.begin();
         auto end = begin;
+        value max_error = 0;
 
         while (begin != t.rows.end()) {
                 while (end != t.rows.end() && are_equal(end->second, begin->second, tolerance)) {
                         end++;
                 }
+                max_error = max(max_error, prev(end)->second - begin->second);
                 res.rows.insert({ begin->second, fa_compile_minimise(begin, end) });
                 begin = end;
         }
 
-        return res;
+        return make_pair(res, max_error);
 }
 
 table compute_table(automata const &a) {
