@@ -256,8 +256,8 @@ int main(int argc, char *argv[]) {
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         //log_value("Optimality gap", tot_error);
         ostringstream oss;
-        oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << ")";
-        log_value("Optimality gap (%)", oss.str());
+        oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << "%)";
+        log_value("Optimality gap", oss.str());
         log_value("Bucket elimination runtime", runtime.count());
         log_line();
 
