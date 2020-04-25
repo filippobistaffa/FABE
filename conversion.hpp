@@ -3,7 +3,7 @@
 
 #include "types.hpp"
 
-pair<automata, value> compute_automata(table const &t, value tolerance = 0);
+pair<automata, value> compute_automata(table const &t, size_t max_k = numeric_limits<size_t>::max());
 
 table compute_table(automata const &a);
 

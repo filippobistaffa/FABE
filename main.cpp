@@ -25,7 +25,7 @@ bool parallel = false;
 static inline void print_usage(const char *bin) {
 
         cerr << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] ";
-        cerr << "[-t unique|random] [-s seed] [-e tolerance] -f instance" << endl;
+        cerr << "[-t unique|random] [-s seed] [-k max_k] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -42,8 +42,8 @@ static inline bool exists(const char *filename) {
 int main(int argc, char *argv[]) {
 
         fa_minimization_algorithm = FA_MIN_BUBENZER;
-        value tolerance = 0;
         size_t ibound = 0;
+        size_t max_k = numeric_limits<size_t>::max();
         int ord_heur = O_WEIGHTED_MIN_FILL;
         int tie_heur = T_UNIQUENESS;
         char *instance = NULL;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         size_t seed = time(NULL);
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:h")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:k:h")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -115,8 +115,8 @@ int main(int argc, char *argv[]) {
                         case 's':
                                 seed = atoi(optarg);
                                 continue;
-                        case 'e':
-                                tolerance = atof(optarg);
+                        case 'k':
+                                max_k = atoi(optarg);
                                 continue;
                         case 'h':
                         default :
@@ -149,7 +149,8 @@ int main(int argc, char *argv[]) {
         log_value("Automata minimisation algorithm", algorithms[fa_minimization_algorithm]);
 
         log_value("I-bound", (ibound == 0) ? "inf" : to_string(ibound));
-        log_value("Tolerance", tolerance);
+        log_value("Maximum number of automata per table",
+                  (max_k == numeric_limits<size_t>::max()) ? "inf" : to_string(max_k));
         //log_value("Parallel mode", parallel ? "Enabled" : "Disabled");
 
         // look for a known threshold to remove rows
@@ -219,7 +220,7 @@ int main(int argc, char *argv[]) {
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
         for (size_t i = 0; i < tables.size(); ++i) {
-                auto [ a, error ] = compute_automata(tables[i], tolerance);
+                auto [ a, error ] = compute_automata(tables[i], max_k);
                 automatas[i] = a;
                 tot_error += error;
                 actual_rows += automatas[i].rows.size();

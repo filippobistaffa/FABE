@@ -5,15 +5,19 @@
 #include <iostream>     // cout
 #include <cstring>      // strlen
 #include <numeric>      // accumulate
+#include <algorithm>    // unique
 
 #include "libfa/fa.h"
+#include "kmeans.hpp"
+//#include "Ckmeans.1d.dp.h"
+#include "io.hpp"
 
 //#define OLD
 
 #ifdef OLD
 
-static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
-                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
+static inline struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
+                                             vector<pair<vector<size_t>, value>>::const_iterator end) {
 
         ostringstream oss;
 
@@ -32,8 +36,8 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
 
 #else
 
-static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
-                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
+static inline struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
+                                             vector<pair<vector<size_t>, value>>::const_iterator end) {
 
         struct fa *fa = NULL;
 
@@ -55,31 +59,62 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
 
 #endif
 
-__attribute__((always_inline)) inline
-bool are_equal(value a, value b, value tolerance) {
+template <typename T, typename PRED>
+static inline size_t count_uniques(T first, T last, PRED equal) {
 
-        const value epsilon = numeric_limits<value>::epsilon();
-        return fabs(a - b) <= tolerance + epsilon;
-};
+        if (first == last) {
+                return 0;
+        } else {
+                size_t n = 1;
+                for (T itr = first + 1; itr != last; ++itr) {
+                        if (!equal(*itr, *(itr - 1))) {
+                                n++;
+                        }
+                }
+                return n;
+        }
+}
 
-pair<automata, value> compute_automata(table const &t, value tolerance) {
+pair<automata, value> compute_automata(table const &t, size_t max_k) {
 
         automata res = {
                 vector<size_t>(t.vars),
                 vector<size_t>(t.domains),
         };
 
-        auto begin = t.rows.begin();
-        auto end = begin;
+        vector<double> values(t.rows.size());
+
+        for (size_t i = 0; i < t.rows.size(); ++i) {
+                values[i] = t.rows[i].second;
+        }
+
+        size_t uniques = count_uniques(values.begin(), values.end(), 
+                                       [](double const &x, double const &y)
+                                       { return (fabs(x - y) <= std::numeric_limits<double>::epsilon()); });
+
+        //cout << endl << vec2str(values, "values") << endl;
+        //cout << "k = " << min(uniques, max_k) << endl;
+        size_t k = min(uniques, max_k);
         value max_error = 0;
 
-        while (begin != t.rows.end()) {
-                while (end != t.rows.end() && are_equal(end->second, begin->second, tolerance)) {
-                        end++;
+        if (uniques > 1) {
+                auto [ cluster, center ] = kmeans_1d_dp(values, k);
+                //cout << vec2str(cluster, "cluster") << endl;
+                //cout << vec2str(center, "center") << endl;
+                size_t begin = 0;
+                size_t i = begin;
+                while (begin != t.rows.size()) {
+                        while (i != t.rows.size() && cluster[begin] == cluster[i]) {
+                                //cout << fabs(center[cluster[begin]] - t.rows[i].second) << endl;
+                                max_error = max((value)fabs(center[cluster[begin]] - t.rows[i].second), max_error);
+                                i++;
+                        }
+                        res.rows.insert({ center[cluster[begin]],
+                                          fa_compile_minimise(t.rows.begin() + begin, t.rows.begin() + i) });
+                        begin = i;
                 }
-                max_error = max(max_error, prev(end)->second - begin->second);
-                res.rows.insert({ begin->second, fa_compile_minimise(begin, end) });
-                begin = end;
+        } else {
+                res.rows.insert({ t.rows[0].second, fa_compile_minimise(t.rows.begin(), t.rows.end()) });
         }
 
         return make_pair(res, max_error);
