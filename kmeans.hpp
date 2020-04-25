@@ -26,13 +26,6 @@
  Created: Oct 10, 2010
  */
 
-enum DISSIMILARITY {
-  L1, L2
-};
-
 #include <vector>
 
-using namespace std;
-
-pair<vector<size_t>, vector<double>> kmeans_1d_dp(const vector<double> &x, size_t k,
-                                                  const enum DISSIMILARITY criterion = L1);
+std::pair<std::vector<size_t>, std::vector<double>> kmeans_1d_dp(const std::vector<double> &x, size_t k);

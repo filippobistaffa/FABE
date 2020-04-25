@@ -27,119 +27,49 @@
 #include <cassert>
 #include <cstring>
 
-//#define DEBUG
+namespace EWL2 {
 
-inline double ssq
-  (const size_t j, const size_t i,
-   const vector<double> & sum_x, // running sum of xi
-   const vector<double> & sum_x_sq, // running sum of xi^2
-   const vector<double> & sum_w=vector<double>(0))  // running sum of weights
+inline double ssq(
+  const size_t j, const size_t i,
+  const std::vector<double> & sum_x, // running sum of xi
+  const std::vector<double> & sum_x_sq // running sum of xi^2
+)
 {
   double sji(0.0);
 
-  if(sum_w.empty()) { // equally weighted version
-    if(j >= i) {
-      sji = 0.0;
-    } else if(j > 0) {
-      double muji = (sum_x[i] - sum_x[j-1]) / (i - j + 1);
-      sji = sum_x_sq[i] - sum_x_sq[j-1] - (i - j + 1) * muji * muji;
-    } else {
-      sji = sum_x_sq[i] - sum_x[i] * sum_x[i] / (i+1);
-    }
-  } else { // unequally weighted version
-    if(sum_w[j] >= sum_w[i]) {
-      sji = 0.0;
-    } else if(j > 0) {
-      double muji = (sum_x[i] - sum_x[j-1]) / (sum_w[i] - sum_w[j-1]);
-      sji = sum_x_sq[i] - sum_x_sq[j-1] - (sum_w[i] - sum_w[j-1]) * muji * muji;
-    } else {
-      sji = sum_x_sq[i] - sum_x[i] * sum_x[i] / sum_w[i];
-    }
+  if(j >= i) {
+    sji = 0.0;
+  } else if(j > 0) {
+    double muji = (sum_x[i] - sum_x[j-1]) / (i - j + 1);
+    sji = sum_x_sq[i] - sum_x_sq[j-1] - (i - j + 1) * muji * muji;
+  } else {
+    sji = sum_x_sq[i] - sum_x[i] * sum_x[i] / (i+1);
   }
 
   sji = (sji < 0) ? 0 : sji;
   return sji;
 }
 
-inline double sabs
-  (const size_t j, const size_t i,
-   const vector<double> & sum_x, // running sum of xi
-   const vector<double> & sum_w)  // running sum of weights
-{
-  double sji(0.0);
-
-  if(sum_w.empty()) { // equally weighted version
-    if(j >= i) {
-      sji = 0.0;
-    } else if(j > 0) {
-      size_t l = (i + j) >> 1; // l is the index to the median of the cluster
-
-      if(((i-j+1) % 2) == 1) {
-        // If i-j+1 is odd, we have
-        //   sum (x_l - x_m) over m = j .. l-1
-        //   sum (x_m - x_l) over m = l+1 .. i
-        sji = - sum_x[l-1] + sum_x[j-1] + sum_x[i] - sum_x[l];
-      } else {
-        // If i-j+1 is even, we have
-        //   sum (x_l - x_m) over m = j .. l
-        //   sum (x_m - x_l) over m = l+1 .. i
-        sji = - sum_x[l] + sum_x[j-1] + sum_x[i] - sum_x[l];
-      }
-    } else { // j==0
-      size_t l = i >> 1; // l is the index to the median of the cluster
-
-      if(((i+1) % 2) == 1) {
-        // If i-j+1 is odd, we have
-        //   sum (x_m - x_l) over m = 0 .. l-1
-        //   sum (x_l - x_m) over m = l+1 .. i
-        sji = - sum_x[l-1] + sum_x[i] - sum_x[l];
-      } else {
-        // If i-j+1 is even, we have
-        //   sum (x_m - x_l) over m = 0 .. l
-        //   sum (x_l - x_m) over m = l+1 .. i
-        sji = - sum_x[l] + sum_x[i] - sum_x[l];
-      }
-    }
-  } else { // unequally weighted version
-    // no exact solutions are known.
-  }
-
-  sji = (sji < 0) ? 0 : sji;
-  return sji;
-}
-
-inline double dissimilarity
-  (const enum DISSIMILARITY dis,
-   const size_t j, const size_t i,
-   const vector<double> & sum_x, // running sum of xi
-   const vector<double> & sum_x_sq, // running sum of xi^2
-   const vector<double> & sum_w,  // running sum of weights
-   const vector<double> & sum_w_sq)  // running sum of square of weights
+inline double dissimilarity(
+  const size_t j, const size_t i,
+  const std::vector<double> & sum_x, // running sum of xi
+  const std::vector<double> & sum_x_sq // running sum of xi^2
+)
 {
   double d=0;
 
-  switch(dis) {
-  case L1:
-    d = sabs(j, i, sum_x, sum_w);
-    break;
-  case L2:
-    d = ssq(j, i, sum_x, sum_x_sq, sum_w);
-    break;
-  }
+  d = ssq(j, i, sum_x, sum_x_sq);
+
   return d;
 }
 
-inline void reduce_in_place
-  (int imin, int imax, int istep, int q,
-   const vector<size_t> & js,
-   vector<size_t> & js_red,
-   const vector< vector<double> > & S,
-   const vector< vector<size_t> > & J,
-   const vector<double> & sum_x,
-   const vector<double> & sum_x_sq,
-   const vector<double> & sum_w,
-   const vector<double> & sum_w_sq,
-   const enum DISSIMILARITY criterion)
+void reduce_in_place(int imin, int imax, int istep, int q,
+                     const std::vector<size_t> & js,
+                     std::vector<size_t> & js_red,
+                     const std::vector< std::vector<double> > & S,
+                     const std::vector< std::vector<size_t> > & J,
+                     const std::vector<double> & sum_x,
+                     const std::vector<double> & sum_x_sq)
 {
   int N = (imax - imin) / istep + 1;
 
@@ -162,13 +92,13 @@ inline void reduce_in_place
     int i = (imin + p * istep);
     size_t j = (js_red[right]);
     double Sl = (S[q-1][j-1] +
-      dissimilarity(criterion, j, i, sum_x, sum_x_sq, sum_w, sum_w_sq));
-      // ssq(j, i, sum_x, sum_x_sq, sum_w));
+      dissimilarity(j, i, sum_x, sum_x_sq));
+    // ssq(j, i, sum_x, sum_x_sq, sum_w));
 
     size_t jplus1 = (js_red[right+1]);
     double Slplus1 = (S[q-1][jplus1-1] +
-      dissimilarity(criterion, jplus1, i, sum_x, sum_x_sq, sum_w, sum_w_sq));
-      // ssq(jplus1, i, sum_x, sum_x_sq, sum_w));
+      dissimilarity(jplus1, i, sum_x, sum_x_sq));
+    // ssq(jplus1, i, sum_x, sum_x_sq, sum_w));
 
     if(Sl < Slplus1 && p < N-1) {
       js_red[ ++ left ] = j; // i += istep;
@@ -198,15 +128,12 @@ inline void reduce_in_place
 }
 
 inline void fill_even_positions
-  (int imin, int imax, int istep, int q,
-   const vector<size_t> & js,
-   vector< vector<double> > & S,
-   vector< vector<size_t> > & J,
-   const vector<double> & sum_x,
-   const vector<double> & sum_x_sq,
-   const vector<double> & sum_w,
-   const vector<double> & sum_w_sq,
-   const enum DISSIMILARITY criterion)
+(int imin, int imax, int istep, int q,
+ const std::vector<size_t> & js,
+ std::vector< std::vector<double> > & S,
+ std::vector< std::vector<size_t> > & J,
+ const std::vector<double> & sum_x,
+ const std::vector<double> & sum_x_sq)
 {
   // Derive j for even rows (0-based)
   size_t n = (js.size());
@@ -223,8 +150,8 @@ inline void fill_even_positions
 
     // Initialize S[q][i] and J[q][i]
     S[q][i] = S[q-1][js[r]-1] +
-      dissimilarity(criterion, js[r], i, sum_x, sum_x_sq, sum_w, sum_w_sq);
-      // ssq(js[r], i, sum_x, sum_x_sq, sum_w);
+      dissimilarity(js[r], i, sum_x, sum_x_sq);
+    // ssq(js[r], i, sum_x, sum_x_sq, sum_w);
     J[q][i] = js[r]; // rmin
 
     // Look for minimum S upto jmax within js
@@ -233,9 +160,9 @@ inline void fill_even_positions
     int jmax = std::min((int)jh, (int)i);
 
     double sjimin(
-        dissimilarity(criterion, jmax, i, sum_x, sum_x_sq, sum_w, sum_w_sq)
-        // ssq(jmax, i, sum_x, sum_x_sq, sum_w)
-      );
+        dissimilarity(jmax, i, sum_x, sum_x_sq)
+      // ssq(jmax, i, sum_x, sum_x_sq, sum_w)
+    );
 
     for(++ r; r < n && js[r]<=jmax; r++) {
 
@@ -246,8 +173,8 @@ inline void fill_even_positions
       if(jabs < J[q-1][i]) continue;
 
       double s =
-        dissimilarity(criterion, jabs, i, sum_x, sum_x_sq, sum_w, sum_w_sq);
-        // (ssq(jabs, i, sum_x, sum_x_sq, sum_w));
+        dissimilarity(jabs, i, sum_x, sum_x_sq);
+      // (ssq(jabs, i, sum_x, sum_x_sq, sum_w));
       double Sj = (S[q-1][jabs-1] + s);
 
       if(Sj <= S[q][i]) {
@@ -265,15 +192,12 @@ inline void fill_even_positions
 }
 
 inline void find_min_from_candidates
-  (int imin, int imax, int istep, int q,
-   const vector<size_t> & js,
-   vector< vector<double> > & S,
-   vector< vector<size_t> > & J,
-   const vector<double> & sum_x,
-   const vector<double> & sum_x_sq,
-   const vector<double> & sum_w,
-   const vector<double> & sum_w_sq,
-   const enum DISSIMILARITY criterion)
+(int imin, int imax, int istep, int q,
+ const std::vector<size_t> & js,
+ std::vector< std::vector<double> > & S,
+ std::vector< std::vector<size_t> > & J,
+ const std::vector<double> & sum_x,
+ const std::vector<double> & sum_x_sq)
 {
   size_t rmin_prev = (0);
 
@@ -283,8 +207,8 @@ inline void find_min_from_candidates
 
     // Initialization of S[q][i] and J[q][i]
     S[q][i] = S[q-1][js[rmin] - 1] +
-      dissimilarity(criterion, js[rmin], i, sum_x, sum_x_sq, sum_w, sum_w_sq);
-      // ssq(js[rmin], i, sum_x, sum_x_sq, sum_w);
+      dissimilarity(js[rmin], i, sum_x, sum_x_sq);
+    // ssq(js[rmin], i, sum_x, sum_x_sq, sum_w);
     J[q][i] = js[rmin];
 
     for(size_t r = (rmin+1); r<js.size(); ++r) {
@@ -295,8 +219,8 @@ inline void find_min_from_candidates
       if(j_abs > i) break;
 
       double Sj = (S[q-1][j_abs - 1] +
-        dissimilarity(criterion, j_abs, i, sum_x, sum_x_sq, sum_w, sum_w_sq));
-        // ssq(j_abs, i, sum_x, sum_x_sq, sum_w));
+        dissimilarity(j_abs, i, sum_x, sum_x_sq));
+      // ssq(j_abs, i, sum_x, sum_x_sq, sum_w));
       if(Sj <= S[q][i]) {
         S[q][i] = Sj;
         J[q][i] = js[r];
@@ -306,16 +230,13 @@ inline void find_min_from_candidates
   }
 }
 
-inline void SMAWK
-  (int imin, int imax, int istep, int q,
-   const vector<size_t> & js,
-   vector< vector<double> > & S,
-   vector< vector<size_t> > & J,
-   const vector<double> & sum_x,
-   const vector<double> & sum_x_sq,
-   const vector<double> & sum_w,
-   const vector<double> & sum_w_sq,
-   const enum DISSIMILARITY criterion)
+void SMAWK
+(int imin, int imax, int istep, int q,
+ const std::vector<size_t> & js,
+ std::vector< std::vector<double> > & S,
+ std::vector< std::vector<size_t> > & J,
+ const std::vector<double> & sum_x,
+ const std::vector<double> & sum_x_sq)
 {
 #ifdef DEBUG_REDUCE
   std::cout << "i:" << '[' << imin << ',' << imax << ']' << '+' << istep
@@ -325,8 +246,7 @@ inline void SMAWK
   if(imax - imin <= 0 * istep) { // base case only one element left
 
     find_min_from_candidates(
-      imin, imax, istep, q, js, S, J, sum_x, sum_x_sq, sum_w,
-      sum_w_sq, criterion
+      imin, imax, istep, q, js, S, J, sum_x, sum_x_sq
     );
 
   } else {
@@ -342,11 +262,10 @@ inline void SMAWK
     std::cout << std::endl;
 #endif
 
-    vector<size_t> js_odd;
+    std::vector<size_t> js_odd;
 
     reduce_in_place(imin, imax, istep, q, js, js_odd,
-                    S, J, sum_x, sum_x_sq, sum_w,
-                    sum_w_sq, criterion);
+                    S, J, sum_x, sum_x_sq);
 
     int istepx2 = (istep << 1);
     int imin_odd = (imin + istep);
@@ -354,8 +273,7 @@ inline void SMAWK
 
     // Recursion on odd rows (0-based):
     SMAWK(imin_odd, imax_odd, istepx2,
-          q, js_odd, S, J, sum_x, sum_x_sq, sum_w,
-          sum_w_sq, criterion);
+          q, js_odd, S, J, sum_x, sum_x_sq);
 
 #ifdef DEBUG // _REDUCE
     std::cout << "js_odd (reduced):";
@@ -373,187 +291,139 @@ inline void SMAWK
 #endif
 
     fill_even_positions(imin, imax, istep, q, js,
-                        S, J, sum_x, sum_x_sq, sum_w,
-                        sum_w_sq, criterion);
+                        S, J, sum_x, sum_x_sq);
   }
 }
 
-inline void fill_row_q_SMAWK
-  (int imin, int imax, int q,
-   vector< vector<double> > & S,
-   vector< vector<size_t> > & J,
-   const vector<double> & sum_x,
-   const vector<double> & sum_x_sq,
-   const vector<double> & sum_w,
-   const vector<double> & sum_w_sq,
-   const enum DISSIMILARITY criterion)
+void fill_row_q_SMAWK(int imin, int imax, int q,
+                      std::vector< std::vector<double> > & S,
+                      std::vector< std::vector<size_t> > & J,
+                      const std::vector<double> & sum_x,
+                      const std::vector<double> & sum_x_sq)
 {
   // Assumption: each cluster must have at least one point.
 
-  vector<size_t> js(imax-q+1);
+  std::vector<size_t> js(imax-q+1);
   int abs = (q);
   std::generate(js.begin(), js.end(), [&] { return abs++; } );
 
-  SMAWK(imin, imax, 1, q, js, S, J, sum_x, sum_x_sq, sum_w, sum_w_sq, criterion);
+  SMAWK(imin, imax, 1, q, js, S, J, sum_x, sum_x_sq);
 }
 
-inline void fill_dp_matrix
-  (const vector<double> & x, // data
-   const vector<double> & w, // weight
-   vector< vector< double > > & S,
-   vector< vector< size_t > > & J,
-   //const enum METHOD method,
-   const enum DISSIMILARITY criterion)
-  /*
-   x: One dimension vector to be clustered, must be sorted (in any order).
-   S: K x N matrix. S[q][i] is the sum of squares of the distance from
-   each x[i] to its cluster mean when there are exactly x[i] is the
-   last point in cluster q
-   J: K x N backtrack matrix
+void fill_dp_matrix(const std::vector<double> & x, // data
+                    const std::vector<double> & w, // weight
+                    std::vector< std::vector< double > > & S,
+                    std::vector< std::vector< size_t > > & J)
+                    /*
+                     x: One dimension vector to be clustered, must be sorted (in any order).
+                     S: K x N matrix. S[q][i] is the sum of squares of the distance from
+                     each x[i] to its cluster mean when there are exactly x[i] is the
+                     last point in cluster q
+                     J: K x N backtrack matrix
 
-   NOTE: All vector indices in this program start at position 0
-   */
+                     NOTE: All vector indices in this program start at position 0
+                     */
 {
-  const int K = (int) S.size();
-  const int N = (int) S[0].size();
+        const int K = (int) S.size();
+        const int N = (int) S[0].size();
 
-  vector<double> sum_x(N), sum_x_sq(N);
-  vector<double> sum_w(w.size()), sum_w_sq(w.size());
+        std::vector<double> sum_x(N), sum_x_sq(N);
 
-  vector<int> jseq;
+        std::vector<int> jseq;
 
-  double shift = x[N/2]; // median. used to shift the values of x to
-  //  improve numerical stability
+        double shift = x[N/2]; // median. used to shift the values of x to
+        //  improve numerical stability
 
-  if(w.empty()) { // equally weighted
-    sum_x[0] = x[0] - shift;
-    sum_x_sq[0] = (x[0] - shift) * (x[0] - shift);
-  } else { // unequally weighted
-    sum_x[0] = w[0] * (x[0] - shift);
-    sum_x_sq[0] = w[0] * (x[0] - shift) * (x[0] - shift);
-    sum_w[0] = w[0];
-    sum_w_sq[0] = w[0] * w[0];
-  }
+        sum_x[0] = x[0] - shift;
+        sum_x_sq[0] = (x[0] - shift) * (x[0] - shift);
 
-  S[0][0] = 0;
-  J[0][0] = 0;
+        S[0][0] = 0;
+        J[0][0] = 0;
 
-  for(int i = 1; i < N; ++i) {
+        for(int i = 1; i < N; ++i) {
 
-    if(w.empty()) { // equally weighted
-      sum_x[i] = sum_x[i-1] + x[i] - shift;
-      sum_x_sq[i] = sum_x_sq[i-1] + (x[i] - shift) * (x[i] - shift);
-    } else { // unequally weighted
-      sum_x[i] = sum_x[i-1] + w[i] * (x[i] - shift);
-      sum_x_sq[i] = sum_x_sq[i-1] + w[i] * (x[i] - shift) * (x[i] - shift);
-      sum_w[i] = sum_w[i-1] + w[i];
-      sum_w_sq[i] = sum_w_sq[i-1] + w[i]*w[i];
-    }
+                sum_x[i] = sum_x[i-1] + x[i] - shift;
+                sum_x_sq[i] = sum_x_sq[i-1] + (x[i] - shift) * (x[i] - shift);
 
-    // Initialize for q = 0
-    S[0][i] = dissimilarity(criterion, 0, i, sum_x, sum_x_sq, sum_w, sum_w_sq); // ssq(0, i, sum_x, sum_x_sq, sum_w);
-    J[0][i] = 0;
-  }
+                // Initialize for q = 0
+                S[0][i] = dissimilarity(0, i, sum_x, sum_x_sq); // ssq(0, i, sum_x, sum_x_sq, sum_w);
+                J[0][i] = 0;
+        }
 
 #ifdef DEBUG
-  for(size_t i=0; i<x.size(); ++i) {
-    std::cout << x[i] << ',';
-  }
-  std::cout << std::endl;
-  vector<vector<double>> SS(S);
-  vector<vector<size_t>> JJ(J);
-
-#endif
-
-  for(int q = 1; q < K; ++q) {
-    int imin;
-    if(q < K - 1) {
-      imin = std::max(1, q);
-    } else {
-      // No need to compute S[K-1][0] ... S[K-1][N-2]
-      imin = N-1;
-    }
-
-#ifdef DEBUG
-    // std::cout << std::endl << "q=" << q << ":" << std::endl;
-#endif
-    // fill_row_k_linear_recursive(imin, N-1, 1, q, jseq, S, J, sum_x, sum_x_sq);
-    // fill_row_k_linear(imin, N-1, q, S, J, sum_x, sum_x_sq);
-    //if(method == LINEAR) {
-      fill_row_q_SMAWK(imin, N-1, q, S, J, sum_x, sum_x_sq, sum_w, sum_w_sq, criterion);
-    //} else if(method == LOGLINEAR) {
-      //fill_row_q_log_linear(imin, N-1, q, q, N-1, S, J, sum_x, sum_x_sq, sum_w, sum_w_sq, criterion);
-    //} else { // QUADRATIC
-      //fill_row_q(imin, N-1, q, S, J, sum_x, sum_x_sq, sum_w, sum_w_sq, criterion);
-    //}
-
-#ifdef DEBUG
-
-    fill_row_q_log_linear(imin, N-1, q, q, N-1, SS, JJ, sum_x, sum_x_sq, sum_w, sum_w_sq, criterion);
-
-    for(int i=imin; i<N; ++i) {
-      if(S[q][i] != SS[q][i] || J[q][i] != JJ[q][i]) {
-        std::cout << "ERROR: q=" << q << ", i=" << i << std::endl;
-        std::cout << "\tS=" << S[q][i] << "\tJ=" << J[q][i] << std::endl;
-        std::cout << "Truth\tSS=" << SS[q][i] << "\tJJ=" << JJ[q][i];
+        for(size_t i=0; i<x.size(); ++i) {
+                std::cout << x[i] << ',';
+        }
         std::cout << std::endl;
-        assert(false);
+        std::vector<std::vector<double>> SS(S);
+        std::vector<std::vector<size_t>> JJ(J);
 
-      } else {
-        /*
-         std::cout << "OK: q=" << q << ", i=" << i << std::endl;
-         std::cout << "\tS=" << S[q][i] << "\tJ=" << J[q][i] << std::endl;
-         std::cout << "Truth\tSS=" << SS[q][i] << "\tJJ=" << JJ[q][i];
-         std::cout << std::endl;
-         */
-      }
-
-    }
 #endif
-  }
+
+        for(int q = 1; q < K; ++q) {
+                int imin;
+                if(q < K - 1) {
+                        imin = std::max(1, q);
+                } else {
+                        // No need to compute S[K-1][0] ... S[K-1][N-2]
+                        imin = N-1;
+                }
 
 #ifdef DEBUG
-  std::cout << "Linear & log-linear code returned identical dp index matrix."
-            << std::endl;
+                // std::cout << std::endl << "q=" << q << ":" << std::endl;
 #endif
+                // fill_row_k_linear_recursive(imin, N-1, 1, q, jseq, S, J, sum_x, sum_x_sq);
+                // fill_row_k_linear(imin, N-1, q, S, J, sum_x, sum_x_sq);
+                //if(method == "linear") {
+                        fill_row_q_SMAWK(imin, N-1, q, S, J, sum_x, sum_x_sq);
+                /*} else if(method == "loglinear") {
+                        fill_row_q_log_linear(imin, N-1, q, q, N-1, S, J, sum_x, sum_x_sq);
+                } else if(method == "quadratic") {
+                        fill_row_q(imin, N-1, q, S, J, sum_x, sum_x_sq);
+                } else {
+                        throw std::string("ERROR: unknown method") + method + "!";
+                }*/
+
+#ifdef DEBUG
+
+                fill_row_q_log_linear(imin, N-1, q, q, N-1, SS, JJ, sum_x, sum_x_sq);
+
+                for(int i=imin; i<N; ++i) {
+                        if(S[q][i] != SS[q][i] || J[q][i] != JJ[q][i]) {
+                                std::cout << "ERROR: q=" << q << ", i=" << i << std::endl;
+                                std::cout << "\tS=" << S[q][i] << "\tJ=" << J[q][i] << std::endl;
+                                std::cout << "Truth\tSS=" << SS[q][i] << "\tJJ=" << JJ[q][i];
+                                std::cout << std::endl;
+                                assert(false);
+
+                        } else {
+                                /*
+                                 std::cout << "OK: q=" << q << ", i=" << i << std::endl;
+                                 std::cout << "\tS=" << S[q][i] << "\tJ=" << J[q][i] << std::endl;
+                                 std::cout << "Truth\tSS=" << SS[q][i] << "\tJJ=" << JJ[q][i];
+                                 std::cout << std::endl;
+                                 */
+                        }
+
+                }
+#endif
+        }
+
+#ifdef DEBUG
+        std::cout << "Linear & log-linear code returned identical dp index matrix."
+                  << std::endl;
+#endif
+
 }
 
-inline void backtrack_L1
-  (const vector<double> & x,
-   const vector< vector< size_t > > & J,
-   size_t* cluster, double* centers, double* withinss,
-   size_t* count)
-{
-  const size_t K = J.size();
-  const size_t N = J[0].size();
-  size_t cluster_right = N-1;
-  size_t cluster_left;
-
-  // Backtrack the clusters from the dynamic programming matrix
-  for(int q = ((int)K)-1; q >= 0; --q) {
-    cluster_left = J[q][cluster_right];
-
-    for(size_t i = cluster_left; i <= cluster_right; ++i)
-      cluster[i] = q;
-
-    centers[q] = x[(cluster_right+cluster_left) >> 1];
-
-    for(size_t i = cluster_left; i <= cluster_right; ++i)
-      withinss[q] += std::fabs(x[i] - centers[q]);
-
-    count[q] = cluster_right - cluster_left + 1;
-
-    if(q > 0) {
-      cluster_right = cluster_left - 1;
-    }
-  }
 }
 
-inline void backtrack_L2
-  (const vector<double> & x,
-   const vector< vector< size_t > > & J,
-   size_t* cluster, double* centers, double* withinss,
-   size_t* count)
+inline void backtrack_L2(
+  const std::vector<double> & x,
+  const std::vector< std::vector< size_t > > & J,
+  size_t* cluster, double* centers, double* withinss,
+  size_t* count
+)
 {
   const size_t K = J.size();
   const size_t N = J[0].size();
@@ -585,24 +455,18 @@ inline void backtrack_L2
   }
 }
 
-pair<vector<size_t>, vector<double>> kmeans_1d_dp(const vector<double> &x, size_t k,
-                                                  const enum DISSIMILARITY criterion) {
+std::pair<std::vector<size_t>, std::vector<double>> kmeans_1d_dp(const std::vector<double> &x, size_t k) {
 
-  vector<size_t> cluster(x.size());
-  vector<double> center(k);
-  vector<double> withinss(k);
-  vector<size_t> size(k);
-  vector<double> y;
-  vector<vector< double>> S(k, vector<double>(x.size()));
-  vector<vector< size_t>> J(k, vector<size_t>(x.size()));
+  std::vector<size_t> cluster(x.size());
+  std::vector<double> center(k);
+  std::vector<double> withinss(k);
+  std::vector<size_t> size(k);
+  std::vector<double> y;
+  std::vector<std::vector< double>> S(k, std::vector<double>(x.size()));
+  std::vector<std::vector< size_t>> J(k, std::vector<size_t>(x.size()));
 
-  if (criterion == L1) {
-    fill_dp_matrix(x, y, S, J, L1);
-    backtrack_L1(x, J, &cluster[0], &center[0], &withinss[0], &size[0]);
-  } else {
-    //EWL2::fill_dp_matrix(x, y, S, J);
-    //backtrack_L2(x, J, &cluster[0], &centers[0], &withinss[0], &size[0]);
-  }
+  EWL2::fill_dp_matrix(x, y, S, J);
+  backtrack_L2(x, J, &cluster[0], &center[0], &withinss[0], &size[0]);
 
-  return make_pair(cluster, center);
+  return std::make_pair(cluster, center);
 }
