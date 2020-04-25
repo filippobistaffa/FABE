@@ -92,24 +92,32 @@ pair<automata, value> compute_automata(table const &t, size_t max_k) {
                                        [](double const &x, double const &y)
                                        { return (fabs(x - y) <= std::numeric_limits<double>::epsilon()); });
 
-        //cout << endl << vec2str(values, "values") << endl;
-        //cout << "k = " << min(uniques, max_k) << endl;
+        #ifdef DEBUG
+        cout << endl << vec2str(values, "values") << endl;
+        cout << "k = " << min(uniques, max_k) << endl;
+        #endif
         size_t k = min(uniques, max_k);
         value max_error = 0;
 
         if (uniques > 1) {
-                auto [ cluster, center ] = kmeans_1d_dp(values, k);
-                //cout << vec2str(cluster, "cluster") << endl;
-                //cout << vec2str(center, "center") << endl;
+                auto [ clusters, centers ] = kmeans_1d_dp(values, k);
+                #ifdef DEBUG
+                cout << vec2str(clusters, "clusters") << endl;
+                cout << vec2str(centers, "centers") << endl;
+                vector<value> errors(values.size());
+                for (size_t i = 0; i < values.size(); ++i) {
+                        errors[i] = fabs(centers[clusters[i]] - values[i]);
+                }
+                cout << vec2str(errors, "errors") << endl;
+                #endif
                 size_t begin = 0;
                 size_t i = begin;
                 while (begin != t.rows.size()) {
-                        while (i != t.rows.size() && cluster[begin] == cluster[i]) {
-                                //cout << fabs(center[cluster[begin]] - t.rows[i].second) << endl;
-                                max_error = max((value)fabs(center[cluster[begin]] - t.rows[i].second), max_error);
+                        while (i != t.rows.size() && clusters[begin] == clusters[i]) {
+                                max_error = max((value)fabs(centers[clusters[i]] - values[i]), max_error);
                                 i++;
                         }
-                        res.rows.insert({ center[cluster[begin]],
+                        res.rows.insert({ centers[clusters[begin]],
                                           fa_compile_minimise(t.rows.begin() + begin, t.rows.begin() + i) });
                         begin = i;
                 }
