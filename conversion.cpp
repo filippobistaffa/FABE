@@ -78,7 +78,7 @@ pair<automata, value> compute_automata(table const &t, value tolerance) {
                         end++;
                 }
                 max_error = max(max_error, prev(end)->second - begin->second);
-                res.rows.insert({ begin->second, fa_compile_minimise(begin, end) });
+                res.rows.insert({ prev(end)->second, fa_compile_minimise(begin, end) });
                 begin = end;
         }
 
