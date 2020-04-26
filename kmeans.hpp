@@ -28,4 +28,4 @@
 
 #include <vector>
 
-std::pair<std::vector<size_t>, std::vector<double>> kmeans_1d_dp(const std::vector<double> &x, size_t k);
+std::vector<size_t> kmeans_1d_dp(const std::vector<double> &x, size_t k);

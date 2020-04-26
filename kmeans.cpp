@@ -455,10 +455,10 @@ inline void backtrack_L2(
   }
 }
 
-std::pair<std::vector<size_t>, std::vector<double>> kmeans_1d_dp(const std::vector<double> &x, size_t k) {
+std::vector<size_t> kmeans_1d_dp(const std::vector<double> &x, size_t k) {
 
-  std::vector<size_t> cluster(x.size());
-  std::vector<double> center(k);
+  std::vector<size_t> clusters(x.size());
+  std::vector<double> centers(k);
   std::vector<double> withinss(k);
   std::vector<size_t> size(k);
   std::vector<double> y;
@@ -466,7 +466,7 @@ std::pair<std::vector<size_t>, std::vector<double>> kmeans_1d_dp(const std::vect
   std::vector<std::vector< size_t>> J(k, std::vector<size_t>(x.size()));
 
   EWL2::fill_dp_matrix(x, y, S, J);
-  backtrack_L2(x, J, &cluster[0], &center[0], &withinss[0], &size[0]);
+  backtrack_L2(x, J, &clusters[0], &centers[0], &withinss[0], &size[0]);
 
-  return std::make_pair(cluster, center);
+  return clusters;
 }

@@ -93,31 +93,28 @@ pair<automata, value> compute_automata(table const &t, size_t max_k) {
                                        { return (fabs(x - y) <= std::numeric_limits<double>::epsilon()); });
 
         #ifdef DEBUG
-        cout << endl << vec2str(values, "values") << endl;
-        cout << "k = " << min(uniques, max_k) << endl;
+        cout << endl << vec2str(values, "values  ") << endl;
         #endif
         size_t k = min(uniques, max_k);
         value max_error = 0;
 
         if (uniques > 1) {
-                auto [ clusters, centers ] = kmeans_1d_dp(values, k);
+                auto clusters = kmeans_1d_dp(values, k);
                 #ifdef DEBUG
                 cout << vec2str(clusters, "clusters") << endl;
-                cout << vec2str(centers, "centers") << endl;
-                vector<value> errors(values.size());
-                for (size_t i = 0; i < values.size(); ++i) {
-                        errors[i] = fabs(centers[clusters[i]] - values[i]);
-                }
-                cout << vec2str(errors, "errors") << endl;
                 #endif
                 size_t begin = 0;
                 size_t i = begin;
                 while (begin != t.rows.size()) {
                         while (i != t.rows.size() && clusters[begin] == clusters[i]) {
-                                max_error = max((value)fabs(centers[clusters[i]] - values[i]), max_error);
                                 i++;
                         }
-                        res.rows.insert({ centers[clusters[begin]],
+                        #ifdef DEBUG
+                        cout << "value = " << t.rows[i - 1].second << endl;
+                        cout << "error = " << t.rows[i - 1].second - t.rows[begin].second << endl;
+                        #endif
+                        max_error = max(max_error, t.rows[i - 1].second - t.rows[begin].second);
+                        res.rows.insert({ t.rows[i - 1].second,
                                           fa_compile_minimise(t.rows.begin() + begin, t.rows.begin() + i) });
                         begin = i;
                 }
