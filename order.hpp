@@ -27,10 +27,10 @@ struct compare_vec {
 
 using namespace std;
 
-vector<size_t> greedy_order(vector<vector<float>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL,
+vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL,
                             int tie_heur = T_UNIQUENESS);
 
-size_t induced_width(vector<vector<float>> const &adj, vector<size_t> const &order);
+size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &order);
 
 vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains);
 

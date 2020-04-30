@@ -29,9 +29,9 @@ void print_table(table const &t);
 
 void automata_dot(automata const &c, const char *root_dir = ".");
 
-void print_adj(vector<vector<float>> const &adj);
+void print_adj(vector<vector<weight>> const &adj);
 
-pair<vector<size_t>, vector<vector<float>>> read_domains_adj(const char *instance, int type);
+pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance, int type);
 
 vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
 

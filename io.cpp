@@ -58,7 +58,7 @@ void automata_dot(automata const &a, const char *root_dir) {
 
 #define PRECISION 2
 
-void print_adj(vector<vector<float>> const &adj) {
+void print_adj(vector<vector<weight>> const &adj) {
 
         const size_t n_vars = adj.size();
         const int var = 1 + floor(log10(n_vars - 1));
@@ -168,15 +168,15 @@ array<T, N> tokenize(ifstream &f) {
 
 #define SKIP_LINE f.ignore(numeric_limits<streamsize>::max(), '\n')
 
-static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_wcsp(const char *wcsp) {
+static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp(const char *wcsp) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         assert(max_domain <= ALPHABET_LENGTH);
         const auto domains = tokenize<size_t>(f);
 
-        vector<vector<float>> adj(n_vars, vector<float>(n_vars));
-        vector<vector<float>> tot(n_vars, vector<float>(n_vars));
+        vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));
+        vector<vector<weight>> tot(n_vars, vector<weight>(n_vars));
 
         for (size_t i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
@@ -191,7 +191,7 @@ static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_wcsp(
                         values.push_back(row.back());
                 }
                 sort(values.begin(), values.end());
-                const float u = unique(values.begin(), values.end()) - values.begin();
+                const weight u = unique(values.begin(), values.end()) - values.begin();
                 for (auto it = vars.begin(); it != vars.end(); ++it) {
                         for (auto it1 = it + 1; it1 != vars.end(); ++it1) {
                                 adj[*it][*it1] += u / n_rows;
@@ -216,15 +216,15 @@ static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_wcsp(
         return make_pair(domains, adj);
 }
 
-static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_uai(const char *uai) {
+static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_uai(const char *uai) {
 
         ifstream f(uai);
         SKIP_LINE;
         auto [ n_vars ] = tokenize<size_t, 0, 1>(f);
         auto domains = tokenize<size_t>(f);
         auto [ n_tables ] = tokenize<size_t, 0, 1>(f);
-        vector<vector<float>> adj(n_vars, vector<float>(n_vars));
-        vector<vector<float>> tot(n_vars, vector<float>(n_vars));
+        vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));
+        vector<vector<weight>> tot(n_vars, vector<weight>(n_vars));
         vector<vector<size_t>> vars(n_tables);
 
         for (size_t i = 0; i < n_tables; ++i) {
@@ -240,7 +240,7 @@ static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_uai(c
                         values.insert(values.end(), temp.begin(), temp.end());
                 }
                 sort(values.begin(), values.end());
-                const float u = unique(values.begin(), values.end()) - values.begin();
+                const weight u = unique(values.begin(), values.end()) - values.begin();
                 for (auto it = vars[i].begin(); it != vars[i].end(); ++it) {
                         for (auto it1 = it + 1; it1 != vars[i].end(); ++it1) {
                                 adj[*it][*it1] += u / n_rows;
@@ -265,7 +265,7 @@ static inline pair<vector<size_t>, vector<vector<float>>> read_domains_adj_uai(c
         return make_pair(domains, adj);
 }
 
-pair<vector<size_t>, vector<vector<float>>> read_domains_adj(const char *instance, int type) {
+pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance, int type) {
 
         if (type == WCSP) {
                 return read_domains_adj_wcsp(instance);

@@ -12,6 +12,8 @@ using namespace std;
 
 typedef float value;
 
+typedef double weight;
+
 struct automata {
         vector<size_t> vars;
         vector<size_t> domains;
