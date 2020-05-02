@@ -31,9 +31,9 @@ void automata_dot(automata const &c, const char *root_dir = ".");
 
 void print_adj(vector<vector<weight>> const &adj);
 
-pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance, int type);
+pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance);
 
-vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
+vector<table> read_tables(const char *instance);
 
 //void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
 

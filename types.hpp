@@ -12,7 +12,7 @@ using namespace std;
 
 typedef float value;
 
-typedef double weight;
+typedef char weight;
 
 struct automata {
         vector<size_t> vars;
@@ -24,11 +24,6 @@ struct table {
         vector<size_t> vars;
         vector<size_t> domains;
         vector<pair<vector<size_t>, value>> rows;
-};
-
-enum instance {
-        WCSP,
-        MPE
 };
 
 #endif /* TYPES_HPP_ */
