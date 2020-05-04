@@ -107,7 +107,6 @@ int main(int argc, char *argv[]) {
 
         vector<size_t> order(domains.size());
         iota(order.begin(), order.end(), 0);
-        reverse(order.begin(), order.end());
         vector<size_t> pos(order.size());
         for (size_t i = 0; i < order.size(); ++i) {
                 pos[order[i]] = i;

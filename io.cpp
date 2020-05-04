@@ -200,16 +200,27 @@ vector<table> read_tables(const char *wcsp) {
 
                 table t;
                 auto temp = tokenize<value>(f);
-                t.vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                auto vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                t.vars = vars;
+                sort(t.vars.begin(), t.vars.end());
 
                 for (auto var : t.vars) {
                         t.domains.push_back(domains[var]);
                 }
 
+                vector<size_t> map(t.vars.size());
+                for (size_t i = 0; i < t.vars.size(); ++i) {
+                        map[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();
+                }
+
                 for (size_t j = 0; j < temp[temp[0] + 2]; ++j) {
                         auto row = tokenize<value>(f);
                         const value val = row[row.size() - 1];
-                        t.rows.push_back(make_pair(vector<size_t>(row.begin(), row.end() - 1), val));
+                        vector<size_t> row_sorted(t.vars.size());
+                        for (size_t k = 0; k < t.vars.size(); ++k) {
+                                row_sorted[map[k]] = row[k];
+                        }
+                        t.rows.push_back(make_pair(row_sorted, val));
                 }
 
                 // sort according to values
