@@ -205,30 +205,24 @@ static inline value reduce_last_var(automata &a, int outer) {
                 return keys.front();
         }
 
-        vector<struct fa *> pfx_union(keys.size());
-        pfx_union[0] = fa_make_basic(FA_EMPTY);
-
-        for (size_t i = 1; i < keys.size(); ++i) {
-                pfx_union[i] = fa_union(a.rows[keys[i - 1]], pfx_union[i - 1]);
-                fa_minimize(pfx_union[i]);
-        }
-
         vector<value> empty;
+        auto cumul_union = fa_clone(a.rows[keys[0]]);
 
         for (size_t i = 1; i < keys.size(); ++i) {
-                OP_FREE_OLD(fa_minus, fa_free, a.rows[keys[i]], pfx_union[i]);
-                if (fa_is_basic(a.rows[keys[i]], FA_EMPTY)) {
+                auto diff = fa_minus(a.rows[keys[i]], cumul_union);
+                if (i != keys.size() - 1) {
+                        fa_union_in_place(cumul_union, &a.rows[keys[i]]);
+                        fa_minimize(cumul_union);
+                }
+                if (fa_is_basic(diff, FA_EMPTY)) {
                         empty.push_back(keys[i]);
                 }
+                a.rows[keys[i]] = diff;
         }
 
         for (auto e : empty) {
                 fa_free(a.rows[e]);
                 a.rows.erase(e);
-        }
-
-        for (auto a : pfx_union) {
-                fa_free(a);
         }
 
         #ifdef PRINT_TABLES
