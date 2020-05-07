@@ -1,5 +1,6 @@
 #include "order.hpp"
 
+#include <cmath>                // fabs
 #include <iostream>             // cout
 #include <iomanip>              // setw
 #include <numeric>              // accumulate
@@ -100,7 +101,7 @@ vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur, i
                         #ifdef DEBUG_GREEDY_ORDER
                         cout << "metric(" << i << ") = " << met << " (min = " << min_met << ")" << endl;
                         #endif
-                        if (met == min_met) {
+                        if (fabs(met - min_met) <= numeric_limits<weight>::epsilon()) {
                                 cand.push_back(i);
                         } else if (met < min_met) {
                                 min_met = met;
@@ -110,6 +111,10 @@ vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur, i
                 }
                 #ifdef DEBUG_GREEDY_ORDER
                 cout << vec2str(cand, "candidates") << endl;
+                for (auto c : cand) {
+                        cout << avg_w[c] << " ";
+                }
+                cout << endl;
                 #endif
                 size_t sel;
                 if (tie_heur == T_RANDOM) {

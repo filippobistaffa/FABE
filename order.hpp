@@ -16,11 +16,17 @@ enum tie_heur {
         T_RANDOM
 };
 
+#include <cmath>                // fabs
+
 template <typename T>
 struct compare_vec {
         compare_vec(vector<T> const &vec) : vec(vec) {};
         bool operator()(size_t const &x, size_t const &y) {
-                return vec[x] < vec[y];
+                if constexpr (is_integral_v<T>) {
+                        return vec[x] < vec[y];
+                } else if (is_floating_point_v<T>) {
+                        return vec[x] < vec[y] - numeric_limits<weight>::epsilon();
+                }
         }
         vector<T> vec;
 };
