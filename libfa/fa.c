@@ -1968,6 +1968,54 @@ int fa_is_basic(struct fa *fa, unsigned int basic) {
     return 0;
 }
 
+#define HASH_CLONE
+
+#ifdef HASH_CLONE
+
+static hash_val_t state_hash(const void *key) {
+    const struct state *s = key;
+    return s->hash;
+}
+
+static int state_cmp(const void *key1, const void *key2) {
+    const struct state *s1 = key1;
+    const struct state *s2 = key2;
+    return s1->hash < s2->hash;
+}
+
+struct fa *fa_clone(struct fa *fa) {
+    struct fa *result = NULL;
+    if (fa == NULL || ALLOC(result) < 0)
+        goto error;
+    result->deterministic = fa->deterministic;
+    result->minimal = fa->minimal;
+    result->nocase = fa->nocase;
+    hash_t *map = hash_create(HASHCOUNT_T_MAX, state_cmp, state_hash);
+    hash_set_allocator(map, NULL, NULL, NULL);
+    list_for_each(s, fa->initial) {
+        struct state *q = add_state(result, s->accept);
+        q->live = s->live;
+        q->reachable = s->reachable;
+        q->level = s->level;
+        hash_alloc_insert(map, s, q);
+    }
+    list_for_each(s, fa->initial) {
+        struct state *q = hnode_get(hash_lookup(map, s));
+        for_each_trans(t, s) {
+            struct state *qto = hnode_get(hash_lookup(map, t->to));
+            add_new_trans(q, qto, t->min, t->max);
+        }
+    }
+    hash_free_nodes(map);
+    hash_destroy(map);
+    return result;
+ error:
+    fa_free(result);
+    return NULL;
+}
+
+#else
+
 struct fa *fa_clone(struct fa *fa) {
     struct fa *result = NULL;
     struct state_set *set = state_set_init(-1, S_DATA|S_SORTED);
@@ -2010,6 +2058,8 @@ struct fa *fa_clone(struct fa *fa) {
     fa_free(result);
     return NULL;
 }
+
+#endif
 
 static int case_expand(struct fa *fa);
 
