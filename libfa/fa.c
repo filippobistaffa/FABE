@@ -819,6 +819,22 @@ static int state_pair_find(struct state_set *set, struct state *fst,
     return -1;
 }
 
+#if __x86_64__
+
+/* https://gist.github.com/badboy/6267743#64-bit-to-32-bit-hash-functions */
+static hash_val_t ptr_hash(const void *p) {
+    register unsigned long long key = (unsigned long long)p;
+    key = (~key) + (key << 18); // key = (key << 18) - key - 1;
+    key = key ^ (key >> 31);
+    key = key * 21; // key = (key + (key << 2)) + (key << 4);
+    key = key ^ (key >> 11);
+    key = key + (key << 6);
+    key = key ^ (key >> 22);
+    return (hash_val_t) key;
+}
+
+#else
+
 /* Jenkins' hash for void* */
 static hash_val_t ptr_hash(const void *p) {
     hash_val_t hash = 0;
@@ -833,6 +849,8 @@ static hash_val_t ptr_hash(const void *p) {
     hash += (hash << 15);
     return hash;
 }
+
+#endif
 
 typedef hash_t state_triple_hash;
 
@@ -1980,7 +1998,10 @@ static hash_val_t state_hash(const void *key) {
 static int state_cmp(const void *key1, const void *key2) {
     const struct state *s1 = key1;
     const struct state *s2 = key2;
-    return s1->hash < s2->hash;
+    if (s1->hash != s2->hash) {
+        return s1->hash < s2->hash ? -1 : 1;
+    }
+    return 0;
 }
 
 struct fa *fa_clone(struct fa *fa) {
