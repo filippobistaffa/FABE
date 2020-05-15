@@ -232,7 +232,9 @@ int main(int argc, char *argv[]) {
                                          1, multiplies<size_t>());
         }
 
-        log_value("Value redundancy", 1 - actual_rows / total_rows);
+        ostringstream oss;
+        oss << total_rows - actual_rows << "/" << total_rows << " (" << 1 - actual_rows / total_rows << ")";
+        log_value("Value redundancy", oss.str());
 
         #ifdef EXPORT_AUTOMATA_DOT
         for (auto const &a : automatas) {
@@ -264,7 +266,7 @@ int main(int argc, char *argv[]) {
         //log_value("Maximum optimality gap", tolerance * tables.size());
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         //log_value("Optimality gap", tot_error);
-        ostringstream oss;
+        oss.str(string());
         oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << "%)";
         log_value("Optimality gap", oss.str());
         log_value("Bucket elimination runtime", runtime.count());
