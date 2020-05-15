@@ -25,7 +25,7 @@ bool parallel = false;
 static inline void print_usage(const char *bin) {
 
         cerr << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] ";
-        cerr << "[-t unique|random] [-s seed] [-e tolerance] -f instance" << endl;
+        cerr << "[-t unique|random] [-s seed] [-e tolerance] [-r] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -49,9 +49,10 @@ int main(int argc, char *argv[]) {
         char *instance = NULL;
         char *pseudotree = NULL;
         size_t seed = time(NULL);
+        bool print_red = false;
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:h")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:hr")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -117,6 +118,9 @@ int main(int argc, char *argv[]) {
                                 continue;
                         case 'e':
                                 tolerance = atof(optarg);
+                                continue;
+                        case 'r':
+                                print_red = true;
                                 continue;
                         case 'h':
                         default :
@@ -247,6 +251,11 @@ int main(int argc, char *argv[]) {
         }*/
 
         log_line();
+
+        if (print_red) {
+                exit(0);
+        }
+
         //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
         //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
