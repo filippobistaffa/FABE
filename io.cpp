@@ -273,8 +273,7 @@ pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instan
         }
 }
 
-__attribute__((always_inline)) inline
-void preallocate_rows(table &t, value def = 0) {
+void preallocate_rows(table &t, value def) {
 
         const size_t n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, multiplies<size_t>());
         t.rows.resize(n_rows);
