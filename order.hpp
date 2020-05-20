@@ -38,7 +38,7 @@ vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur = 
 
 size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &order);
 
-vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains);
+vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains, vector<vector<size_t>> &anc);
 
 void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output);
 

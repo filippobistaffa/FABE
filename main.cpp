@@ -175,11 +175,15 @@ int main(int argc, char *argv[]) {
         string ord_heur_names[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
         string tie_heur_names[] = { "MIN-UNIQUENESS", "RANDOM" };
         vector<size_t> order;
+        vector<vector<size_t>> anc(domains.size(), vector<size_t>());
         auto start_t = chrono::high_resolution_clock::now();
 
         if (pseudotree) {
                 log_value("Variable order heuristic", pseudotree);
-                order = read_pseudotree_order(pseudotree, domains);
+                order = read_pseudotree_order(pseudotree, domains, anc);
+                //for (size_t i = 0; i < anc.size(); ++i) {
+                //        cout << i << " : " << vec2str(anc[i]) << endl;
+                //}
         } else {
                 srand(seed);
                 if (ord_heur == O_RANDOM) {

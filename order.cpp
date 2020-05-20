@@ -166,9 +166,15 @@ size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &or
 	return w;
 }
 
-static inline void parse(string str, vector<size_t> &order) {
+struct node {
+        size_t var;
+        vector<node> ch;
+};
+
+static inline node parse_string(string str, vector<size_t> &order) {
 
         size_t var;
+        vector<node> ch;
         size_t i = str.find("(");
 
         if (i != string::npos) {
@@ -185,7 +191,7 @@ static inline void parse(string str, vector<size_t> &order) {
                                 }
                                 j++;
                         }
-                        parse(children.substr(1, j - 2), order);
+                        ch.push_back(parse_string(children.substr(1, j - 2), order));
                         children = children.substr(j);
                 }
         } else {
@@ -193,9 +199,23 @@ static inline void parse(string str, vector<size_t> &order) {
         }
 
         order.push_back(var);
+        node n = {
+                var,
+                ch
+        };
+        return n;
 }
 
-vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains) {
+static inline void fill_ancestors(node &n, vector<vector<size_t>> &anc) {
+
+        for (auto c : n.ch) {
+                anc[c.var] = anc[n.var];
+                anc[c.var].push_back(n.var);
+                fill_ancestors(c, anc);
+        }
+}
+
+vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains, vector<vector<size_t>> &anc) {
 
         vector<size_t> vars;
         vector<size_t> ev(domains.size());
@@ -220,16 +240,16 @@ vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const 
         ifstream f(filename);
         string str;
         getline(f, str);
-        parse(str.substr(1, str.size() - 2), order);
+        auto root = parse_string(str.substr(1, str.size() - 2), order);
         order.pop_back();
         f.close();
+        fill_ancestors(root.ch.front(), anc);
 
         for (size_t i = 0; i < order.size(); ++i) {
                 order[i] += offset[order[i]];
         }
 
         order.insert(order.begin(), vars.begin(), vars.end());
-
         return order;
 }
 
