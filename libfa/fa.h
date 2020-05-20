@@ -345,6 +345,8 @@ void fa_add_word(struct fa *fa, const size_t *word, size_t length);
 
 size_t fa_n_states(struct fa *fa);
 
+size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx);
+
 #ifdef __cplusplus
 }
 #endif

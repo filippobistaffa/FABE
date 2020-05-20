@@ -7,6 +7,7 @@
 #include <numeric>      // accumulate
 
 #include "libfa/fa.h"
+#include "io.hpp"
 
 //#define OLD
 
@@ -84,21 +85,18 @@ table compute_table(automata const &a) {
                 vector<size_t>(a.domains),
         };
 
-        const size_t max_rows = accumulate(a.domains.begin(), a.domains.end(), 1, multiplies<size_t>());
+        preallocate_rows(res, numeric_limits<value>::max());
+
+        size_t *idx = new size_t[res.rows.size()];
 
         for (auto const &[ v, fa ] : a.rows) {
-                char **rows;
-                const size_t n_rows = fa_enumerate(fa, max_rows, &rows);
-                for (size_t r = 0; r < n_rows; ++r) {
-                        vector<size_t> row = vector<size_t>(res.vars.size());
-                        for (size_t v = 0; v < row.size(); ++v) {
-                                row[v] = rows[r][v];
-                        }
-                        res.rows.push_back(make_pair(row, v));
-                        free(rows[r]);
+                auto n = fa_enumerate_idx(fa, &a.domains[0], idx);
+                for (size_t i = 0; i < n; ++i) {
+                        res.rows[idx[i]].second = v;
                 }
-                free(rows);
         }
+
+        delete[] idx;
 
         return res;
 }

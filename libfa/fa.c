@@ -2907,6 +2907,24 @@ int fa_enumerate(struct fa *fa, int limit, char ***words) {
     goto done;
 }
 
+static void rec_idx(struct state *s, const size_t *dom, size_t i, size_t d, size_t *idx, size_t *n) {
+    if (s->accept) {
+        idx[(*n)++] = i;
+    } else {
+        for_each_trans(t, s) {
+            for (size_t j = t->min; j <= t->max; ++j) {
+                rec_idx(t->to, dom + 1, i + j * d, d * (*dom), idx, n);
+            }
+        }
+    }
+}
+
+size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx) {
+    size_t n = 0; // first position available in idx
+    rec_idx(fa->initial, dom, 0, 1, idx, &n);
+    return n;
+}
+
 /* Expand the automaton FA by replacing every transition s(c) -> p from
  * state s to p on character c by two transitions s(X) -> r, r(c) -> p via
  * a new state r.
