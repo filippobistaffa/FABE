@@ -34,7 +34,7 @@ void print_table(table const &t) {
 
         for (auto const &row : t.rows) {
                 for (size_t j = 0; j < t.vars.size(); ++j) {
-                        cout << setw(width) << ALPHABET[row.first[j]] << " ";
+                        cout << setw(width) << row.first[j] << " ";
                 }
                 cout << "= " << row.second << endl;
         }
@@ -172,7 +172,6 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
-        assert(max_domain <= ALPHABET_LENGTH);
         const auto domains = tokenize<size_t>(f);
 
         vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));

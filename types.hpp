@@ -1,9 +1,6 @@
 #ifndef TYPES_HPP_
 #define TYPES_HPP_
 
-#define ALPHABET "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#define ALPHABET_LENGTH (sizeof(ALPHABET)/sizeof(ALPHABET[0])-1) // exclude \0 at the end
-
 #include "libfa/fa.h"
 #include <unordered_map>
 #include <vector>

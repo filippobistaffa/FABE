@@ -12,7 +12,7 @@
 
 #ifdef OLD
 
-static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
+/*static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
                                       vector<pair<vector<size_t>, value>>::const_iterator end) {
 
         ostringstream oss;
@@ -28,25 +28,17 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
         fa_compile(oss.str().c_str(), oss.str().length() - 1, &fa);
         fa_minimize(fa);
         return fa;
-}
+}*/
 
 #else
 
 static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
                                       vector<pair<vector<size_t>, value>>::const_iterator end) {
 
-        struct fa *fa = NULL;
+        struct fa *fa = fa_make_basic(FA_EMPTY);
 
         for (auto row = begin; row != end; ++row) {
-                ostringstream oss;
-                for (auto i : row->first) {
-                        oss << ALPHABET[i];
-                }
-                if (fa) {
-                        fa_add_word(fa, oss.str().c_str(), oss.str().length());
-                } else {
-                        fa_compile(oss.str().c_str(), oss.str().length(), &fa);
-                }
+                fa_add_word(fa, &(row->first[0]), row->first.size());
         }
 
         fa_minimize(fa);
@@ -100,7 +92,7 @@ table compute_table(automata const &a) {
                 for (size_t r = 0; r < n_rows; ++r) {
                         vector<size_t> row = vector<size_t>(res.vars.size());
                         for (size_t v = 0; v < row.size(); ++v) {
-                                row[v] = string(ALPHABET).find(rows[r][v]);
+                                row[v] = rows[r][v];
                         }
                         res.rows.push_back(make_pair(row, v));
                         free(rows[r]);

@@ -4785,7 +4785,7 @@ void fa_make_dot(struct fa *fa, const char *format, ...) {
     fclose(fp);  
 }
 
-void fa_add_level(struct fa *fa, size_t level, size_t dom, const char *ab) {
+void fa_add_level(struct fa *fa, size_t level, size_t dom) {
     #ifdef PROFILE_VARS
     update_record(&level_g, level);
     #endif
@@ -4803,16 +4803,16 @@ void fa_add_level(struct fa *fa, size_t level, size_t dom, const char *ab) {
                 add_new_trans(add, t->to, t->min, t->max);
             }
             free_trans(s);
-            add_new_trans(s, add, ab[0], ab[0]);
-            struct trans *t = last_trans(s);
+            add_new_trans(s, add, 0, dom - 1);
+            /*struct trans *t = last_trans(s);
             for (size_t i = 1; i < dom; ++i) {
-                if (ab[i] == t->max + 1) {
+                if (i == t->max + 1) {
                     t->max++;
                 } else {
-                    add_new_trans(s, add, ab[i], ab[i]);
+                    add_new_trans(s, add, i, i);
                     t = last_trans(s);
                 }
-            }
+            }*/
         } else {
             for_each_trans(t, s) {
                 if (!t->to->visited) {
@@ -4870,7 +4870,20 @@ static bool find_trans(struct state *st, char ch, size_t *i) {
     return false;
 }
 
-void fa_add_word(struct fa *fa, const char *word, size_t length) {
+static void fa_init_word(struct fa *fa, const size_t *word, size_t length) {
+    struct state *from = fa->initial;
+    for (size_t i = 0; i < length; ++i) {
+        struct state *to = add_state(fa, i + 1 == length ? 1 : 0);
+        add_new_trans(from, to, word[i], word[i]);
+        from = to;
+    }
+}
+
+void fa_add_word(struct fa *fa, const size_t *word, size_t length) {
+    if (fa_is_basic(fa, FA_EMPTY)) {
+        fa_init_word(fa, word, length);
+        return;
+    }
     struct state *cur = fa->initial;
     struct state *accept;
     list_for_each(st, fa->initial) {

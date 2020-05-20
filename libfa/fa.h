@@ -335,13 +335,13 @@ void fa_make_dot(struct fa *fa, const char *format, ...);
 
 int fa_union_in_place(struct fa *fa1, struct fa **fa2);
 
-void fa_add_level(struct fa *fa, size_t level, size_t dom, const char *ab);
+void fa_add_level(struct fa *fa, size_t level, size_t dom);
 
 size_t fa_remove_last(struct fa *fa);
 
 void fa_merge_accept(struct fa *fa);
 
-void fa_add_word(struct fa *fa, const char *word, size_t length);
+void fa_add_word(struct fa *fa, const size_t *word, size_t length);
 
 size_t fa_n_states(struct fa *fa);
 
