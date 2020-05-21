@@ -13,7 +13,7 @@
 //#define PRINT_TABLES
 
 // print bucket debug messages
-#define DEBUG_BUCKETS
+//#define DEBUG_BUCKETS
 
 // enable profiling
 //#define CPU_PROFILER
@@ -34,8 +34,10 @@
 size_t tot_states;
 #endif
 
+#ifdef PRINT_TABLES
 #include "conversion.hpp"
 #include "io.hpp"
+#endif
 
 #define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
@@ -245,34 +247,9 @@ static inline size_t push_bucket(automata const &a, vector<vector<automata>> &bu
         return b;
 }
 
-static inline void export_function(automata &h, size_t from, size_t to, struct mbe_data &mbe) {
-
-        cout << "writing table originated from bucket " << from << " in augmented bucket " << to << endl;
-
-        print_table(compute_table(h));
-        cout << "ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
-
-        mbe.n_augmented[to]++;
-        // function ID
-        buf_push_back(mbe.augmented[to], (int)(-from));
-        // scope size
-        buf_push_back(mbe.augmented[to], (size_t)h.vars.size());
-        // scope
-        for (auto it = h.vars.rbegin(); it != h.vars.rend(); ++it) {
-                buf_push_back(mbe.augmented[to], (int)(*it - mbe.evid_offset[*it]));
-        }
-        auto [ cpt, n ] = compute_cpt(h);
-        // table size
-        buf_push_back(mbe.augmented[to], (size_t)n);
-        // table values
-        uchar *cpt_bytes = reinterpret_cast<uchar*>(cpt);
-        mbe.augmented[to].insert(mbe.augmented[to].end(), cpt_bytes, cpt_bytes + sizeof(double) * n);
-        delete[] cpt;
-}
-
 static inline value process_bucket(size_t var, vector<automata> &bucket, vector<vector<automata>> &buckets, int inner,
                                    int outer, vector<size_t> const &pos, vector<size_t> const &domains,
-                                   struct mbe_data &mbe) {
+                                   struct bin_data &mbe) {
 
         value res = 0;
 
@@ -353,7 +330,7 @@ vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vect
 
 value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
                          vector<size_t> const &order, vector<size_t> const &pos,
-                         vector<size_t> const &domains, size_t ibound, struct mbe_data &mbe) {
+                         vector<size_t> const &domains, size_t ibound, struct bin_data &mbe) {
 
         #ifdef CPU_PROFILER
         ProfilerStart(CPU_PROFILER_OUTPUT);

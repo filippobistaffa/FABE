@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         char *pseudotree = NULL;
         size_t seed = time(NULL);
         bool print_red = false;
-        struct mbe_data mbe;
+        struct bin_data mbe;
         int opt;
 
         while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:m:hr")) != -1) {
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
         if (mbe.filename) {
                 mbe.augmented = vector<vector<uchar>>(domains.size() + 1, vector<uchar>());
                 mbe.n_augmented = vector<size_t>(domains.size());
-                mbe.intermediate = vector<vector<uchar>>(domains.size() + 1, vector<uchar>());
+                mbe.intermediate = vector<vector<pair<size_t, size_t>>>(domains.size(), vector<pair<size_t, size_t>>());
                 mbe.n_intermediate = vector<size_t>(domains.size());
                 mbe.evid_offset = vector<size_t>(domains.size());
                 mbe.anc = anc;
