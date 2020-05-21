@@ -6,12 +6,14 @@
 #include "libfa/fa.h"
 #include "order.hpp"
 #include "log.hpp"
+#include "util.hpp"
+#include "export.hpp"
 
 // print tables during execution
 //#define PRINT_TABLES
 
 // print bucket debug messages
-//#define DEBUG_BUCKETS
+#define DEBUG_BUCKETS
 
 // enable profiling
 //#define CPU_PROFILER
@@ -32,10 +34,8 @@
 size_t tot_states;
 #endif
 
-#ifdef PRINT_TABLES
 #include "conversion.hpp"
 #include "io.hpp"
-#endif
 
 #define OP_FREE_OLD(OP, FREE, X, Y) { auto __TMP = (X); (X) = OP(X, Y); FREE(__TMP); }
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
@@ -245,8 +245,34 @@ static inline size_t push_bucket(automata const &a, vector<vector<automata>> &bu
         return b;
 }
 
-static inline value process_bucket(vector<automata> &bucket, vector<vector<automata>> &buckets, int inner,
-                                   int outer, vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline void export_function(automata &h, size_t from, size_t to, struct mbe_data &mbe) {
+
+        cout << "writing table originated from bucket " << from << " in augmented bucket " << to << endl;
+
+        print_table(compute_table(h));
+        cout << "ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+
+        mbe.n_augmented[to]++;
+        // function ID
+        buf_push_back(mbe.augmented[to], (int)(-from));
+        // scope size
+        buf_push_back(mbe.augmented[to], (size_t)h.vars.size());
+        // scope
+        for (auto it = h.vars.rbegin(); it != h.vars.rend(); ++it) {
+                buf_push_back(mbe.augmented[to], (int)(*it - mbe.evid_offset[*it]));
+        }
+        auto [ cpt, n ] = compute_cpt(h);
+        // table size
+        buf_push_back(mbe.augmented[to], (size_t)n);
+        // table values
+        uchar *cpt_bytes = reinterpret_cast<uchar*>(cpt);
+        mbe.augmented[to].insert(mbe.augmented[to].end(), cpt_bytes, cpt_bytes + sizeof(double) * n);
+        delete[] cpt;
+}
+
+static inline value process_bucket(size_t var, vector<automata> &bucket, vector<vector<automata>> &buckets, int inner,
+                                   int outer, vector<size_t> const &pos, vector<size_t> const &domains,
+                                   struct mbe_data &mbe) {
 
         value res = 0;
 
@@ -256,12 +282,13 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
                         //automata_dot(h, "dot");
                         res += reduce_last_var(h, outer);
                         if (h.vars.size() > 0) {
-                                //automata_dot(h, "dot");
+                                size_t b = push_bucket(h, buckets, pos);
                                 #ifdef DEBUG_BUCKETS
-                                cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl;
-                                #else
-                                push_bucket(h, buckets, pos);
+                                cout << "Result placed in bucket " << b << endl;
                                 #endif
+                                if (mbe.filename) {
+                                        export_function(h, var, b, mbe);
+                                }
                         }
                 }
         }
@@ -269,7 +296,7 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
         return res;
 }
 
-//#define COMPARE_MBE
+#define COMPARE_MBE
 
 static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, size_t ibound,
                                                     vector<size_t> const &pos) {
@@ -326,7 +353,7 @@ vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vect
 
 value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
                          vector<size_t> const &order, vector<size_t> const &pos,
-                         vector<size_t> const &domains, size_t ibound) {
+                         vector<size_t> const &domains, size_t ibound, struct mbe_data &mbe) {
 
         #ifdef CPU_PROFILER
         ProfilerStart(CPU_PROFILER_OUTPUT);
@@ -348,10 +375,10 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
                         cout << "There are " << mb.size() << " mini-buckets" << endl;
                         #endif
                         for (auto &bucket : mb) {
-                                optimal += process_bucket(bucket, buckets, inner, outer, pos, domains);
+                                optimal += process_bucket(*it, bucket, buckets, inner, outer, pos, domains, mbe);
                         }
                 } else {
-                        optimal += process_bucket(buckets[*it], buckets, inner, outer, pos, domains);
+                        optimal += process_bucket(*it, buckets[*it], buckets, inner, outer, pos, domains, mbe);
                 }
                 #ifndef DEBUG_BUCKETS
                 log_progress_increase(1, order.size());
@@ -371,6 +398,11 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
         #ifdef COUNT_STATES
         log_value("Total number of automata states", tot_states);
         #endif
+
+        // export to binary file
+        if (mbe.filename) {
+                write_binary(mbe, optimal, ibound);
+        }
 
         return optimal;
 }

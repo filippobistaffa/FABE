@@ -17,6 +17,6 @@ vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vect
 
 value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
                          vector<size_t> const &order, vector<size_t> const &pos,
-                         vector<size_t> const &domains, size_t ibound = 0);
+                         vector<size_t> const &domains, size_t ibound, struct mbe_data &mbe);
 
 #endif /* BE_HPP_ */

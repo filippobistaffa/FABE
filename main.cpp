@@ -13,6 +13,7 @@
 #include "log.hpp"
 #include "order.hpp"
 #include "conversion.hpp"
+#include "export.hpp"
 
 // print tables after parsing
 //#define PRINT_TABLES
@@ -50,9 +51,10 @@ int main(int argc, char *argv[]) {
         char *pseudotree = NULL;
         size_t seed = time(NULL);
         bool print_red = false;
+        struct mbe_data mbe;
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:hr")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:m:hr")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -119,6 +121,9 @@ int main(int argc, char *argv[]) {
                         case 'e':
                                 tolerance = atof(optarg);
                                 continue;
+                        case 'm':
+                                mbe.filename = optarg;
+                                continue;
                         case 'r':
                                 print_red = true;
                                 continue;
@@ -171,6 +176,7 @@ int main(int argc, char *argv[]) {
         //print_adj(adj);
         //cout << endl;
 
+
         log_value("Seed", seed);
         string ord_heur_names[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
         string tie_heur_names[] = { "MIN-UNIQUENESS", "RANDOM" };
@@ -196,6 +202,15 @@ int main(int argc, char *argv[]) {
                         log_value("Tie-breaking heuristic", tie_heur_names[tie_heur]);
                         order = greedy_order(adj, ord_heur, tie_heur);
                 }
+        }
+
+        if (mbe.filename) {
+                mbe.augmented = vector<vector<uchar>>(domains.size() + 1, vector<uchar>());
+                mbe.n_augmented = vector<size_t>(domains.size());
+                mbe.intermediate = vector<vector<uchar>>(domains.size() + 1, vector<uchar>());
+                mbe.n_intermediate = vector<size_t>(domains.size());
+                mbe.evid_offset = vector<size_t>(domains.size());
+                mbe.anc = anc;
         }
 
         //cout << vec2str(order, "Order") << endl;
@@ -264,7 +279,7 @@ int main(int argc, char *argv[]) {
 
         //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
         //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
-        const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
+        const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound, mbe);
         runtime = chrono::high_resolution_clock::now() - start_t;
         log_value("Solution value", optimal);
         //log_value("Maximum optimality gap", tolerance * tables.size());

@@ -8,8 +8,8 @@
 using namespace std;
 
 typedef float value;
-
 typedef double weight;
+typedef unsigned char uchar;
 
 struct automata {
         vector<size_t> vars;
