@@ -2925,6 +2925,22 @@ size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx) {
     return n;
 }
 
+static void rec_fill(struct state *s, const size_t *dom, size_t i, size_t d, double *tab, double v) {
+    if (s->accept) {
+        tab[i] = v;
+    } else {
+        for_each_trans(t, s) {
+            for (size_t j = t->min; j <= t->max; ++j) {
+                rec_fill(t->to, dom + 1, i + j * d, d * (*dom), tab, v);
+            }
+        }
+    }
+}
+
+void fa_fill_table(struct fa *fa, const size_t *dom, double *tab, double v) {
+    rec_fill(fa->initial, dom, 0, 1, tab, v);
+}
+
 /* Expand the automaton FA by replacing every transition s(c) -> p from
  * state s to p on character c by two transitions s(X) -> r, r(c) -> p via
  * a new state r.

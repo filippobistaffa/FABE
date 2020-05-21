@@ -1,9 +1,6 @@
 #ifndef EXPORT_HPP_
 #define EXPORT_HPP_
 
-#include "conversion.hpp"
-#include "io.hpp"
-
 struct bin_data {
         char *filename;
         vector<uchar> header;
@@ -15,14 +12,39 @@ struct bin_data {
         vector<vector<size_t>> anc;
 };
 
+__attribute__((always_inline)) inline
+void alloc_bin_data(bin_data &mbe, size_t n_vars) {
+
+        mbe.augmented = vector<vector<uchar>>(n_vars + 1, vector<uchar>());
+        mbe.n_augmented = vector<size_t>(n_vars);
+        mbe.intermediate = vector<vector<pair<size_t, size_t>>>(n_vars, vector<pair<size_t, size_t>>());
+        mbe.n_intermediate = vector<size_t>(n_vars);
+        mbe.evid_offset = vector<size_t>(n_vars);
+}
+
+__attribute__((always_inline)) inline
+pair<double *, size_t> compute_cpt(automata const &a) {
+
+        const size_t n = accumulate(a.domains.begin(), a.domains.end(), 1, multiplies<size_t>());
+        double *cpt = new double[n];
+
+        for (auto const &[ v, fa ] : a.rows) {
+                fa_fill_table(fa, &a.domains[0], cpt, v);
+        }
+
+        return make_pair(cpt, n);
+}
+
 template <typename T>
-static inline void buf_push_back(vector<uchar> &buf, T x) {
+__attribute__((always_inline)) inline
+void buf_push_back(vector<uchar> &buf, T x) {
 
         uchar *bytes = reinterpret_cast<uchar*>(&x);
         buf.insert(buf.end(), bytes, bytes + sizeof(T));
 }
 
-static inline void export_function(automata &h, size_t from, size_t to, struct bin_data &mbe) {
+__attribute__((always_inline)) inline
+void export_function(automata &h, size_t from, size_t to, struct bin_data &mbe) {
 
         //cout << "writing table originated from bucket " << from << " in augmented bucket " << to << endl;
         //print_table(compute_table(h));
@@ -54,7 +76,8 @@ static inline void export_function(automata &h, size_t from, size_t to, struct b
 
 #include <fstream>      // ofstream
 
-void inline write_binary(bin_data &mbe, double optimal, int ibound) {
+__attribute__((always_inline)) inline
+void write_binary(bin_data &mbe, double optimal, int ibound) {
 
         size_t n_vars = mbe.anc.size();
         // open file
@@ -77,8 +100,9 @@ void inline write_binary(bin_data &mbe, double optimal, int ibound) {
         buf_push_back(mbe.augmented.back(), 1ULL);
         buf_push_back(mbe.augmented.back(), optimal);
         ofs.write((char*)mbe.augmented.back().data(), mbe.augmented.back().size());
-        //ofs.close();
-        //ofs = ofstream("inter.mbe", ios::out | ios::binary);
+        // split bin file
+        ofs.close();
+        ofs = ofstream("inter.mbe", ios::out | ios::binary);
         // intermediate buckets
         vector<size_t> pfx(mbe.n_augmented.size());
         exclusive_scan(mbe.n_augmented.begin(), mbe.n_augmented.end(), pfx.begin(), 0, plus<>{});

@@ -347,6 +347,8 @@ size_t fa_n_states(struct fa *fa);
 
 size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx);
 
+void fa_fill_table(struct fa *fa, const size_t *dom, double *t, double v);
+
 #ifdef __cplusplus
 }
 #endif

@@ -205,11 +205,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (mbe.filename) {
-                mbe.augmented = vector<vector<uchar>>(domains.size() + 1, vector<uchar>());
-                mbe.n_augmented = vector<size_t>(domains.size());
-                mbe.intermediate = vector<vector<pair<size_t, size_t>>>(domains.size(), vector<pair<size_t, size_t>>());
-                mbe.n_intermediate = vector<size_t>(domains.size());
-                mbe.evid_offset = vector<size_t>(domains.size());
+                alloc_bin_data(mbe, domains.size());
                 mbe.anc = anc;
         }
 

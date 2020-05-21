@@ -98,15 +98,3 @@ table compute_table(automata const &a) {
         delete[] idx;
         return res;
 }
-
-pair<double *, size_t> compute_cpt(automata const &a) {
-
-        const size_t n = accumulate(a.domains.begin(), a.domains.end(), 1, multiplies<size_t>());
-        double *cpt = new double[n];
-        
-        for (auto const &[ v, fa ] : a.rows) {
-                fa_fill_table(fa, &a.domains[0], cpt, v);
-        }
-
-        return make_pair(cpt, n);
-}
