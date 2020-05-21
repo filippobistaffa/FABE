@@ -301,7 +301,7 @@ void remove_threshold(table &t, value threshold) {
         }
 }
 
-static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> const &pos, value threshold) {
+static inline vector<table> read_tables_wcsp(const char *wcsp, value threshold) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
@@ -314,7 +314,7 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
                 auto temp = tokenize<value>(f);
                 auto vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
                 t.vars = vars;
-                sort(t.vars.begin(), t.vars.end(), compare_vec(pos));
+                sort(t.vars.begin(), t.vars.end(), greater<size_t>());
 
                 for (auto var : t.vars) {
                         t.domains.push_back(domains[var]);
@@ -351,7 +351,7 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
         return tables;
 }
 
-static inline vector<table> read_tables_uai(const char *uai, vector<size_t> const &pos, value threshold) {
+static inline vector<table> read_tables_uai(const char *uai, value threshold) {
 
         ifstream f(uai);
         SKIP_LINE;
@@ -372,7 +372,7 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
                 auto vars = tables[i].vars;
                 reverse(vars.begin(), vars.end());
                 vector<size_t> orig_dom;
-                sort(tables[i].vars.begin(), tables[i].vars.end(), compare_vec(pos));
+                sort(tables[i].vars.begin(), tables[i].vars.end(), greater<size_t>());
 
                 for (auto var : vars) {
                         orig_dom.push_back(domains[var]);
@@ -421,12 +421,12 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
         return tables;
 }
 
-vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold) {
+vector<table> read_tables(const char *instance, int type, value threshold) {
 
         if (type == WCSP) {
-                return read_tables_wcsp(instance, pos, threshold);
+                return read_tables_wcsp(instance, threshold);
         } else {
-                return read_tables_uai(instance, pos, threshold);
+                return read_tables_uai(instance, threshold);
         }
 }
 

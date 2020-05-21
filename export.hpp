@@ -43,12 +43,15 @@ void buf_push_back(vector<uchar> &buf, T x) {
         buf.insert(buf.end(), bytes, bytes + sizeof(T));
 }
 
+#include "conversion.hpp"
+#include "io.hpp"
+
 __attribute__((always_inline)) inline
 void export_function(automata &h, size_t from, size_t to, struct bin_data &mbe) {
 
-        //cout << "writing table originated from bucket " << from << " in augmented bucket " << to << endl;
-        //print_table(compute_table(h));
-        //cout << "ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+        cout << "writing table originated from bucket " << from << " in augmented bucket " << to << endl;
+        print_table(compute_table(h));
+        cout << "ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
 
         for (auto it = mbe.anc[from].rbegin(); it != mbe.anc[from].rend() && *it != to; ++it) {
                 //cout << "writing table in intermediate bucket " << *it << endl;
@@ -77,7 +80,7 @@ void export_function(automata &h, size_t from, size_t to, struct bin_data &mbe) 
 #include <fstream>      // ofstream
 
 __attribute__((always_inline)) inline
-void write_binary(bin_data &mbe, double optimal, int ibound) {
+void write_binary(bin_data &mbe, double optimal, int ibound, int root) {
 
         size_t n_vars = mbe.anc.size();
         // open file
@@ -93,16 +96,15 @@ void write_binary(bin_data &mbe, double optimal, int ibound) {
                 ofs.write((char*)mbe.augmented[var].data(), mbe.augmented[var].size());
         }
         // augmented bucket for dummy root
-        int root_id = n_vars - 1;
         buf_push_back(mbe.augmented.back(), 1ULL);
-        buf_push_back(mbe.augmented.back(), -root_id);
+        buf_push_back(mbe.augmented.back(), -(root));
         buf_push_back(mbe.augmented.back(), 0ULL);
         buf_push_back(mbe.augmented.back(), 1ULL);
         buf_push_back(mbe.augmented.back(), optimal);
         ofs.write((char*)mbe.augmented.back().data(), mbe.augmented.back().size());
         // split bin file
-        ofs.close();
-        ofs = ofstream("inter.mbe", ios::out | ios::binary);
+        //ofs.close();
+        //ofs = ofstream("../fabe_i.bin", ios::out | ios::binary);
         // intermediate buckets
         vector<size_t> pfx(mbe.n_augmented.size());
         exclusive_scan(mbe.n_augmented.begin(), mbe.n_augmented.end(), pfx.begin(), 0, plus<>{});

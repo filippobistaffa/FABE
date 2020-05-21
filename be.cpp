@@ -43,8 +43,9 @@ size_t tot_states;
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 extern bool parallel;
+bool debug = false;
 
-static inline automata join(automata &a1, automata &a2, int inner, vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline automata join(automata &a1, automata &a2, int inner, vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Joining:" << endl << endl;
@@ -57,7 +58,7 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         automata join;
 
         // compute variables (and their domains) of join function
-        SET_OP(set_union, a1.vars, a2.vars, join.vars, compare_vec(pos));
+        SET_OP(set_union, a1.vars, a2.vars, join.vars, greater<size_t>());
 
         for (auto var : join.vars) {
                 join.domains.push_back(domains[var]);
@@ -66,19 +67,19 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
         // variables to be added
         vector<size_t> add1;
         vector<size_t> add2;
-        SET_OP(set_difference, a2.vars, a1.vars, add1, compare_vec(pos));
-        SET_OP(set_difference, a1.vars, a2.vars, add2, compare_vec(pos));
+        SET_OP(set_difference, a2.vars, a1.vars, add1, greater<size_t>());
+        SET_OP(set_difference, a1.vars, a2.vars, add2, greater<size_t>());
 
         // non-shared variables' positions in union
         vector<size_t> padd1;
         vector<size_t> padd2;
 
         for (auto var : add1) {
-                padd1.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_vec(pos)) - join.vars.begin());
+                padd1.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, greater<size_t>()) - join.vars.begin());
         }
 
         for (auto var : add2) {
-                padd2.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_vec(pos)) - join.vars.begin());
+                padd2.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, greater<size_t>()) - join.vars.begin());
         }
 
         /*
@@ -154,7 +155,7 @@ static inline automata join_bucket(vector<automata> &bucket, int inner, vector<s
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("pre-join");
                 #endif
-                res = join(old, *it, inner, pos, domains);
+                res = join(old, *it, inner, domains);
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("post-join");
                 #endif
@@ -177,7 +178,7 @@ static inline automata join_bucket(vector<automata> &bucket, int inner, vector<s
         return res;
 }
 
-static inline value reduce_last_var(automata &a, int outer) {
+static inline value reduce_var(automata &a, size_t var, int outer) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Minimising:" << endl << endl;
@@ -185,16 +186,29 @@ static inline value reduce_last_var(automata &a, int outer) {
         cout << endl;
         #endif
 
-        // remove last variable and domain
-        a.vars.pop_back();
-        a.domains.pop_back();
+        const size_t idx = lower_bound(a.vars.begin(), a.vars.end(), var, greater<size_t>()) - a.vars.begin();
+
+        if (debug) {
+                //automata_dot(a, "dot");
+        }
+
+        a.vars.erase(a.vars.begin() + idx);
+        a.domains.erase(a.domains.begin() + idx);
         vector<value> keys;
 
         for (auto &[ v, fa ] : a.rows) {
-                if (fa_remove_last(fa) > 1) {
-                        fa_merge_accept(fa);
+                if (idx == a.vars.size()) {
+                        if (fa_remove_last(fa) > 1) {
+                                fa_merge_accept(fa);
+                        }
+                } else {
+                        fa_remove_level(fa, idx);
                 }
                 keys.push_back(v);
+        }
+
+        if (debug) {
+                //automata_dot(a, "dot");
         }
 
         if (outer == BE_MIN) {
@@ -256,8 +270,8 @@ static inline value process_bucket(size_t var, vector<automata> &bucket, vector<
         if (bucket.size()) {
                 auto h = join_bucket(bucket, inner, pos, domains);
                 if (h.rows.size() > 0) {
+                        res += reduce_var(h, var, outer);
                         //automata_dot(h, "dot");
-                        res += reduce_last_var(h, outer);
                         if (h.vars.size() > 0) {
                                 size_t b = push_bucket(h, buckets, pos);
                                 #ifdef DEBUG_BUCKETS
@@ -300,7 +314,7 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
                 size_t mb = 0;
                 for (; mb < mini_buckets.size(); ++mb) {
                         vector<size_t> tmp;
-                        SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_vec(pos));
+                        SET_OP(set_union, it->vars, bucket_vars[mb], tmp, greater<size_t>());
                         if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) {
                                 // function fits in this mini-bucket
                                 mini_buckets[mb].push_back(move(*it));
@@ -342,7 +356,12 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
 
         value optimal = 0;
 
+        size_t i = 0;
+
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
+                if (i == 11) {
+                        debug = true;
+                }
                 #ifdef DEBUG_BUCKETS
                 cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
                 #endif
@@ -360,6 +379,11 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
                 #ifndef DEBUG_BUCKETS
                 log_progress_increase(1, order.size());
                 #endif
+                
+                if (i == 11) {
+                        //break;
+                }
+                i++;
         }
 
         #ifdef CPU_PROFILER
@@ -378,7 +402,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
 
         // export to binary file
         if (mbe.filename) {
-                write_binary(mbe, optimal, ibound);
+                write_binary(mbe, optimal, ibound, order.front());
         }
 
         return optimal;

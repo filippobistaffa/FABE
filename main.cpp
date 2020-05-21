@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         char *pseudotree = NULL;
         size_t seed = time(NULL);
         bool print_red = false;
-        struct bin_data mbe;
+        struct bin_data mbe = { NULL };
         int opt;
 
         while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:m:hr")) != -1) {
@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
         start_t = chrono::high_resolution_clock::now();
         //export_order(order, domains, "order.vo");
         log_value("Induced width", induced_width(adj, order));
-        auto tables = read_tables(instance, inst_type, pos, threshold);
+        auto tables = read_tables(instance, inst_type, threshold);
 
         #ifdef PRINT_TABLES
         cout << endl;

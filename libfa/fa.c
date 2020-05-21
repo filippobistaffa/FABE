@@ -2909,6 +2909,7 @@ int fa_enumerate(struct fa *fa, int limit, char ***words) {
 
 static void rec_idx(struct state *s, const size_t *dom, size_t i, size_t d, size_t *idx, size_t *n) {
     if (s->accept) {
+        printf("(%zu) <- %zu\n", *n, i);
         idx[(*n)++] = i;
     } else {
         for_each_trans(t, s) {
@@ -2922,6 +2923,7 @@ static void rec_idx(struct state *s, const size_t *dom, size_t i, size_t d, size
 size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx) {
     size_t n = 0; // first position available in idx
     rec_idx(fa->initial, dom, 0, 1, idx, &n);
+    puts("done");
     return n;
 }
 
@@ -4838,15 +4840,6 @@ void fa_add_level(struct fa *fa, size_t level, size_t dom) {
             }
             free_trans(s);
             add_new_trans(s, add, 0, dom - 1);
-            /*struct trans *t = last_trans(s);
-            for (size_t i = 1; i < dom; ++i) {
-                if (i == t->max + 1) {
-                    t->max++;
-                } else {
-                    add_new_trans(s, add, i, i);
-                    t = last_trans(s);
-                }
-            }*/
         } else {
             for_each_trans(t, s) {
                 if (!t->to->visited) {
@@ -4857,6 +4850,49 @@ void fa_add_level(struct fa *fa, size_t level, size_t dom) {
             }
         }
     }
+ error:
+    state_set_free(worklist);
+}
+
+void fa_remove_level(struct fa *fa, size_t level) {
+    fa->deterministic = 0;
+    fa->minimal = 0;
+    struct state_set *worklist = state_set_init(-1, S_NONE);
+    E(worklist == NULL);
+    list_for_each(s, fa->initial) {
+        s->visited = 0;
+        s->live = 1;
+    }
+    fa->initial->level = 0;
+    for (struct state *s = fa->initial; s != NULL; s = state_set_pop(worklist)) {
+        if (s->level == level) {
+            struct state_set *ch = state_set_init(-1, S_NONE);
+            for_each_trans(t, s) {
+                state_set_push(ch, t->to);
+                t->to->live = 0;
+            }
+            free_trans(s);
+            for (size_t i = 0; i < ch->used; ++i) {
+                //printf("%p -e-> %p\n", s, ch->states[i]);
+                add_epsilon_trans(s, ch->states[i]);
+            }
+            state_set_free(ch);
+            //fa_make_dot(fa, "dot/%p-1.dot", fa->initial);
+            sort_merge_trans(s);
+            //fa_make_dot(fa, "dot/%p-2.dot", fa->initial);
+        } else {
+            for_each_trans(t, s) {
+                if (!t->to->visited) {
+                    t->to->visited = 1;
+                    t->to->level = s->level + 1;
+                    F(state_set_push(worklist, t->to));
+                }
+            }
+        }
+    }
+    collect_dead_states(fa);
+    determinize(fa, NULL);
+    //fa_make_dot(fa, "dot/%p-3.dot", fa->initial);
  error:
     state_set_free(worklist);
 }
