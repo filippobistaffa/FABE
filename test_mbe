@@ -1,0 +1,44 @@
+#!/bin/bash
+
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+normal=$(tput sgr0)
+
+dataset_home="/home/filippo/iiia/fabe/datasets"
+fabe="/home/filippo/iiia/fabe/fabe"
+aolib="/home/filippo/iiia/aolib/aolib"
+pt="$(pwd)/pt"
+bin="$(pwd)/bin"
+
+mkdir -p $pt
+mkdir -p $bin
+
+function check_hash {
+        name=${1##*/}
+        name=${name%.*}
+        msg="[ib$2] Checking $name..."
+        current=${#msg}
+        echo -n $msg
+        $aolib -f $1 -P $pt/$name.pt -s 0 --mbe-export $bin/$name-a-$2.bin -i $2 > /dev/null
+        $fabe -f $1 -o $pt/$name.pt -m $bin/$name-f-$2.bin -i $2 > /dev/null
+        h_a=`md5sum $bin/$name-a-$2.bin | cut -f 1 -d\ `
+        h_f=`md5sum $bin/$name-f-$2.bin | cut -f 1 -d\ `
+        rem=$(( $(tput cols) - $current + 10 ))
+        if [ $h_a == $h_f ]
+        then
+                printf " %${rem}s\n" "[${green}OK${normal}]"
+        else
+                printf " %${rem}s\n" "[${red}FAILED${normal}]"
+        fi
+}
+
+for dataset in "spot5" "iscas89" "mastermind" # "test"
+do
+        while IFS= read -rd $'\0' file
+        do
+                for i in 2 4 6
+                do
+                        check_hash "$file" $i
+                done
+        done < <(find ${dataset_home}/wcsp/$dataset -name "*.wcsp" -type f -print0)
+done
