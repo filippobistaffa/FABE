@@ -278,6 +278,12 @@ int main(int argc, char *argv[]) {
         //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
         const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound, mbe);
         runtime = chrono::high_resolution_clock::now() - start_t;
+
+        // export binary file
+        if (mbe.filename) {
+                write_binary(mbe, optimal, ibound);
+        }
+
         log_value("Solution value", optimal);
         //log_value("Maximum optimality gap", tolerance * tables.size());
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);

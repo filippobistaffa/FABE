@@ -113,7 +113,7 @@ void export_root_function(double value, int from, struct bin_data &mbe) {
 #include <fstream>
 
 __attribute__((always_inline)) inline
-void write_binary(bin_data &mbe, double optimal, int ibound, int root) {
+void write_binary(bin_data &mbe, double optimal, int ibound) {
 
         auto start_t = chrono::high_resolution_clock::now();
         size_t n_vars = mbe.anc.size();

@@ -385,10 +385,5 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
         log_value("Total number of automata states", tot_states);
         #endif
 
-        // export to binary file
-        if (mbe.filename) {
-                write_binary(mbe, optimal, ibound, order.front());
-        }
-
         return optimal;
 }

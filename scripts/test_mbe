@@ -7,11 +7,7 @@ normal=$(tput sgr0)
 dataset_home="/home/filippo/iiia/fabe/datasets"
 fabe="/home/filippo/iiia/fabe/fabe"
 aolib="/home/filippo/iiia/aolib/aolib"
-pt="$(pwd)/pt"
-bin="$(pwd)/bin"
-
-mkdir -p $pt
-mkdir -p $bin
+seed=0
 
 function check_hash {
         name=${1##*/}
@@ -19,24 +15,31 @@ function check_hash {
         msg="[ib$2] Checking $name..."
         current=${#msg}
         echo -n $msg
-        $aolib -f $1 -P $pt/$name.pt -s 0 --mbe-export $bin/$name-a-$2.bin -i $2 > /dev/null
-        $fabe -f $1 -o $pt/$name.pt -m $bin/$name-f-$2.bin -i $2 > /dev/null
-        h_a=`md5sum $bin/$name-a-$2.bin | cut -f 1 -d\ `
-        h_f=`md5sum $bin/$name-f-$2.bin | cut -f 1 -d\ `
+        pt="$(mktemp --tmpdir=.)"
+        bin_a="$(mktemp --tmpdir=.)"
+        bin_f="$(mktemp --tmpdir=.)"
+        $aolib -f $1 -P $pt -s $seed --mbe-export $bin_a -i $2 > /dev/null
+        $fabe -f $1 -o $pt -m $bin_f -i $2 > /dev/null
+        h_a=`md5sum $bin_a | cut -f 1 -d\ `
+        h_f=`md5sum $bin_f | cut -f 1 -d\ `
         rem=$(( $(tput cols) - $current + 10 ))
         if [ $h_a == $h_f ]
         then
                 printf " %${rem}s\n" "[${green}OK${normal}]"
+                rm $pt $bin_a $bin_f
         else
                 printf " %${rem}s\n" "[${red}FAILED${normal}]"
+                echo "Bin AOLIB: $bin_a"
+                echo "Bin FABE: $bin_f"
+                exit 1
         fi
 }
 
-for dataset in "spot5" "iscas89" "mastermind" # "test"
+for dataset in "spot5" "iscas89" "mastermind" # "celar6" "test"
 do
         while IFS= read -rd $'\0' file
         do
-                for i in 2 4 6
+                for i in 2 4 6 8
                 do
                         check_hash "$file" $i
                 done
