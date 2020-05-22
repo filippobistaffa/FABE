@@ -10,6 +10,7 @@ struct bin_data {
         vector<size_t> n_intermediate;
         vector<size_t> evid_offset;
         vector<vector<size_t>> anc;
+        double threshold;
 };
 
 __attribute__((always_inline)) inline
@@ -22,11 +23,14 @@ void alloc_bin_data(bin_data &mbe, size_t n_vars) {
         mbe.evid_offset = vector<size_t>(n_vars);
 }
 
+#include <algorithm>    // fill
+
 __attribute__((always_inline)) inline
-pair<double *, size_t> compute_cpt(automata const &a) {
+pair<double *, size_t> compute_cpt(automata const &a, double def) {
 
         const size_t n = accumulate(a.domains.begin(), a.domains.end(), 1, multiplies<size_t>());
         double *cpt = new double[n];
+        fill(cpt, cpt + n, def);
 
         for (auto const &[ v, fa ] : a.rows) {
                 fa_fill_table(fa, &a.domains[0], cpt, v);
@@ -68,7 +72,7 @@ void export_function(automata &h, int from, int to, struct bin_data &mbe) {
         for (auto it = h.vars.rbegin(); it != h.vars.rend(); ++it) {
                 buf_push_back(mbe.augmented[to], (int)(*it - mbe.evid_offset[*it]));
         }
-        auto [ cpt, n ] = compute_cpt(h);
+        auto [ cpt, n ] = compute_cpt(h, mbe.threshold);
         // table size
         buf_push_back(mbe.augmented[to], (size_t)n);
         // table values

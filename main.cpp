@@ -207,6 +207,7 @@ int main(int argc, char *argv[]) {
         if (mbe.filename) {
                 alloc_bin_data(mbe, domains.size());
                 mbe.anc = anc;
+                mbe.threshold = threshold;
         }
 
         //cout << vec2str(order, "Order") << endl;
