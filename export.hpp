@@ -119,6 +119,7 @@ void export_root_function(double value, int from, struct bin_data &mbe) {
 }
 
 #include <fstream>
+#include "util.hpp"
 
 __attribute__((always_inline)) inline
 void write_binary(bin_data &mbe, double optimal, int ibound) {
