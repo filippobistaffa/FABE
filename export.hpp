@@ -11,6 +11,7 @@ struct bin_data {
         vector<size_t> evid_offset;
         vector<vector<size_t>> anc;
         double threshold;
+        double runtime;
 };
 
 __attribute__((always_inline)) inline
@@ -21,6 +22,7 @@ void alloc_bin_data(bin_data &mbe, size_t n_vars) {
         mbe.intermediate = vector<vector<pair<size_t, size_t>>>(n_vars, vector<pair<size_t, size_t>>());
         mbe.n_intermediate = vector<size_t>(n_vars);
         mbe.evid_offset = vector<size_t>(n_vars);
+        mbe.runtime = 0;
 }
 
 #include <algorithm>    // fill
@@ -47,12 +49,14 @@ void buf_push_back(vector<uchar> &buf, T x) {
         buf.insert(buf.end(), bytes, bytes + sizeof(T));
 }
 
+#include <chrono>       // time measurement
 #include "conversion.hpp"
 #include "io.hpp"
 
 __attribute__((always_inline)) inline
 void export_function(automata &h, int from, int to, struct bin_data &mbe) {
 
+        auto start_t = chrono::high_resolution_clock::now();
         //cout << "Writing table from bucket " << from << " in augmented bucket " << to << endl;
         //print_table(compute_table(h));
         //cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
@@ -79,11 +83,14 @@ void export_function(automata &h, int from, int to, struct bin_data &mbe) {
         uchar *cpt_bytes = reinterpret_cast<uchar*>(cpt);
         mbe.augmented[to].insert(mbe.augmented[to].end(), cpt_bytes, cpt_bytes + sizeof(double) * n);
         delete[] cpt;
+        chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
+        mbe.runtime += runtime.count();
 }
 
 __attribute__((always_inline)) inline
 void export_root_function(double value, int from, struct bin_data &mbe) {
 
+        auto start_t = chrono::high_resolution_clock::now();
         const size_t to = mbe.augmented.size() - 1;
         //cout << "Writing value " << value << " from bucket " << from << " in root augmented bucket" << endl;
         //cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
@@ -99,6 +106,8 @@ void export_root_function(double value, int from, struct bin_data &mbe) {
         buf_push_back(mbe.augmented.back(), 1ULL);
         buf_push_back(mbe.augmented.back(), value);
         mbe.n_augmented.back()++;
+        chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
+        mbe.runtime += runtime.count();
 }
 
 #include <fstream>
@@ -106,6 +115,7 @@ void export_root_function(double value, int from, struct bin_data &mbe) {
 __attribute__((always_inline)) inline
 void write_binary(bin_data &mbe, double optimal, int ibound, int root) {
 
+        auto start_t = chrono::high_resolution_clock::now();
         size_t n_vars = mbe.anc.size();
         // open file
         ofstream ofs(mbe.filename, ios::out | ios::binary);
@@ -137,6 +147,8 @@ void write_binary(bin_data &mbe, double optimal, int ibound, int root) {
         ofs.write((char*)&z, sizeof(size_t));
         // close file
         ofs.close();
+        chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
+        mbe.runtime += runtime.count();
 }
 
 #endif /* LOG_HPP_ */

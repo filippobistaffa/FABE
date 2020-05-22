@@ -284,8 +284,14 @@ int main(int argc, char *argv[]) {
         //log_value("Optimality gap", tot_error);
         oss.str(string());
         oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << "%)";
-        log_value("Optimality gap", oss.str());
-        log_value("Bucket elimination runtime", runtime.count());
+        if (mbe.filename) {
+                log_value("Bucket elimination runtime", runtime.count());
+                log_value("I/O runtime", mbe.runtime);
+        } else {
+                log_value("Optimality gap", oss.str());
+                log_value("Bucket elimination runtime", runtime.count());
+        }
+
         log_line();
 
         return EXIT_SUCCESS;
