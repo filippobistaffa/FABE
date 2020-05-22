@@ -1,0 +1,27 @@
+#!/bin/bash
+
+dataset_home="/home/filippo/iiia/fabe/datasets"
+aolib="/home/filippo/iiia/aolib/aolib"
+pt="$(pwd)/pt"
+
+mkdir -p $pt
+
+function generate_pt {
+        name=${1##*/}
+        name=${name%.*}
+        mkdir -p $pt/$2
+        iw=`$aolib -f $1 -P $pt/$2/$name.pt -s $2 | grep Induced | egrep -o "[0-9]*"`
+        echo "$name,$iw" >> $pt/$2/iw.csv
+}
+
+for s in {0..9}
+do
+        rm -rf $pt/$s/iw.csv
+        for t in "wcsp" "uai" # "test"
+        do
+                while IFS= read -rd $'\0' file
+                do
+                        generate_pt "$file" $s
+                done < <(find ${dataset_home} -name "*.$t" -type f -print0)
+        done
+done
