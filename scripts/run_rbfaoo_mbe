@@ -1,0 +1,26 @@
+#!/bin/bash
+
+ib=2
+
+if [[ $# != 1 && $# != 2 ]]
+then
+        echo "Usage: $0 istance [ibound=2]"
+        exit
+fi
+
+if [[ $# == 2 ]]
+then
+        ib=$2
+fi
+
+fabe="/home/filippo/iiia/fabe/fabe"
+aolib="/home/filippo/iiia/aolib/aolib"
+pt="$(mktemp)"
+bin="$(mktemp)"
+seed=0
+
+$aolib -f $1 -P $pt -s $seed #> /dev/null
+$fabe -f $1 -o $pt -m $bin -i $ib #> /dev/null
+$aolib -a rbfaoo -f $1 -s $seed --mbe-import $bin #> /dev/null
+
+rm $pt $bin
