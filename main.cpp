@@ -174,8 +174,7 @@ int main(int argc, char *argv[]) {
 
         auto [ domains, adj ] = read_domains_adj(instance, inst_type);
         //print_adj(adj);
-        //cout << endl;
-
+        //cout << vec2str(domains) << endl;
 
         log_value("Seed", seed);
         string ord_heur_names[] = { "WEIGHTED-MIN-FILL", "MIN-FILL", "MIN-INDUCED-WIDTH", "MIN-DEGREE" };
@@ -222,7 +221,7 @@ int main(int argc, char *argv[]) {
         start_t = chrono::high_resolution_clock::now();
         //export_order(order, domains, "order.vo");
         log_value("Induced width", induced_width(adj, order));
-        auto tables = read_tables(instance, inst_type, threshold);
+        auto [ tables, evid_value ] = read_tables(instance, inst_type, threshold);
 
         #ifdef PRINT_TABLES
         cout << endl;
@@ -281,10 +280,10 @@ int main(int argc, char *argv[]) {
 
         // export binary file
         if (mbe.filename) {
-                write_binary(mbe, optimal, ibound);
+                write_binary(mbe, optimal + evid_value, ibound);
         }
 
-        log_value("Solution value", optimal);
+        log_value("Solution value", optimal + evid_value);
         //log_value("Maximum optimality gap", tolerance * tables.size());
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         //log_value("Optimality gap", tot_error);

@@ -35,7 +35,7 @@ void preallocate_rows(table &t, value def = 0);
 
 pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance, int type);
 
-vector<table> read_tables(const char *instance, int type, value threshold);
+pair<vector<table>, value> read_tables(const char *instance, int type, value threshold);
 
 //void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
 

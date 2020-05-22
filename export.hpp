@@ -1,6 +1,8 @@
 #ifndef EXPORT_HPP_
 #define EXPORT_HPP_
 
+//#define DEBUG
+
 struct bin_data {
         char *filename;
         vector<uchar> header;

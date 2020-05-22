@@ -166,16 +166,46 @@ array<T, N> tokenize(ifstream &f) {
         return a;
 }
 
+template <typename T1, typename T2>
+static inline void remove_positions(vector<T1> &vec, vector<T2> const &mask) {
+
+        size_t i = 0;
+        for (auto b : mask) {
+                if (b) {
+                        vec.erase(vec.begin() + i);
+                } else {
+                        i++;
+                }
+        }
+}
+
+static inline tuple<vector<size_t>, size_t, vector<size_t>> compute_evidence(vector<size_t> const &domains) {
+
+        const size_t n_vars = domains.size();
+        vector<size_t> ev(n_vars);
+        for (size_t i = 0; i < n_vars; ++i) {
+                if (domains[i] == 1) {
+                        ev[i] = 1;
+                }
+        }
+        vector<size_t> pfx(n_vars);
+        partial_sum(ev.begin(), ev.end(), pfx.begin());
+        vector<size_t> map(n_vars);
+        iota(map.begin(), map.end(), 0);
+        transform(map.begin(), map.end(), pfx.begin(), map.begin(), minus<size_t>());
+        return make_tuple(ev, accumulate(ev.begin(), ev.end(), 0), map);
+}
+
 #define SKIP_LINE f.ignore(numeric_limits<streamsize>::max(), '\n')
 
 static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp(const char *wcsp) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
-        const auto domains = tokenize<size_t>(f);
-
-        vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));
-        vector<vector<weight>> tot(n_vars, vector<weight>(n_vars));
+        auto domains = tokenize<size_t>(f);
+        const auto [ ev, n_ev, map ] = compute_evidence(domains);
+        vector<vector<weight>> adj(n_vars - n_ev, vector<weight>(n_vars - n_ev));
+        vector<vector<weight>> tot(n_vars - n_ev, vector<weight>(n_vars - n_ev));
 
         for (size_t i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
@@ -192,17 +222,21 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp
                 sort(values.begin(), values.end());
                 const weight u = unique(values.begin(), values.end()) - values.begin();
                 for (auto it = vars.begin(); it != vars.end(); ++it) {
-                        for (auto it1 = it + 1; it1 != vars.end(); ++it1) {
-                                adj[*it][*it1] += u / n_rows;
-                                adj[*it1][*it] += u / n_rows;
-                                tot[*it][*it1]++;
-                                tot[*it1][*it]++;
+                        if (!ev[*it]) {
+                                for (auto it1 = it + 1; it1 != vars.end(); ++it1) {
+                                        if (!ev[*it1]) {
+                                                adj[map[*it]][map[*it1]] += u / n_rows;
+                                                adj[map[*it1]][map[*it]] += u / n_rows;
+                                                tot[map[*it]][map[*it1]]++;
+                                                tot[map[*it1]][map[*it]]++;
+                                        }
+                                }
                         }
                 }
         }
 
-        for (size_t i = 0; i < n_vars; ++i) {
-                for (size_t j = 0; j < n_vars; ++j) {
+        for (size_t i = 0; i < n_vars - n_ev; ++i) {
+                for (size_t j = 0; j < n_vars - n_ev; ++j) {
                         if (tot[i][j]) {
                                 adj[i][j] /= tot[i][j];
                         } else {
@@ -212,6 +246,7 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp
         }
 
         f.close();
+        remove_positions(domains, ev);
         return make_pair(domains, adj);
 }
 
@@ -222,8 +257,9 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_uai(
         auto [ n_vars ] = tokenize<size_t, 0, 1>(f);
         auto domains = tokenize<size_t>(f);
         auto [ n_tables ] = tokenize<size_t, 0, 1>(f);
-        vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));
-        vector<vector<weight>> tot(n_vars, vector<weight>(n_vars));
+        const auto [ ev, n_ev, map ] = compute_evidence(domains);
+        vector<vector<weight>> adj(n_vars - n_ev, vector<weight>(n_vars - n_ev));
+        vector<vector<weight>> tot(n_vars - n_ev, vector<weight>(n_vars - n_ev));
         vector<vector<size_t>> vars(n_tables);
 
         for (size_t i = 0; i < n_tables; ++i) {
@@ -241,17 +277,21 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_uai(
                 sort(values.begin(), values.end());
                 const weight u = unique(values.begin(), values.end()) - values.begin();
                 for (auto it = vars[i].begin(); it != vars[i].end(); ++it) {
-                        for (auto it1 = it + 1; it1 != vars[i].end(); ++it1) {
-                                adj[*it][*it1] += u / n_rows;
-                                adj[*it1][*it] += u / n_rows;
-                                tot[*it][*it1]++;
-                                tot[*it1][*it]++;
+                        if (!ev[*it]) {
+                                for (auto it1 = it + 1; it1 != vars[i].end(); ++it1) {
+                                        if (!ev[*it1]) {
+                                                adj[map[*it]][map[*it1]] += u / n_rows;
+                                                adj[map[*it1]][map[*it]] += u / n_rows;
+                                                tot[map[*it]][map[*it1]]++;
+                                                tot[map[*it1]][map[*it]]++;
+                                        }
+                                }
                         }
                 }
         }
 
-        for (size_t i = 0; i < n_vars; ++i) {
-                for (size_t j = 0; j < n_vars; ++j) {
+        for (size_t i = 0; i < n_vars - n_ev; ++i) {
+                for (size_t j = 0; j < n_vars - n_ev; ++j) {
                         if (tot[i][j]) {
                                 adj[i][j] /= tot[i][j];
                         } else {
@@ -261,6 +301,7 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_uai(
         }
 
         f.close();
+        remove_positions(domains, ev);
         return make_pair(domains, adj);
 }
 
@@ -301,12 +342,38 @@ void remove_threshold(table &t, value threshold) {
         }
 }
 
-static inline vector<table> read_tables_wcsp(const char *wcsp, value threshold) {
+static inline value project_evidence(table &t, vector<size_t> const &ev, vector<size_t> const &map) {
+
+        vector<size_t> mask(t.vars.size());
+        for (size_t i = 0; i < t.vars.size(); ++i) {
+                mask[i] = ev[t.vars[i]];
+        }
+
+        remove_positions(t.vars, mask);
+        if (t.vars.size() == 0) {
+                return t.rows.front().second;
+        }
+
+        remove_positions(t.domains, mask);
+        for (auto &row : t.rows) {
+                remove_positions(row.first, mask);                
+        }
+
+        for (size_t i = 0; i < t.vars.size(); ++i) {
+                t.vars[i] = map[t.vars[i]];            
+        }
+
+        return 0;
+}
+
+static inline pair<vector<table>, value> read_tables_wcsp(const char *wcsp, value threshold) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         const auto domains = tokenize<size_t>(f);
-        vector<table> tables(n_tables);
+        const auto [ ev, n_ev, map ] = compute_evidence(domains);
+        vector<table> tables;
+        value evid_value = 0;
 
         for (size_t i = 0; i < n_tables; ++i) {
 
@@ -320,9 +387,9 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, value threshold) 
                         t.domains.push_back(domains[var]);
                 }
 
-                vector<size_t> map(t.vars.size());
+                vector<size_t> pos(t.vars.size());
                 for (size_t i = 0; i < t.vars.size(); ++i) {
-                        map[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();
+                        pos[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();
                 }
 
                 vector<size_t> pfx_prod(t.domains.size());
@@ -334,7 +401,7 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, value threshold) 
                         const value val = row[row.size() - 1];
                         size_t idx = 0;
                         for (size_t k = 0; k < row.size() - 1; ++k) {
-                                idx += row[k] * pfx_prod[map[k]];
+                                idx += row[k] * pfx_prod[pos[k]];
                         }
                         t.rows[idx].second = val;
                 }
@@ -344,21 +411,26 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, value threshold) 
                                                       pair<vector<size_t>, value> const &y)
                                                       { return (x.second < y.second); });
                 remove_threshold(t, threshold);
-                tables[i] = t;
+                evid_value += project_evidence(t, ev, map);
+                if (t.vars.size()) {
+                        tables.push_back(t);
+                }
         }
 
         f.close();
-        return tables;
+        return make_pair(tables, evid_value);
 }
 
-static inline vector<table> read_tables_uai(const char *uai, value threshold) {
+static inline pair<vector<table>, value> read_tables_uai(const char *uai, value threshold) {
 
         ifstream f(uai);
         SKIP_LINE;
         SKIP_LINE;
         const auto domains = tokenize<size_t>(f);
         auto [ n_tables ] = tokenize<size_t, 0, 1>(f);
+        const auto [ ev, n_ev, map ] = compute_evidence(domains);
         vector<table> tables(n_tables);
+        value evid_value = 0;
 
         for (size_t i = 0; i < n_tables; ++i) {
                 table t;
@@ -382,9 +454,9 @@ static inline vector<table> read_tables_uai(const char *uai, value threshold) {
                         tables[i].domains.push_back(domains[var]);
                 }
 
-                vector<size_t> map(tables[i].vars.size());
+                vector<size_t> pos(tables[i].vars.size());
                 for (size_t j = 0; j < tables[i].vars.size(); ++j) {
-                        map[j] = find(tables[i].vars.begin(), tables[i].vars.end(), vars[j]) - tables[i].vars.begin();
+                        pos[j] = find(tables[i].vars.begin(), tables[i].vars.end(), vars[j]) - tables[i].vars.begin();
                 }
 
                 vector<size_t> pfx_prod(tables[i].domains.size());
@@ -405,7 +477,7 @@ static inline vector<table> read_tables_uai(const char *uai, value threshold) {
                         auto row = get_combination(j, orig_dom);
                         size_t idx = 0;
                         for (size_t k = 0; k < row.size(); ++k) {
-                                idx += row[k] * pfx_prod[map[k]];
+                                idx += row[k] * pfx_prod[pos[k]];
                         }
                         tables[i].rows[idx].second = -log(values[j]);
                 }
@@ -418,10 +490,21 @@ static inline vector<table> read_tables_uai(const char *uai, value threshold) {
         }
 
         f.close();
-        return tables;
+
+        for (size_t i = 0; i < tables.size();) {
+                evid_value += project_evidence(tables[i], ev, map);
+                if (tables[i].vars.size() == 0) {
+                        tables.erase(tables.begin() + i);
+                        puts("Removed one table");
+                } else {
+                        i++;
+                }
+        }
+
+        return make_pair(tables, evid_value);
 }
 
-vector<table> read_tables(const char *instance, int type, value threshold) {
+pair<vector<table>, value> read_tables(const char *instance, int type, value threshold) {
 
         if (type == WCSP) {
                 return read_tables_wcsp(instance, threshold);
