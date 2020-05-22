@@ -57,12 +57,16 @@ __attribute__((always_inline)) inline
 void export_function(automata &h, int from, int to, struct bin_data &mbe) {
 
         auto start_t = chrono::high_resolution_clock::now();
-        //cout << "Writing table from bucket " << from << " in augmented bucket " << to << endl;
-        //print_table(compute_table(h));
-        //cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+        #ifdef DEBUG
+        cout << "Writing table from bucket " << from << " in augmented bucket " << to << endl;
+        print_table(compute_table(h));
+        cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+        #endif
 
         for (auto it = mbe.anc[from].rbegin(); it != mbe.anc[from].rend() && *it != to; ++it) {
-                //cout << "Writing table in intermediate bucket " << *it << endl;
+                #ifdef DEBUG
+                cout << "Writing table in intermediate bucket " << *it << endl;
+                #endif
                 mbe.intermediate[*it].push_back(make_pair(to, mbe.n_augmented[to]));
                 mbe.n_intermediate[*it]++;
         }
@@ -92,11 +96,15 @@ void export_root_function(double value, int from, struct bin_data &mbe) {
 
         auto start_t = chrono::high_resolution_clock::now();
         const size_t to = mbe.augmented.size() - 1;
-        //cout << "Writing value " << value << " from bucket " << from << " in root augmented bucket" << endl;
-        //cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+        #ifdef DEBUG
+        cout << "Writing value " << value << " from bucket " << from << " in root augmented bucket" << endl;
+        cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+        #endif
 
         for (auto it = mbe.anc[from].rbegin(); it != mbe.anc[from].rend() && *it != to; ++it) {
-                //cout << "Writing table in intermediate bucket " << *it << endl;
+                #ifdef DEBUG
+                cout << "Writing table in intermediate bucket " << *it << endl;
+                #endif
                 mbe.intermediate[*it].push_back(make_pair(to, mbe.n_augmented.back()));
                 mbe.n_intermediate[*it]++;
         }
