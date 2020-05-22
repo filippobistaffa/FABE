@@ -43,7 +43,6 @@ size_t tot_states;
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 extern bool parallel;
-bool debug = false;
 
 static inline automata join(automata &a1, automata &a2, int inner, vector<size_t> const &domains) {
 
@@ -187,11 +186,6 @@ static inline value reduce_var(automata &a, size_t var, int outer) {
         #endif
 
         const size_t idx = lower_bound(a.vars.begin(), a.vars.end(), var, greater<size_t>()) - a.vars.begin();
-
-        if (debug) {
-                //automata_dot(a, "dot");
-        }
-
         a.vars.erase(a.vars.begin() + idx);
         a.domains.erase(a.domains.begin() + idx);
         vector<value> keys;
@@ -205,10 +199,6 @@ static inline value reduce_var(automata &a, size_t var, int outer) {
                         fa_remove_level(fa, idx);
                 }
                 keys.push_back(v);
-        }
-
-        if (debug) {
-                //automata_dot(a, "dot");
         }
 
         if (outer == BE_MIN) {
@@ -361,12 +351,7 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
 
         value optimal = 0;
 
-        size_t i = 0;
-
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
-                if (i == 11) {
-                        debug = true;
-                }
                 #ifdef DEBUG_BUCKETS
                 cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
                 #endif
@@ -384,11 +369,6 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
                 #ifndef DEBUG_BUCKETS
                 log_progress_increase(1, order.size());
                 #endif
-                
-                if (i == 11) {
-                        //break;
-                }
-                i++;
         }
 
         #ifdef CPU_PROFILER
