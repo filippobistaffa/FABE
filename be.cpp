@@ -270,7 +270,8 @@ static inline value process_bucket(size_t var, vector<automata> &bucket, vector<
         if (bucket.size()) {
                 auto h = join_bucket(bucket, inner, pos, domains);
                 if (h.rows.size() > 0) {
-                        res += reduce_var(h, var, outer);
+                        const value v_h = reduce_var(h, var, outer);
+                        res += v_h;
                         //automata_dot(h, "dot");
                         if (h.vars.size() > 0) {
                                 size_t b = push_bucket(h, buckets, pos);
@@ -279,6 +280,10 @@ static inline value process_bucket(size_t var, vector<automata> &bucket, vector<
                                 #endif
                                 if (mbe.filename) {
                                         export_function(h, var, b, mbe);
+                                }
+                        } else {
+                                if (mbe.filename) {
+                                        export_root_function(v_h, var, mbe);
                                 }
                         }
                 }

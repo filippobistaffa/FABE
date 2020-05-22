@@ -16,7 +16,7 @@ __attribute__((always_inline)) inline
 void alloc_bin_data(bin_data &mbe, size_t n_vars) {
 
         mbe.augmented = vector<vector<uchar>>(n_vars + 1, vector<uchar>());
-        mbe.n_augmented = vector<size_t>(n_vars);
+        mbe.n_augmented = vector<size_t>(n_vars + 1);
         mbe.intermediate = vector<vector<pair<size_t, size_t>>>(n_vars, vector<pair<size_t, size_t>>());
         mbe.n_intermediate = vector<size_t>(n_vars);
         mbe.evid_offset = vector<size_t>(n_vars);
@@ -47,21 +47,21 @@ void buf_push_back(vector<uchar> &buf, T x) {
 #include "io.hpp"
 
 __attribute__((always_inline)) inline
-void export_function(automata &h, size_t from, size_t to, struct bin_data &mbe) {
+void export_function(automata &h, int from, int to, struct bin_data &mbe) {
 
-        cout << "writing table originated from bucket " << from << " in augmented bucket " << to << endl;
-        print_table(compute_table(h));
-        cout << "ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+        //cout << "Writing table from bucket " << from << " in augmented bucket " << to << endl;
+        //print_table(compute_table(h));
+        //cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
 
         for (auto it = mbe.anc[from].rbegin(); it != mbe.anc[from].rend() && *it != to; ++it) {
-                //cout << "writing table in intermediate bucket " << *it << endl;
+                //cout << "Writing table in intermediate bucket " << *it << endl;
                 mbe.intermediate[*it].push_back(make_pair(to, mbe.n_augmented[to]));
                 mbe.n_intermediate[*it]++;
         }
 
         mbe.n_augmented[to]++;
         // function ID
-        buf_push_back(mbe.augmented[to], (int)(-from));
+        buf_push_back(mbe.augmented[to], -from);
         // scope size
         buf_push_back(mbe.augmented[to], (size_t)h.vars.size());
         // scope
@@ -77,7 +77,27 @@ void export_function(automata &h, size_t from, size_t to, struct bin_data &mbe) 
         delete[] cpt;
 }
 
-#include <fstream>      // ofstream
+__attribute__((always_inline)) inline
+void export_root_function(double value, int from, struct bin_data &mbe) {
+
+        const size_t to = mbe.augmented.size() - 1;
+        //cout << "Writing value " << value << " from bucket " << from << " in root augmented bucket" << endl;
+        //cout << "Ancestors of " << from << " : " << vec2str(mbe.anc[from]) << endl;
+
+        for (auto it = mbe.anc[from].rbegin(); it != mbe.anc[from].rend() && *it != to; ++it) {
+                //cout << "Writing table in intermediate bucket " << *it << endl;
+                mbe.intermediate[*it].push_back(make_pair(to, mbe.n_augmented.back()));
+                mbe.n_intermediate[*it]++;
+        }
+
+        buf_push_back(mbe.augmented.back(), -from);
+        buf_push_back(mbe.augmented.back(), 0ULL);
+        buf_push_back(mbe.augmented.back(), 1ULL);
+        buf_push_back(mbe.augmented.back(), value);
+        mbe.n_augmented.back()++;
+}
+
+#include <fstream>
 
 __attribute__((always_inline)) inline
 void write_binary(bin_data &mbe, double optimal, int ibound, int root) {
@@ -91,17 +111,10 @@ void write_binary(bin_data &mbe, double optimal, int ibound, int root) {
         buf_push_back(mbe.header, optimal);
         ofs.write((char*)mbe.header.data(), mbe.header.size());
         // augmented buckets
-        for (size_t var = 0; var < n_vars; ++var) {
+        for (size_t var = 0; var < n_vars + 1; ++var) {
                 ofs.write((char*)&(mbe.n_augmented[var]), sizeof(size_t));
                 ofs.write((char*)mbe.augmented[var].data(), mbe.augmented[var].size());
         }
-        // augmented bucket for dummy root
-        buf_push_back(mbe.augmented.back(), 1ULL);
-        buf_push_back(mbe.augmented.back(), -(root));
-        buf_push_back(mbe.augmented.back(), 0ULL);
-        buf_push_back(mbe.augmented.back(), 1ULL);
-        buf_push_back(mbe.augmented.back(), optimal);
-        ofs.write((char*)mbe.augmented.back().data(), mbe.augmented.back().size());
         // split bin file
         //ofs.close();
         //ofs = ofstream("../fabe_i.bin", ios::out | ios::binary);

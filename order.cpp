@@ -243,7 +243,10 @@ vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const 
         auto root = parse_string(str.substr(1, str.size() - 2), order);
         order.pop_back();
         f.close();
-        fill_ancestors(root.ch.front(), anc);
+
+        for (size_t i = 0; i < root.ch.size(); ++i) {
+                fill_ancestors(root.ch[i], anc);
+        }
 
         for (size_t i = 0; i < order.size(); ++i) {
                 order[i] += offset[order[i]];
