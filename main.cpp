@@ -26,7 +26,7 @@ bool parallel = false;
 static inline void print_usage(const char *bin) {
 
         cerr << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] ";
-        cerr << "[-t unique|random] [-s seed] [-e tolerance] [-r] -f instance" << endl;
+        cerr << "[-t unique|random] [-s seed] [-e tolerance] [-O order] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -49,11 +49,12 @@ int main(int argc, char *argv[]) {
         int tie_heur = T_UNIQUENESS;
         char *instance = NULL;
         char *pseudotree = NULL;
+        char *order_file = NULL;
         size_t seed = time(NULL);
         struct bin_data mbe = { NULL };
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:m:h")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:m:O:h")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -122,6 +123,9 @@ int main(int argc, char *argv[]) {
                                 continue;
                         case 'm':
                                 mbe.filename = optarg;
+                                continue;
+                        case 'O':
+                                order_file = optarg;
                                 continue;
                         case 'h':
                         default :
@@ -215,8 +219,15 @@ int main(int argc, char *argv[]) {
         chrono::duration<double> runtime = chrono::high_resolution_clock::now() - start_t;
         log_value("Order computation runtime", runtime.count());
         start_t = chrono::high_resolution_clock::now();
-        //export_order(order, domains, "order.vo");
         log_value("Induced width", induced_width(adj, order));
+
+        if (order_file) {
+                export_order(order, order_file);
+                log_value("Order file", order_file);
+                log_line();
+                return EXIT_SUCCESS;
+        }
+
         auto [ tables, evid_value ] = read_tables(instance, inst_type, threshold);
 
         #ifdef PRINT_TABLES
