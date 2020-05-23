@@ -81,6 +81,7 @@ then
                 $aolib -f $instance -P $pt -E $ord | tee -a $log > $out
                 # MBE
                 $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                [ -s $bin ] || exit 1
                 red=`grep "Value redundancy" $log | egrep -o "\([0-9]*\.?[0-9]+\)" | egrep -o "[0-9]*\.?[0-9]+"`
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
@@ -101,6 +102,7 @@ else
                 t_ord=`grep "Ordering generation phase" $log | egrep -o $float_regex`
                 # MBE
                 $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                [ -s $bin ] || exit 1
                 red=`grep "Value redundancy" $log | egrep -o "\([0-9]*\.?[0-9]+\)" | egrep -o "[0-9]*\.?[0-9]+"`
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
