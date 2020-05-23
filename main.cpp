@@ -205,8 +205,8 @@ int main(int argc, char *argv[]) {
 
         if (mbe.filename) {
                 alloc_bin_data(mbe, domains.size());
-                mbe.anc = anc;
                 mbe.threshold = threshold;
+                mbe.anc = anc;
         }
 
         //cout << vec2str(order, "Order") << endl;
@@ -292,15 +292,11 @@ int main(int argc, char *argv[]) {
         //log_value("Optimality gap", tot_error);
         oss.str(string());
         oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << "%)";
+        log_value("Optimality gap", oss.str());
+        log_value("Bucket elimination runtime", runtime.count());
         if (mbe.filename) {
-                log_value("Bucket elimination runtime", runtime.count());
                 log_value("I/O runtime", mbe.runtime);
-        } else {
-                log_value("Optimality gap", oss.str());
-                log_value("Bucket elimination runtime", runtime.count());
         }
-
         log_line();
-
         return EXIT_SUCCESS;
 }

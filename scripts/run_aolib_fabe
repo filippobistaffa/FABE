@@ -16,16 +16,17 @@ out=/dev/null
 mbe="fabe"
 order="fabe"
 alg="rbfaoo"
+tolerance=0
 seed=0
 ib=2
 
 usage() {
-        echo -n "Usage: $0 [-v] [-s seed] [-m <${underline}fabe${normal}|aolib>] [-i ibound] "
+        echo -n "Usage: $0 [-v] [-s seed] [-m <${underline}fabe${normal}|aolib>] [-i ibound] [-e tolerance]"
         echo "[-o <${underline}fabe${normal}|aolib>] [-a <${underline}rbfaoo${normal}|aobb|aobf>] -f instance" 1>&2
         exit 1
 }
 
-while getopts ":f:m:i:s:a:o:v" opt; do
+while getopts ":f:m:i:e:s:a:o:v" opt; do
     case "${opt}" in
         f)
             instance=${OPTARG}
@@ -37,6 +38,9 @@ while getopts ":f:m:i:s:a:o:v" opt; do
             ;;
         i)
             ib=${OPTARG}
+            ;;
+        e)
+            tolerance=${OPTARG}
             ;;
         o)
             order=${OPTARG}
@@ -80,7 +84,7 @@ then
                 # Pseudotree
                 $aolib -f $instance -P $pt -E $ord | tee -a $log > $out
                 # MBE
-                $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                $fabe -f $instance -o $pt -m $bin -i $ib -e $tolerance | tee -a $log > $out
                 red=`grep "Value redundancy" $log | egrep -o "\([0-9]*\.?[0-9]+\)" | egrep -o "[0-9]*\.?[0-9]+"`
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
@@ -100,7 +104,7 @@ else
                 $aolib -f $instance -P $pt -s $seed | tee -a $log > $out
                 t_ord=`grep "Ordering generation phase" $log | egrep -o $float_regex`
                 # MBE
-                $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                $fabe -f $instance -o $pt -m $bin -i $ib -e $tolerance | tee -a $log > $out
                 red=`grep "Value redundancy" $log | egrep -o "\([0-9]*\.?[0-9]+\)" | egrep -o "[0-9]*\.?[0-9]+"`
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
