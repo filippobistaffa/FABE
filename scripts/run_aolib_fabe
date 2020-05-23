@@ -1,0 +1,109 @@
+#!/bin/bash
+
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+bold=$(tput bold)
+underline=$(tput smul)
+normal=$(tput sgr0)
+
+fabe="/home/filippo/iiia/fabe/fabe"
+aolib="/home/filippo/iiia/aolib/aolib"
+tmp="."
+
+# default values
+out=/dev/null
+mbe="fabe"
+order="fabe"
+alg="rbfaoo"
+seed=0
+ib=2
+
+usage() {
+        echo -n "Usage: $0 [-v] [-s seed] [-m <${underline}fabe${normal}|aolib>] [-i ibound] "
+        echo "[-o <${underline}fabe${normal}|aolib>] [-a <${underline}rbfaoo${normal}|aobb|aobf>] -f instance" 1>&2
+        exit 1
+}
+
+while getopts ":f:i:s:a:o:v" opt; do
+    case "${opt}" in
+        f)
+            instance=${OPTARG}
+            [ -f "$instance" ] || usage
+            ;;
+        m)
+            mbe=${OPTARG}
+            [[ $mbe == "fabe" || $mbe == "aolib" ]] || usage
+            ;;
+        i)
+            ib=${OPTARG}
+            ;;
+        o)
+            order=${OPTARG}
+            [[ $order == "fabe" || $order == "aolib" ]] || usage
+            ;;
+        a)
+            alg=${OPTARG}
+            ((alg == "rbfaoo" || alg == "aobb" || alg == "aobf")) || usage
+            ;;
+        v)
+            out=/dev/stdout
+            ;;
+        s)
+            seed=${OPTARG}
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ -z "${instance}" ]
+then
+        usage
+fi
+
+ord="$(mktemp --tmpdir=$tmp)"
+pt="$(mktemp --tmpdir=$tmp)"
+bin="$(mktemp --tmpdir=$tmp)"
+log="$(mktemp --tmpdir=$tmp)"
+
+if [ $order == "fabe" ]
+then
+        $fabe -f $instance -O $ord | tee -a $log > $out
+        $aolib -f $instance -P $pt -E $ord | tee -a $log > $out
+        t_ord=`grep "Order computation runtime" $log | egrep -o "[0-9]+\.?[0-9]*"`
+else
+        $aolib -f $instance -P $pt -s $seed | tee -a $log > $out
+        t_ord=`grep "Ordering generation phase" $log | egrep -o "[0-9]+\.?[0-9]*"`
+fi
+
+$fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+t_mbe=`grep "Bucket elimination runtime" $log | egrep -o "[0-9]+\.?[0-9]*"`
+t_io=`grep "I/O" $log | egrep -o "[0-9]+\.?[0-9]*"`
+
+if [ $order == "fabe" ]
+then
+        $aolib -a $alg -f $instance --mbe-import $bin -E $ord | tee -a $log > $out
+else
+        $aolib -a $alg -f $instance --mbe-import $bin -s $seed | tee -a $log > $out
+fi
+
+t_sea=`grep "Solving:" $log | egrep -o "[0-9]+\.?[0-9]*"`
+sol=`grep "Solution:" $log | egrep -o "[0-9]+\.?[0-9]*"`
+
+rm $pt $bin $ord $log
+
+echo "+--------------------------------------+--------------------------------------+"
+echo -n "| Ordering computation runtime         |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_ord"`
+echo -n "| Mini-bucket elimination runtime      |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_mbe"`
+echo -n "| I/O runtime                          |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_io"`
+echo -n "| Search runtime                       |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_sea"`
+echo -n "| Solution value                       |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$sol"`
+echo "+--------------------------------------+--------------------------------------+"
+
