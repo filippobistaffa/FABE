@@ -81,6 +81,7 @@ then
                 $aolib -f $instance -P $pt -E $ord | tee -a $log > $out
                 # MBE
                 $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                red=`grep "Value redundancy" $log | egrep -o "\([0-9]*\.?[0-9]+\)" | egrep -o "[0-9]*\.?[0-9]+"`
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
                 # Search
@@ -88,6 +89,7 @@ then
         else
                 # Pseudotree + MBE + Search
                 $aolib -a $alg -f $instance -E $ord -i $ib | tee -a $log > $out
+                red="-"
                 t_mbe=`grep "Mini bucket finished in" $log | egrep -o $float_regex`
                 t_io=0
         fi
@@ -99,6 +101,7 @@ else
                 t_ord=`grep "Ordering generation phase" $log | egrep -o $float_regex`
                 # MBE
                 $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                red=`grep "Value redundancy" $log | egrep -o "\([0-9]*\.?[0-9]+\)" | egrep -o "[0-9]*\.?[0-9]+"`
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
                 # Search
@@ -106,6 +109,7 @@ else
         else
                 # Ordering + Pseudotree + MBE + Search
                 $aolib -a $alg -f $instance -s $seed -i $ib | tee -a $log > $out
+                red="-"
                 t_ord=`grep "Ordering generation phase" $log | egrep -o $float_regex`
                 t_mbe=`grep "Mini bucket finished in" $log | egrep -o $float_regex`
                 t_io=0
@@ -126,6 +130,13 @@ echo -n "| I/O runtime                          |"
 printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_io"`
 echo -n "| Search runtime                       |"
 printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_sea"`
+echo -n "| Value redundancy                     |"
+if [ $red == "-" ]
+then
+        printf "% 37s |\n" "-"
+else
+        printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$red"`
+fi
 echo -n "| Solution value                       |"
 printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$sol"`
 echo "+--------------------------------------+--------------------------------------+"
