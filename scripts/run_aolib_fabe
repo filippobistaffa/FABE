@@ -24,7 +24,7 @@ usage() {
         exit 1
 }
 
-while getopts ":f:i:s:a:o:v" opt; do
+while getopts ":f:m:i:s:a:o:v" opt; do
     case "${opt}" in
         f)
             instance=${OPTARG}
@@ -78,15 +78,26 @@ else
         t_ord=`grep "Ordering generation phase" $log | egrep -o "[0-9]+\.?[0-9]*"`
 fi
 
-$fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
-t_mbe=`grep "Bucket elimination runtime" $log | egrep -o "[0-9]+\.?[0-9]*"`
-t_io=`grep "I/O" $log | egrep -o "[0-9]+\.?[0-9]*"`
-
-if [ $order == "fabe" ]
+if [ $mbe == "fabe" ]
 then
-        $aolib -a $alg -f $instance --mbe-import $bin -E $ord | tee -a $log > $out
+        $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+        t_mbe=`grep "Bucket elimination runtime" $log | egrep -o "[0-9]+\.?[0-9]*"`
+        t_io=`grep "I/O" $log | egrep -o "[0-9]+\.?[0-9]*"`
+        if [ $order == "fabe" ]
+        then
+                $aolib -a $alg -f $instance --mbe-import $bin -E $ord | tee -a $log > $out
+        else
+                $aolib -a $alg -f $instance --mbe-import $bin -s $seed | tee -a $log > $out
+        fi
 else
-        $aolib -a $alg -f $instance --mbe-import $bin -s $seed | tee -a $log > $out
+        if [ $order == "fabe" ]
+        then
+                $aolib -a $alg -f $instance -E $ord | tee -a $log > $out
+        else
+                $aolib -a $alg -f $instance -s $seed | tee -a $log > $out
+        fi
+        t_mbe=`grep "Mini bucket finished in" $log | egrep -o "[0-9]+\.?[0-9]*"`
+        t_io=0
 fi
 
 t_sea=`grep "Solving:" $log | egrep -o "[0-9]+\.?[0-9]*"`
