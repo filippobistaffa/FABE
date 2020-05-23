@@ -10,7 +10,6 @@ struct bin_data {
         vector<size_t> n_augmented;
         vector<vector<pair<size_t, size_t>>> intermediate;
         vector<size_t> n_intermediate;
-        vector<size_t> evid_offset;
         vector<vector<size_t>> anc;
         double threshold;
         double runtime;
@@ -23,7 +22,6 @@ void alloc_bin_data(bin_data &mbe, size_t n_vars) {
         mbe.n_augmented = vector<size_t>(n_vars + 1);
         mbe.intermediate = vector<vector<pair<size_t, size_t>>>(n_vars, vector<pair<size_t, size_t>>());
         mbe.n_intermediate = vector<size_t>(n_vars);
-        mbe.evid_offset = vector<size_t>(n_vars);
         mbe.runtime = 0;
 }
 
@@ -80,7 +78,7 @@ void export_function(automata &h, int from, int to, struct bin_data &mbe) {
         buf_push_back(mbe.augmented[to], (size_t)h.vars.size());
         // scope
         for (auto it = h.vars.rbegin(); it != h.vars.rend(); ++it) {
-                buf_push_back(mbe.augmented[to], (int)(*it - mbe.evid_offset[*it]));
+                buf_push_back(mbe.augmented[to], (int)*it);
         }
         auto [ cpt, n ] = compute_cpt(h, mbe.threshold);
         // table size
