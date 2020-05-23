@@ -85,7 +85,7 @@ then
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
                 # Search
-                $aolib -a $alg -f $instance --mbe-import $bin -E $ord | tee -a $log > $out
+                $aolib -a $alg -f $instance -i $ib --mbe-import $bin -E $ord | tee -a $log > $out
         else
                 # Pseudotree + MBE + Search
                 $aolib -a $alg -f $instance -E $ord -i $ib | tee -a $log > $out
@@ -105,7 +105,7 @@ else
                 t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
                 t_io=`grep "I/O" $log | egrep -o $float_regex`
                 # Search
-                $aolib -a $alg -f $instance --mbe-import $bin -s $seed | tee -a $log > $out
+                $aolib -a $alg -f $instance -i $ib --mbe-import $bin -s $seed | tee -a $log > $out
         else
                 # Ordering + Pseudotree + MBE + Search
                 $aolib -a $alg -f $instance -s $seed -i $ib | tee -a $log > $out
