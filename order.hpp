@@ -40,6 +40,6 @@ size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &or
 
 vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains, vector<vector<size_t>> &anc);
 
-void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output);
+void export_order(vector<size_t> const &order, const char *output);
 
 #endif /* ORDER_HPP_ */

@@ -256,32 +256,16 @@ vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const 
         return order;
 }
 
-void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output) {
-
-        vector<size_t> ev(order.size());
-        size_t n = 0;
-
-        for (auto var : order) {
-                if (domains[var] > 1) {
-                        n++;
-                } else {
-                        ev[var] = 1;
-                }
-        }
-
-        vector<size_t> rem(order.size());
-        partial_sum(ev.begin(), ev.end(), rem.begin());
+void export_order(vector<size_t> const &order, const char *output) {
 
         ostringstream oss;
         oss << "# exported in aolib format: first line is the number of variables, ";
         oss << "variables with domain 1 are considered evidence and removed, ";
         oss << "remaining variables are re-indexed." << endl;
-        oss << n << endl;
+        oss << order.size() << endl;
 
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
-                if (domains[*it] > 1) {
-                        oss << *it - rem[*it] << endl;
-                }
+                oss << *it << endl;
         }
 
         ofstream f(output);
