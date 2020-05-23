@@ -122,14 +122,6 @@ sol=`grep "Solution:" $log | egrep -o $float_regex`
 rm $pt $bin $ord $log
 
 echo "+--------------------------------------+--------------------------------------+"
-echo -n "| Ordering computation runtime         |"
-printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_ord"`
-echo -n "| Mini-bucket elimination runtime      |"
-printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_mbe"`
-echo -n "| I/O runtime                          |"
-printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_io"`
-echo -n "| Search runtime                       |"
-printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_sea"`
 echo -n "| Value redundancy                     |"
 if [ $red == "-" ]
 then
@@ -139,5 +131,18 @@ else
 fi
 echo -n "| Solution value                       |"
 printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$sol"`
+echo "+--------------------------------------+--------------------------------------+"
+echo -n "| Ordering computation runtime         |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_ord"`
+echo -n "| Mini-bucket elimination runtime      |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_mbe"`
+echo -n "| Search runtime                       |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_sea"`
+echo "+--------------------------------------+--------------------------------------+"
+t_tot=`python -c "print($t_ord + $t_mbe + $t_sea)"`
+echo -n "| Total runtime                        |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_tot"`
+echo -n "| I/O runtime                          |"
+printf "% 37s |\n" `LC_NUMERIC="en_US.UTF-8" printf "%.8f" "$t_io"`
 echo "+--------------------------------------+--------------------------------------+"
 
