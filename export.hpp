@@ -80,7 +80,7 @@ void export_function(automata &h, int from, int to, struct bin_data &mbe) {
         for (auto it = h.vars.rbegin(); it != h.vars.rend(); ++it) {
                 buf_push_back(mbe.augmented[to], (int)*it);
         }
-        auto [ cpt, n ] = compute_cpt(h, mbe.threshold);
+        auto [ cpt, n ] = compute_cpt(h, std::numeric_limits<double>::infinity());
         // table size
         buf_push_back(mbe.augmented[to], (size_t)n);
         // table values
