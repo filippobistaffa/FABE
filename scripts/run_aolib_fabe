@@ -5,6 +5,7 @@ green=$(tput setaf 2)
 bold=$(tput bold)
 underline=$(tput smul)
 normal=$(tput sgr0)
+float_regex="[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?"
 
 fabe="/home/filippo/iiia/fabe/fabe"
 aolib="/home/filippo/iiia/aolib/aolib"
@@ -63,45 +64,56 @@ then
         usage
 fi
 
-ord="$(mktemp --tmpdir=$tmp)"
-pt="$(mktemp --tmpdir=$tmp)"
-bin="$(mktemp --tmpdir=$tmp)"
-log="$(mktemp --tmpdir=$tmp)"
+ord="$(mktemp)"
+pt="$(mktemp)"
+bin="$(mktemp)"
+log="$(mktemp)"
 
 if [ $order == "fabe" ]
 then
+        # Ordering
         $fabe -f $instance -O $ord | tee -a $log > $out
-        $aolib -f $instance -P $pt -E $ord | tee -a $log > $out
-        t_ord=`grep "Order computation runtime" $log | egrep -o "[0-9]+\.?[0-9]*"`
-else
-        $aolib -f $instance -P $pt -s $seed | tee -a $log > $out
-        t_ord=`grep "Ordering generation phase" $log | egrep -o "[0-9]+\.?[0-9]*"`
-fi
+        t_ord=`grep "Order computation runtime" $log | egrep -o $float_regex`
 
-if [ $mbe == "fabe" ]
-then
-        $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
-        t_mbe=`grep "Bucket elimination runtime" $log | egrep -o "[0-9]+\.?[0-9]*"`
-        t_io=`grep "I/O" $log | egrep -o "[0-9]+\.?[0-9]*"`
-        if [ $order == "fabe" ]
+        if [ $mbe == "fabe" ]
         then
+                # Pseudotree
+                $aolib -f $instance -P $pt -E $ord | tee -a $log > $out
+                # MBE
+                $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
+                t_io=`grep "I/O" $log | egrep -o $float_regex`
+                # Search
                 $aolib -a $alg -f $instance --mbe-import $bin -E $ord | tee -a $log > $out
         else
-                $aolib -a $alg -f $instance --mbe-import $bin -s $seed | tee -a $log > $out
+                # Pseudotree + MBE + Search
+                $aolib -a $alg -f $instance -E $ord -i $ib | tee -a $log > $out
+                t_mbe=`grep "Mini bucket finished in" $log | egrep -o $float_regex`
+                t_io=0
         fi
 else
-        if [ $order == "fabe" ]
+        if [ $mbe == "fabe" ]
         then
-                $aolib -a $alg -f $instance -E $ord | tee -a $log > $out
+                # Ordering + Pseudotree
+                $aolib -f $instance -P $pt -s $seed | tee -a $log > $out
+                t_ord=`grep "Ordering generation phase" $log | egrep -o $float_regex`
+                # MBE
+                $fabe -f $instance -o $pt -m $bin -i $ib | tee -a $log > $out
+                t_mbe=`grep "Bucket elimination runtime" $log | egrep -o $float_regex`
+                t_io=`grep "I/O" $log | egrep -o $float_regex`
+                # Search
+                $aolib -a $alg -f $instance --mbe-import $bin -s $seed | tee -a $log > $out
         else
-                $aolib -a $alg -f $instance -s $seed | tee -a $log > $out
+                # Ordering + Pseudotree + MBE + Search
+                $aolib -a $alg -f $instance -s $seed -i $ib | tee -a $log > $out
+                t_ord=`grep "Ordering generation phase" $log | egrep -o $float_regex`
+                t_mbe=`grep "Mini bucket finished in" $log | egrep -o $float_regex`
+                t_io=0
         fi
-        t_mbe=`grep "Mini bucket finished in" $log | egrep -o "[0-9]+\.?[0-9]*"`
-        t_io=0
 fi
 
-t_sea=`grep "Solving:" $log | egrep -o "[0-9]+\.?[0-9]*"`
-sol=`grep "Solution:" $log | egrep -o "[0-9]+\.?[0-9]*"`
+t_sea=`grep "Solving:" $log | egrep -o $float_regex`
+sol=`grep "Solution:" $log | egrep -o $float_regex`
 
 rm $pt $bin $ord $log
 
