@@ -18,7 +18,6 @@
 // enable profiling
 //#define CPU_PROFILER
 //#define HEAP_PROFILER
-#define COUNT_STATES
 
 #ifdef CPU_PROFILER
 #define CPU_PROFILER_OUTPUT "trace.prof"
@@ -30,10 +29,6 @@
 #include <gperftools/heap-profiler.h>
 #endif
 
-#ifdef COUNT_STATES
-size_t tot_states;
-#endif
-
 #ifdef PRINT_TABLES
 #include "conversion.hpp"
 #include "io.hpp"
@@ -43,8 +38,21 @@ size_t tot_states;
 #define SET_OP(OP, X, Y, R, CMP) (OP((X).begin(), (X).end(), (Y).begin(), (Y).end(), inserter((R), (R).begin()), CMP))
 
 extern bool parallel;
+size_t tot_states;
+size_t tot_keys;
 
-static inline automata join(automata &a1, automata &a2, int inner, vector<size_t> const &domains) {
+__attribute__((always_inline)) inline
+value quantise(value val) {
+
+        if constexpr (QUANTISATION) {
+                const value q = trunc(exp(-val) * QUANTISATION);
+                return -log(q / QUANTISATION);
+        } else {
+                return val;
+        }
+}
+
+static inline automata join(automata &a1, automata &a2, bool quant, vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Joining:" << endl << endl;
@@ -108,11 +116,14 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
 
         for (auto &[ v1, fa1 ] : a1.rows) {
                 for (auto &[ v2, fa2 ] : a2.rows) {
+                        const value v1v2 = (quant) ? quantise(v1 + v2) : v1 + v2;
+                        if (isinf(v1v2)) {
+                                continue;
+                        }
                         auto in = fa_intersect(fa1, fa2);
                         if (fa_is_basic(in, FA_EMPTY)) { // these two rows do not have any common variable
                                 fa_free(in);             // assignment of shared variables
                         } else {
-                                const value v1v2 = (inner == BE_SUM) ? v1 + v2 : v1 * v2;
                                 auto it = join.rows.find(v1v2);
                                 if (it == join.rows.end()) {
                                         join.rows.insert({ v1v2, in });
@@ -123,6 +134,10 @@ static inline automata join(automata &a1, automata &a2, int inner, vector<size_t
                         }
                 }
         }
+
+        //sort(keys.begin(), keys.end());
+        //cout << vec2str(keys, "keys") << endl;
+        tot_keys += keys.size();
 
         //#pragma omp parallel for schedule(dynamic) if (parallel)
         for (size_t i = 0; i < keys.size(); ++i) {
@@ -145,7 +160,7 @@ static inline void free_automata(automata &a) {
         a.rows.clear();
 }
 
-static inline automata join_bucket(vector<automata> &bucket, int inner, vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline automata join_bucket(vector<automata> &bucket, bool quant, vector<size_t> const &pos, vector<size_t> const &domains) {
 
         auto res = bucket.front();
 
@@ -154,7 +169,7 @@ static inline automata join_bucket(vector<automata> &bucket, int inner, vector<s
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("pre-join");
                 #endif
-                res = join(old, *it, inner, domains);
+                res = join(old, *it, quant, domains);
                 #ifdef HEAP_PROFILER
                 HeapProfilerDump("post-join");
                 #endif
@@ -168,16 +183,14 @@ static inline automata join_bucket(vector<automata> &bucket, int inner, vector<s
                 #endif
 	}
 
-        #ifdef COUNT_STATES
         for (auto &[ v, fa ] : res.rows) {
                 tot_states += fa_n_states(fa);
         }
-        #endif
 
         return res;
 }
 
-static inline value reduce_var(automata &a, size_t var, int outer) {
+static inline value reduce_var(automata &a, size_t var) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Minimising:" << endl << endl;
@@ -201,11 +214,7 @@ static inline value reduce_var(automata &a, size_t var, int outer) {
                 keys.push_back(v);
         }
 
-        if (outer == BE_MIN) {
-                sort(keys.begin(), keys.end());
-        } else {
-                sort(keys.begin(), keys.end(), greater<value>());
-        }
+        sort(keys.begin(), keys.end());
 
         if (a.vars.size() == 0) {
                 return keys.front();
@@ -251,16 +260,15 @@ static inline size_t push_bucket(automata const &a, vector<vector<automata>> &bu
         return b;
 }
 
-static inline value process_bucket(size_t var, vector<automata> &bucket, vector<vector<automata>> &buckets, int inner,
-                                   int outer, vector<size_t> const &pos, vector<size_t> const &domains,
-                                   struct bin_data &mbe) {
+static inline value process_bucket(size_t var, vector<automata> &bucket, vector<vector<automata>> &buckets, bool quant,
+                                   vector<size_t> const &pos, vector<size_t> const &domains, struct bin_data &mbe) {
 
         value res = 0;
 
         if (bucket.size()) {
-                auto h = join_bucket(bucket, inner, pos, domains);
+                auto h = join_bucket(bucket, quant, pos, domains);
                 if (h.rows.size() > 0) {
-                        const value v_h = reduce_var(h, var, outer);
+                        const value v_h = reduce_var(h, var);
                         res += v_h;
                         //automata_dot(h, "dot");
                         if (h.vars.size() > 0) {
@@ -337,7 +345,7 @@ vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vect
         return buckets;
 }
 
-value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
+value bucket_elimination(vector<vector<automata>> &buckets, bool quant,
                          vector<size_t> const &order, vector<size_t> const &pos,
                          vector<size_t> const &domains, size_t ibound, struct bin_data &mbe) {
 
@@ -361,10 +369,10 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
                         cout << "There are " << mb.size() << " mini-buckets" << endl;
                         #endif
                         for (auto &bucket : mb) {
-                                optimal += process_bucket(*it, bucket, buckets, inner, outer, pos, domains, mbe);
+                                optimal += process_bucket(*it, bucket, buckets, quant, pos, domains, mbe);
                         }
                 } else {
-                        optimal += process_bucket(*it, buckets[*it], buckets, inner, outer, pos, domains, mbe);
+                        optimal += process_bucket(*it, buckets[*it], buckets, quant, pos, domains, mbe);
                 }
                 #ifndef DEBUG_BUCKETS
                 log_progress_increase(1, order.size());
@@ -380,10 +388,8 @@ value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer
         #endif
 
         log_line();
-
-        #ifdef COUNT_STATES
         log_value("Total number of automata states", tot_states);
-        #endif
+        log_value("Total number of keys", tot_keys);
 
         return optimal;
 }
