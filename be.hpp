@@ -4,7 +4,7 @@
 #include "types.hpp"
 #include <cfloat>
 
-#define QUANTISATION 1e10
+#define QUANTISATION (1 / FLT_EPSILON)
 //#define QUANTISATION (1 / DBL_EPSILON)
 
 vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vector<size_t> const &pos);
