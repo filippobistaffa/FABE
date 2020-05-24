@@ -286,7 +286,14 @@ int main(int argc, char *argv[]) {
                 write_binary(mbe, optimal + evid_value, ibound);
         }
 
-        log_value("Solution value", optimal + evid_value);
+        if (inst_type == WCSP) {
+                log_value("Solution value", optimal + evid_value);
+        } else {
+                oss.str(string());
+                oss << exp(-(optimal + evid_value)) << " (" << optimal + evid_value << ")";
+                log_value("Solution value (-log)", oss.str());
+        }
+
         //log_value("Maximum optimality gap", tolerance * tables.size());
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         //log_value("Optimality gap", tot_error);
