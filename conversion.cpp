@@ -9,30 +9,6 @@
 #include "libfa/fa.h"
 #include "io.hpp"
 
-//#define OLD
-
-#ifdef OLD
-
-/*static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
-                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
-
-        ostringstream oss;
-
-        for (auto row = begin; row != end; ++row) {
-                for (auto i : row->first) {
-                        oss << ALPHABET[i];
-                }
-                oss << "|";
-        }
-
-        struct fa *fa;
-        fa_compile(oss.str().c_str(), oss.str().length() - 1, &fa);
-        fa_minimize(fa);
-        return fa;
-}*/
-
-#else
-
 static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
                                       vector<pair<vector<size_t>, value>>::const_iterator end) {
 
@@ -45,8 +21,6 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
         fa_minimize(fa);
         return fa;
 }
-
-#endif
 
 //#define DEBUG_CLUSTERING
 
