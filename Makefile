@@ -12,7 +12,7 @@ CMP_C=gcc
 INC=-I$(shell pwd)/libfa
 WARN=-Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-sign-compare -Wno-maybe-uninitialized -Wno-ignored-attributes -Wno-strict-aliasing 
 WARN+=-Wno-misleading-indentation -Wno-format-overflow -Wno-nonnull-compare
-OPTIM=-Ofast -march=native -funroll-loops -funsafe-loop-optimizations -falign-functions=16 -falign-loops=16 -fopenmp
+OPTIM=-Ofast -march=native -funroll-loops -funsafe-loop-optimizations -falign-functions=16 -falign-loops=16 -fopenmp -fno-finite-math-only
 NOOPTIM=-O0 -march=native -fopenmp
 DBG=-g ${NOOPTIM}
 PROF=-g ${OPTIM}

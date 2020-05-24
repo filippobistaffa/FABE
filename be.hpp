@@ -2,20 +2,14 @@
 #define BE_HPP_
 
 #include "types.hpp"
+#include <cfloat>
 
-enum be_inner_op {
-        BE_SUM,
-        BE_PROD
-};
-
-enum be_outer_op {
-        BE_MIN,
-        BE_MAX
-};
+#define QUANTISATION 1e10
+//#define QUANTISATION (1 / DBL_EPSILON)
 
 vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vector<size_t> const &pos);
 
-value bucket_elimination(vector<vector<automata>> &buckets, int inner, int outer,
+value bucket_elimination(vector<vector<automata>> &buckets, bool quant,
                          vector<size_t> const &order, vector<size_t> const &pos,
                          vector<size_t> const &domains, size_t ibound = 0);
 

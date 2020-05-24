@@ -141,18 +141,28 @@ int main(int argc, char *argv[]) {
 
         if (strstr(instance, "wcsp")) {
                 log_value("Instance type", "WCSP");
-                log_value("Bucket elimination algorithm", "MIN-SUM");
+                //log_value("Bucket elimination algorithm", "MIN-SUM");
                 inst_type = WCSP;
         } else {
                 log_value("Instance type", "UAI");
-                log_value("Bucket elimination algorithm", "MIN-SUM with -log()");
+                //log_value("Bucket elimination algorithm", "MIN-SUM with -log()");
                 inst_type = MPE;
         }
 
         string algorithms[] = { "Hopcroft", "Brzozowski", "Bubenzer" };
         log_value("Automata minimisation algorithm", algorithms[fa_minimization_algorithm]);
-
         log_value("I-bound", (ibound == 0) ? "inf" : to_string(ibound));
+
+        if constexpr (QUANTISATION) {
+                if (inst_type == WCSP) {
+                        log_value("Quantisation", "-");
+                } else {
+                        log_value("Quantisation", 1 / QUANTISATION);
+                }
+        } else {
+                log_value("Quantisation", "-");
+        }
+
         log_value("Tolerance", tolerance);
         //log_value("Parallel mode", parallel ? "Enabled" : "Disabled");
 
@@ -258,11 +268,15 @@ int main(int argc, char *argv[]) {
                 exit(0);
         }
 
-        //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
-        //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
-        const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound);
+        const auto optimal = bucket_elimination(buckets, inst_type == MPE, order, pos, domains, ibound);
         runtime = chrono::high_resolution_clock::now() - start_t;
-        log_value("Solution value", optimal);
+        if (inst_type == WCSP) {
+                log_value("Solution value", optimal);
+        } else {
+                oss.str(string());
+                oss << exp(-(optimal)) << " (" << optimal << ")";
+                log_value("Solution value (-log)", oss.str());
+        }
         //log_value("Maximum optimality gap", tolerance * tables.size());
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         //log_value("Optimality gap", tot_error);
