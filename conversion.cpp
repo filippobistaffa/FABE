@@ -48,14 +48,20 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
 
 #endif
 
+//#define DEBUG_CLUSTERING
+
 __attribute__((always_inline)) inline
 bool are_equal(value a, value b, value tolerance) {
 
         const value epsilon = numeric_limits<value>::epsilon();
+        #ifdef DEBUG_CLUSTERING
+        cout << a << " == " << b << "? ";
+        cout << (fabs(a - b) <= tolerance + epsilon ? "\033[1;32mYES\033[0m" : "\033[1;31mNO\033[0m") << endl;
+        #endif
         return fabs(a - b) <= tolerance + epsilon;
 };
 
-pair<automata, value> compute_automata(table const &t, value tolerance) {
+pair<automata, value> compute_automata(table const &t, value tolerance, int type) {
 
         automata res = {
                 vector<size_t>(t.vars),
@@ -65,9 +71,10 @@ pair<automata, value> compute_automata(table const &t, value tolerance) {
         auto begin = t.rows.begin();
         auto end = begin;
         value max_error = 0;
+        auto conv = [type](value val) { return type == WCSP ? val : exp(-val); };
 
         while (begin != t.rows.end()) {
-                while (end != t.rows.end() && are_equal(end->second, begin->second, tolerance)) {
+                while (end != t.rows.end() && are_equal(conv(end->second), conv(begin->second), tolerance)) {
                         end++;
                 }
                 max_error = max(max_error, prev(end)->second - begin->second);

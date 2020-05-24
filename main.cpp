@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
         for (size_t i = 0; i < tables.size(); ++i) {
-                auto [ a, error ] = compute_automata(tables[i], tolerance);
+                auto [ a, error ] = compute_automata(tables[i], tolerance, inst_type);
                 automatas[i] = a;
                 tot_error += error;
                 actual_rows += automatas[i].rows.size();
