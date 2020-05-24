@@ -11,6 +11,18 @@ fabe="/home/filippo/iiia/fabe/fabe"
 aolib="/home/filippo/iiia/aolib/aolib"
 tmp="."
 
+if [[ ! -f $fabe ]]
+then
+        echo "${red}$fabe does not exist!${normal}"
+        exit 1
+fi
+
+if [[ ! -f $aolib ]]
+then
+        echo "${red}$aolib does not exist!${normal}"
+        exit 1
+fi
+
 # default values
 out=/dev/null
 mbe="fabe"
