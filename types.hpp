@@ -7,7 +7,7 @@
 
 using namespace std;
 
-typedef float value;
+typedef double value;
 
 typedef double weight;
 
