@@ -39,8 +39,6 @@ extern bool parallel;
 size_t tot_states;
 size_t tot_keys;
 
-#include "io.hpp"
-
 __attribute__((always_inline)) inline
 value quantise(value val) {
 
