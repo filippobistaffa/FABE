@@ -39,11 +39,15 @@ extern bool parallel;
 size_t tot_states;
 size_t tot_keys;
 
+#include "io.hpp"
+
 __attribute__((always_inline)) inline
 value quantise(value val) {
 
         if constexpr (QUANTISATION) {
-                const value q = trunc(exp(-val) * QUANTISATION);
+                const value q = floor(exp(-val) * QUANTISATION);
+                //cout << val << " (exp(-) = " << exp(-val) << ", Q = " << 1 / QUANTISATION << ") -> ";
+                //cout << -log(q / QUANTISATION) << endl;
                 return -log(q / QUANTISATION);
         } else {
                 return val;
@@ -258,13 +262,11 @@ static inline size_t push_bucket(automata const &a, vector<vector<automata>> &bu
 static inline value process_bucket(vector<automata> &bucket, vector<vector<automata>> &buckets, bool quant,
                                    vector<size_t> const &pos, vector<size_t> const &domains) {
 
-        value res = 0;
-
         if (bucket.size()) {
                 auto h = join_bucket(bucket, quant, pos, domains);
                 if (h.rows.size() > 0) {
                         //automata_dot(h, "dot");
-                        res += reduce_last_var(h);
+                        const value res = reduce_last_var(h);
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
                                 #ifdef DEBUG_BUCKETS
@@ -273,10 +275,13 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
                                 push_bucket(h, buckets, pos);
                                 #endif
                         }
+                        return res;
+                } else { // no assignment is in all functions, some constraint is violated
+                        return numeric_limits<value>::infinity();
                 }
+        } else {
+                return 0;
         }
-
-        return res;
 }
 
 //#define COMPARE_MBE
