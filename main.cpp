@@ -25,7 +25,7 @@ bool parallel = false;
 static inline void print_usage(const char *bin) {
 
         cerr << "Usage: " << bin << " [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] ";
-        cerr << "[-t unique|random] [-s seed] [-e tolerance] [-O order] [-r] -f instance" << endl;
+        cerr << "[-t unique|random] [-s seed] [-O order] [-r] -f instance" << endl;
 }
 
 static inline bool exists(const char *filename) {
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
         bool print_red = false;
         int opt;
 
-        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:e:O:hr")) != -1) {
+        while ((opt = getopt(argc, argv, "a:i:f:o:t:s:O:hr")) != -1) {
                 switch (opt) {
                         case 'a':
                                 if (strcmp(optarg, "bub") == 0) {
@@ -117,9 +117,6 @@ int main(int argc, char *argv[]) {
                         case 's':
                                 seed = atoi(optarg);
                                 continue;
-                        case 'e':
-                                tolerance = atof(optarg);
-                                continue;
                         case 'r':
                                 print_red = true;
                                 continue;
@@ -159,15 +156,15 @@ int main(int argc, char *argv[]) {
 
         if constexpr (QUANTISATION) {
                 if (inst_type == WCSP) {
-                        log_value("Quantisation", "-");
+                        log_value("Precision", "-");
                 } else {
-                        log_value("Quantisation", 1 / QUANTISATION);
+                        log_value("Precision", 1 / QUANTISATION);
                 }
         } else {
-                log_value("Quantisation", "-");
+                log_value("Precision", "-");
         }
 
-        log_value("Tolerance", tolerance);
+        //log_value("Tolerance", tolerance);
         //log_value("Parallel mode", parallel ? "Enabled" : "Disabled");
 
         // look for a known threshold to remove rows
