@@ -2,7 +2,6 @@
 #define BE_HPP_
 
 #include "types.hpp"
-#include <cfloat>
 
 #define QUANTISATION 1e10
 
