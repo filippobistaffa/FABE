@@ -226,6 +226,26 @@ int main(int argc, char *argv[]) {
 
         auto tables = read_tables(instance, inst_type, pos, threshold);
 
+        // Convert order to one-hot variables
+        auto orig = order;
+        order.clear();
+        vector<size_t> pfx_domains = vector<size_t>(domains.size());
+        exclusive_scan(domains.begin(), domains.end(), pfx_domains.begin(), 0, plus<>{});
+        for (size_t i = 0; i < orig.size(); ++i) {
+                for (size_t j = 0; j < domains[orig[i]]; ++j) {
+                        order.push_back(pfx_domains[orig[i]] + j);
+                }
+        }
+        //cout << vec2str(order, "Order") << endl;
+        pos.resize(order.size());
+        for (size_t i = 0; i < order.size(); ++i) {
+                pos[order[i]] = i;
+        }
+        // Convert domains to one-hot variables
+        domains.resize(order.size());
+        fill(domains.begin(), domains.end(), 2);
+        // End one-hot changes
+
         #ifdef PRINT_TABLES
         cout << endl;
         for (auto const &table : tables) {

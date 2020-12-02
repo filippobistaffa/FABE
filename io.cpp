@@ -301,6 +301,36 @@ void remove_threshold(table &t, value threshold) {
         }
 }
 
+static inline table one_hot(table &t, vector<size_t> const &domains) {
+
+        vector<size_t> pfx_domains = vector<size_t>(domains.size());
+        exclusive_scan(domains.begin(), domains.end(), pfx_domains.begin(), 0, plus<>{});
+
+        table ot;
+        size_t n_vars = accumulate(t.domains.begin(), t.domains.end(), 0);
+        ot.domains = vector<size_t>(n_vars);
+        fill(ot.domains.begin(), ot.domains.end(), 2);
+        ot.rows.resize(t.rows.size());
+
+        for (auto var : t.vars) {
+                for (size_t i = 0; i < domains[var]; ++i) {
+                        ot.vars.push_back(pfx_domains[var] + i);
+                }
+        }
+
+        for (size_t i = 0; i < t.rows.size(); ++i) {
+                vector<size_t> row = vector<size_t>(n_vars);
+                size_t pfx = 0;
+                for (size_t j = 0; j < t.vars.size(); ++j) {
+                        row[pfx + t.rows[i].first[j]] = 1;
+                        pfx += t.domains[j];
+                }
+                ot.rows[i] = make_pair(row, t.rows[i].second);
+        }
+
+        return ot;
+}
+
 static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> const &pos, value threshold) {
 
         ifstream f(wcsp);
@@ -344,7 +374,8 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
                                                       pair<vector<size_t>, value> const &y)
                                                       { return (x.second < y.second); });
                 remove_threshold(t, threshold);
-                tables[i] = t;
+                tables[i] = one_hot(t, domains);
+                //tables[i] = t;
         }
 
         f.close();
@@ -415,6 +446,7 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
                                                                       pair<vector<size_t>, value> const &y)
                                                                       { return (x.second < y.second); });
                 remove_threshold(tables[i], threshold);
+                tables[i] = one_hot(tables[i], domains);
         }
 
         f.close();
