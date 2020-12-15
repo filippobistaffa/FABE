@@ -53,7 +53,7 @@ bool are_equal(value a, value b, value tolerance) {
 
         const value epsilon = numeric_limits<value>::epsilon();
         return fabs(a - b) <= tolerance + epsilon;
-};
+}
 
 pair<automata, value> compute_automata(table const &t, value tolerance) {
 
