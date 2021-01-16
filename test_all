@@ -107,4 +107,4 @@ done
 echo
 echo -e "Tot. runtime = $total_time"
 #echo "Tests = $n_tests"
-echo -e "Avg. runtime = "`python -c "print($total_time/$n_tests)"`
+echo -e "Avg. runtime = "`python3 -c "print($total_time/$n_tests)"`
