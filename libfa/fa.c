@@ -2909,7 +2909,7 @@ int fa_enumerate(struct fa *fa, int limit, char ***words) {
 
 static void rec_idx(struct state *s, const size_t *dom, size_t i, size_t d, size_t *idx, size_t *n) {
     if (s->accept) {
-        printf("(%zu) <- %zu\n", *n, i);
+        //printf("(%zu) <- %zu\n", *n, i);
         idx[(*n)++] = i;
     } else {
         for_each_trans(t, s) {
@@ -2923,7 +2923,6 @@ static void rec_idx(struct state *s, const size_t *dom, size_t i, size_t d, size
 size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx) {
     size_t n = 0; // first position available in idx
     rec_idx(fa->initial, dom, 0, 1, idx, &n);
-    puts("done");
     return n;
 }
 

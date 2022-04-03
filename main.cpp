@@ -146,18 +146,28 @@ int main(int argc, char *argv[]) {
 
         if (strstr(instance, "wcsp")) {
                 log_value("Instance type", "WCSP");
-                log_value("Bucket elimination algorithm", "MIN-SUM");
+                //log_value("Bucket elimination algorithm", "MIN-SUM");
                 inst_type = WCSP;
         } else {
                 log_value("Instance type", "UAI");
-                log_value("Bucket elimination algorithm", "MIN-SUM with -log()");
+                //log_value("Bucket elimination algorithm", "MIN-SUM with -log()");
                 inst_type = MPE;
         }
 
         string algorithms[] = { "Hopcroft", "Brzozowski", "Bubenzer" };
         log_value("Automata minimisation algorithm", algorithms[fa_minimization_algorithm]);
-
         log_value("I-bound", (ibound == 0) ? "inf" : to_string(ibound));
+
+        if constexpr (QUANTISATION) {
+                if (inst_type == WCSP) {
+                        log_value("Quantisation", "-");
+                } else {
+                        log_value("Quantisation", 1 / QUANTISATION);
+                }
+        } else {
+                log_value("Quantisation", "-");
+        }
+
         log_value("Tolerance", tolerance);
         //log_value("Parallel mode", parallel ? "Enabled" : "Disabled");
 
@@ -205,8 +215,8 @@ int main(int argc, char *argv[]) {
 
         if (mbe.filename) {
                 alloc_bin_data(mbe, domains.size());
-                mbe.anc = anc;
                 mbe.threshold = threshold;
+                mbe.anc = anc;
         }
 
         //cout << vec2str(order, "Order") << endl;
@@ -245,7 +255,7 @@ int main(int argc, char *argv[]) {
 
         #pragma omp parallel for schedule(dynamic) if (parallel)
         for (size_t i = 0; i < tables.size(); ++i) {
-                auto [ a, error ] = compute_automata(tables[i], tolerance);
+                auto [ a, error ] = compute_automata(tables[i], tolerance, inst_type);
                 automatas[i] = a;
                 tot_error += error;
                 actual_rows += automatas[i].rows.size();
@@ -276,9 +286,7 @@ int main(int argc, char *argv[]) {
 
         log_line();
 
-        //const int inner = (inst_type == WCSP) ? BE_SUM : BE_PROD;
-        //const int outer = (inst_type == WCSP) ? BE_MIN : BE_MAX;
-        const auto optimal = bucket_elimination(buckets, BE_SUM, BE_MIN, order, pos, domains, ibound, mbe);
+        const auto optimal = bucket_elimination(buckets, inst_type == MPE, order, pos, domains, ibound, mbe);
         runtime = chrono::high_resolution_clock::now() - start_t;
 
         // export binary file
@@ -286,21 +294,24 @@ int main(int argc, char *argv[]) {
                 write_binary(mbe, optimal + evid_value, ibound);
         }
 
-        log_value("Solution value", optimal + evid_value);
+        if (inst_type == WCSP) {
+                log_value("Solution value", optimal + evid_value);
+        } else {
+                oss.str(string());
+                oss << exp(-(optimal + evid_value)) << " (" << optimal + evid_value << ")";
+                log_value("Solution value (-log)", oss.str());
+        }
+
         //log_value("Maximum optimality gap", tolerance * tables.size());
         //log_value("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
         //log_value("Optimality gap", tot_error);
         oss.str(string());
         oss << tot_error << " (" << setprecision(3) << 100 * (tot_error) / optimal << "%)";
+        log_value("Optimality gap", oss.str());
+        log_value("Bucket elimination runtime", runtime.count());
         if (mbe.filename) {
-                log_value("Bucket elimination runtime", runtime.count());
                 log_value("I/O runtime", mbe.runtime);
-        } else {
-                log_value("Optimality gap", oss.str());
-                log_value("Bucket elimination runtime", runtime.count());
         }
-
         log_line();
-
         return EXIT_SUCCESS;
 }
