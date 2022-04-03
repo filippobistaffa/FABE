@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# https://forgemia.inra.fr/thomas.schiex/cost-function-library/-/blob/master/translators/scripts/wcsp2lp-direct.py
+
 import os
 import sys
 import itertools
