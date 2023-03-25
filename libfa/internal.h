@@ -173,7 +173,7 @@
  * with gcc.
  */
 #ifndef ATTRIBUTE_FORMAT
-#define ATTRIBUTE_FORMAT(args...) __attribute__((__format__ (args)))
+#define ATTRIBUTE_FORMAT(...) __attribute__((__format__ (__VA_ARGS__)))
 #endif
 
 #ifndef ATTRIBUTE_PURE
@@ -281,6 +281,7 @@ int pathjoin(char **path, int nseg, ...);
     fprintf(stderr, "%s:%d Unimplemented block\n",			\
             __FILE__, __LINE__);
 
+/*
 #define FIXME(msg, args ...)                            \
     do {                                                \
         fprintf(stderr, "%s:%d Fixme: ",                \
@@ -288,6 +289,7 @@ int pathjoin(char **path, int nseg, ...);
       fprintf(stderr, msg, ## args);                    \
       fputc('\n', stderr);                              \
     } while(0)
+*/
 
 /*
  * Internal data structures
