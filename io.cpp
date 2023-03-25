@@ -141,7 +141,7 @@ array<T, N> tokenize(ifstream &f) {
         char *dup = strdup(str.c_str());
         const char *sep = (strstr(dup, " ") != NULL) ? " " : "\t";
         char *token = strtok(dup, sep);
-        array<T, N> a;
+        array<T, N> a{};
         size_t skip = SKIP;
         size_t i = 0;
 

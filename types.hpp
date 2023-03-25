@@ -14,13 +14,13 @@ typedef double weight;
 struct automata {
         vector<size_t> vars;
         vector<size_t> domains;
-        unordered_map<value, struct fa *> rows;
+        unordered_map<value, struct fa *> rows {};
 };
 
 struct table {
         vector<size_t> vars;
         vector<size_t> domains;
-        vector<pair<vector<size_t>, value>> rows;
+        vector<pair<vector<size_t>, value>> rows {};
 };
 
 enum instance {
