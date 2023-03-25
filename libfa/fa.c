@@ -4903,7 +4903,7 @@ void fa_add_word(struct fa *fa, const size_t *word, size_t length) {
         return;
     }
     struct state *cur = fa->initial;
-    struct state *accept;
+    struct state *accept = NULL;
     list_for_each(st, fa->initial) {
         if (st->accept) {
             accept = st;
