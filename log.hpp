@@ -27,7 +27,7 @@ void log_line() {
 
 template <typename T>
 __attribute__((always_inline)) inline
-void log_value(string name, T val, bool filename = false) {
+void log_value(string name, T val) {
 
         cout << "| ";
         if (name.length() > COLUMN_WIDTH) {
