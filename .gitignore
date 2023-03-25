@@ -1,6 +1,8 @@
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
 fabe
-*obj
-dep
 trace.*
 dot
 memory
