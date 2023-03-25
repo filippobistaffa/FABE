@@ -4659,19 +4659,19 @@ void fa_dot(FILE *out, struct fa *fa) {
     fprintf(out, "digraph {\n  rankdir=LR;");
     list_for_each(s, fa->initial) {
         if (s->accept) {
-            fprintf(out, "\"%p\" [shape=doublecircle];\n", s);
+            fprintf(out, "\"%p\" [shape=doublecircle];\n", (void *)s);
         } else {
-            fprintf(out, "\"%p\" [shape=circle];\n", s);
+            fprintf(out, "\"%p\" [shape=circle];\n", (void *)s);
         }
     }
     fprintf(out, "%s -> \"%p\";\n", fa->deterministic ? "dfa" : "nfa",
-            fa->initial);
+            (void *)fa->initial);
 
     struct re_str str;
     MEMZERO(&str, 1);
     list_for_each(s, fa->initial) {
         for_each_trans(t, s) {
-            fprintf(out, "\"%p\" -> \"%p\" [ label = \"", s, t->to);
+            fprintf(out, "\"%p\" -> \"%p\" [ label = \"", (void *)s, (void *)t->to);
             if (fa->trans_re) {
                 re_as_string(t->re, &str);
                 for (int i=0; i < str.len; i++) {
