@@ -1343,7 +1343,7 @@ static int collect(struct fa *fa) {
             free_trans(s);
         }
         list_free(fa->initial->next);
-        fa->deterministic = 1;
+        fa->deterministic = -1;
     } else {
         collect_trans(fa);
         collect_dead_states(fa);
@@ -1426,7 +1426,7 @@ static int determinize(struct fa *fa, struct state_set *ini) {
                 goto error;
         }
     }
-    fa->deterministic = 1;
+    fa->deterministic = -1;
 
  done:
     if (newstate)
@@ -1877,7 +1877,7 @@ int fa_minimize(struct fa *fa) {
     #endif
 
     if (r == 0)
-        fa->minimal = 1;
+        fa->minimal = -1;
     return r;
 }
 
@@ -1907,8 +1907,8 @@ static struct fa *fa_make_epsilon(void) {
     struct fa *fa = fa_make_empty();
     if (fa) {
         fa->initial->accept = 1;
-        fa->deterministic= 1;
-        fa->minimal = 1;
+        fa->deterministic = -1;
+        fa->minimal = -1;
     }
     return fa;
 }
@@ -1928,8 +1928,8 @@ static struct fa *fa_make_char(uchar c) {
     r = add_new_trans(s, t, c, c);
     if (r < 0)
         goto error;
-    fa->deterministic = 1;
-    fa->minimal = 1;
+    fa->deterministic = -1;
+    fa->minimal = -1;
     return fa;
  error:
     fa_free(fa);
@@ -2206,8 +2206,8 @@ static struct fa *fa_make_char_set(bitset *cset, int negate) {
         from = to + 1;
     }
 
-    fa->deterministic = 1;
-    fa->minimal = 1;
+    fa->deterministic = -1;
+    fa->minimal = -1;
     return fa;
 
  error:
@@ -4373,7 +4373,7 @@ int fa_as_regexp(struct fa *fa, char **regexp, size_t *regexp_len) {
     if (fin == NULL)
         goto error;
 
-    fa->trans_re = 1;
+    fa->trans_re = -1;
 
     list_for_each(s, fa->initial) {
         r = convert_trans_to_re(s);
