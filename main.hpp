@@ -2,6 +2,7 @@
 #define MAIN_H_
 
 #include "types.hpp"
+#include <limits>       // std::numeric_limits
 
 // known threshold values to remove rows
 static const char* datasets[] = { "spot5",
