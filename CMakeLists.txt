@@ -39,6 +39,7 @@ set(SOURCES
     libfa/ref.c
 )
 
+include_directories(fmt/include)
 include_directories(libfa)
 
 find_package(OpenMP REQUIRED)

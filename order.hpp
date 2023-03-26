@@ -16,7 +16,7 @@ enum tie_heur {
         T_RANDOM
 };
 
-#include <cmath>                // fabs
+#include <limits>   // std::numeric_limits
 
 template <typename T>
 struct compare_vec {
@@ -31,10 +31,7 @@ struct compare_vec {
         std::vector<T> vec;
 };
 
-using namespace std;
-
-std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL,
-                            int tie_heur = T_UNIQUENESS);
+std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL, int tie_heur = T_UNIQUENESS);
 
 size_t induced_width(std::vector<std::vector<weight>> const &adj, std::vector<size_t> const &order);
 

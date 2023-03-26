@@ -1,17 +1,19 @@
 #include "io.hpp"
 
-#include <iostream>             // cout
-#include <sstream>              // ostringstream
 #include <fstream>              // ifstream, getline
 #include <string.h>             // strdup, strdup
 #include <math.h>               // log10
-#include <iomanip>              // setw
 #include <numeric>              // accumulate
 #include <sys/stat.h>           // filesystem
 #include <algorithm>            // max_element, sort
 #include <linux/limits.h>       // PATH_MAX
 #include <unistd.h>             // getcwd
 #include <cassert>              // assert
+
+// fmt library
+#define FMT_HEADER_ONLY
+#include <fmt/core.h>
+#include <fmt/ranges.h>
 
 #include "util.hpp"
 #include "libfa/fa.h"
@@ -20,23 +22,19 @@
 
 void print_table(table const &t) {
 
-        const size_t width = max(1.0, 1 + floor(log10(*max_element(t.vars.begin(), t.vars.end()))));
+        const size_t width = std::max(1.0, 1 + floor(log10(*max_element(t.vars.begin(), t.vars.end()))));
 
         for (auto var : t.vars) {
-                cout << setw(width) << var << " ";
+                fmt::print("{0: >{1}} ", var, width);
         }
-        cout << endl;
 
-        for (size_t i = 0; i < (width + 1) * t.vars.size() - 1; ++i) {
-                cout << "-";
-        }
-        cout << endl;
+        fmt::print("\n{1:->{0}}\n", (width + 1) * t.vars.size() - 1, "");
 
         for (auto const &row : t.rows) {
                 for (size_t j = 0; j < t.vars.size(); ++j) {
-                        cout << setw(width) << row.first[j] << " ";
+                        fmt::print("{0: >{1}} ", row.first[j], width);
                 }
-                cout << "= " << row.second << endl;
+                fmt::print("= {}\n", row.second);
         }
 }
 
@@ -45,7 +43,7 @@ void automata_dot(automata const &a, const char *root_dir) {
         char cwd[PATH_MAX];
         getcwd(cwd, sizeof(cwd));
         chdir(root_dir);
-        auto folder = vec2str(a.vars);
+        auto folder = fmt::format("{}", a.vars);
         mkdir(folder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
         chdir(folder.c_str());
 
@@ -62,33 +60,23 @@ void print_adj(std::vector<std::vector<weight>> const &adj) {
 
         const size_t n_vars = adj.size();
         const int var = 1 + floor(log10(n_vars - 1));
-        const int column = max(PRECISION + 2, var);
+        const int column = std::max(PRECISION + 2, var);
 
-        for (size_t i = 0; i < var + 3; ++i) {
-                cout << " ";
-        }
+        fmt::print("{1: >{0}}", var + 3, "");
 
         for (size_t i = 0; i < n_vars; ++i) {
-                cout << setw(column) << i << " ";
-        }
-        cout << endl;
-
-        for (size_t i = 0; i < var + 1; ++i) {
-                cout << " ";
+                fmt::print("{0: >{1}} ", i, column);
         }
 
-        cout << "+";
-        for (size_t i = 0; i < (column + 1) * n_vars; ++i) {
-                cout << "-";
-        }
-        cout << endl;
+        fmt::print("\n{1: >{0}}+", var + 1, "");
+        fmt::print("{1:->{0}}\n", (column + 1) * n_vars, "");
 
         for (size_t i = 0; i < n_vars; ++i) {
-                cout << setw(var) << i << " | ";
+                fmt::print("{0: >{1}} | ", i, var);
                 for (size_t j = 0; j < n_vars; ++j) {
-                        cout << fixed << setprecision(PRECISION) << adj[i][j] << " ";
+                        fmt::print("{0:.{1}f} ", adj[i][j], PRECISION);
                 }
-                cout << endl;
+                fmt::print("\n");
         }
 }
 
@@ -103,7 +91,7 @@ std::string trim(std::string const &str, std::string const &whitespace = " \t") 
 }
 
 template <typename T>
-std::vector<T> tokenize(ifstream &f) {
+std::vector<T> tokenize(std::ifstream &f) {
 
         std::string str;
         getline(f, str);
@@ -117,9 +105,9 @@ std::vector<T> tokenize(ifstream &f) {
         std::vector<T> v;
 
         while (token != NULL) {
-                if constexpr (is_integral_v<T>) {
+                if constexpr (std::is_integral_v<T>) {
                         v.push_back(atoi(token));
-                } else if (is_floating_point_v<T>) {
+                } else if (std::is_floating_point_v<T>) {
                         v.push_back(atof(token));
                 }
                 token = strtok(NULL, sep);
@@ -130,7 +118,7 @@ std::vector<T> tokenize(ifstream &f) {
 }
 
 template <typename T, size_t SKIP, size_t N>
-array<T, N> tokenize(ifstream &f) {
+std::array<T, N> tokenize(std::ifstream &f) {
 
         std::string str;
         getline(f, str);
@@ -141,7 +129,7 @@ array<T, N> tokenize(ifstream &f) {
         char *dup = strdup(str.c_str());
         const char *sep = (strstr(dup, " ") != NULL) ? " " : "\t";
         char *token = strtok(dup, sep);
-        array<T, N> a{};
+        std::array<T, N> a{};
         size_t skip = SKIP;
         size_t i = 0;
 
@@ -150,9 +138,9 @@ array<T, N> tokenize(ifstream &f) {
                         skip--;
                 } else {
                         if (i < N) {
-                                if constexpr (is_integral_v<T>) {
+                                if constexpr (std::is_integral_v<T>) {
                                         a[i++] = atoi(token);
-                                } else if (is_floating_point_v<T>) {
+                                } else if (std::is_floating_point_v<T>) {
                                         a[i++] = atof(token);
                                 }
                         } else {
@@ -166,11 +154,11 @@ array<T, N> tokenize(ifstream &f) {
         return a;
 }
 
-#define SKIP_LINE f.ignore(numeric_limits<streamsize>::max(), '\n')
+#define SKIP_LINE f.ignore(std::numeric_limits<std::streamsize>::max(), '\n')
 
 static inline std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_adj_wcsp(const char *wcsp) {
 
-        ifstream f(wcsp);
+        std::ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         const auto domains = tokenize<size_t>(f);
 
@@ -217,7 +205,7 @@ static inline std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> r
 
 static inline std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_adj_uai(const char *uai) {
 
-        ifstream f(uai);
+        std::ifstream f(uai);
         SKIP_LINE;
         auto [ n_vars ] = tokenize<size_t, 0, 1>(f);
         auto domains = tokenize<size_t>(f);
@@ -275,7 +263,7 @@ std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_ad
 
 void preallocate_rows(table &t, value def) {
 
-        const size_t n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, multiplies<size_t>());
+        const size_t n_rows = accumulate(t.domains.begin(), t.domains.end(), 1, std::multiplies<size_t>());
         t.rows.resize(n_rows);
 
         for (size_t i = 0; i < n_rows; ++i) {
@@ -303,7 +291,7 @@ void remove_threshold(table &t, value threshold) {
 
 static inline std::vector<table> read_tables_wcsp(const char *wcsp, std::vector<size_t> const &pos, value threshold) {
 
-        ifstream f(wcsp);
+        std::ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         const auto domains = tokenize<size_t>(f);
         std::vector<table> tables(n_tables);
@@ -326,7 +314,7 @@ static inline std::vector<table> read_tables_wcsp(const char *wcsp, std::vector<
                 }
 
                 std::vector<size_t> pfx_prod(t.domains.size());
-                exclusive_scan(t.domains.begin(), t.domains.end(), pfx_prod.begin(), 1, multiplies<>{});
+                exclusive_scan(t.domains.begin(), t.domains.end(), pfx_prod.begin(), 1, std::multiplies<>{});
                 preallocate_rows(t, temp[temp[0] + 1]);
 
                 for (size_t j = 0; j < temp[temp[0] + 2]; ++j) {
@@ -353,7 +341,7 @@ static inline std::vector<table> read_tables_wcsp(const char *wcsp, std::vector<
 
 static inline std::vector<table> read_tables_uai(const char *uai, std::vector<size_t> const &pos, value threshold) {
 
-        ifstream f(uai);
+        std::ifstream f(uai);
         SKIP_LINE;
         SKIP_LINE;
         const auto domains = tokenize<size_t>(f);
@@ -388,7 +376,7 @@ static inline std::vector<table> read_tables_uai(const char *uai, std::vector<si
                 }
 
                 std::vector<size_t> pfx_prod(tables[i].domains.size());
-                exclusive_scan(tables[i].domains.begin(), tables[i].domains.end(), pfx_prod.begin(), 1, multiplies<>{});
+                exclusive_scan(tables[i].domains.begin(), tables[i].domains.end(), pfx_prod.begin(), 1, std::multiplies<>{});
 
                 auto [ n_rows ] = tokenize<size_t, 0, 1>(f);
                 std::vector<value> values;
@@ -399,7 +387,6 @@ static inline std::vector<table> read_tables_uai(const char *uai, std::vector<si
                 }
 
                 preallocate_rows(tables[i]);
-                //cout << vec2str(values, "values") << endl;
 
                 for (size_t j = 0; j < n_rows; ++j) {
                         auto row = get_combination(j, orig_dom);
@@ -443,8 +430,8 @@ std::vector<table> read_tables(const char *instance, int type, std::vector<size_
         oss << domains.size() << " ";
         oss << *max_element(domains.begin(), domains.end()) << " ";
         oss << n_funcs << " ";
-        oss << numeric_limits<int>::max() << endl;
-        oss << vec2str(domains, nullptr, " ", nullptr, nullptr) << endl;
+        oss << numeric_limits<int>::max() << '\n';
+        oss << vec2str(domains, nullptr, " ", nullptr, nullptr) << '\n';
 
         for (auto bucket : buckets) {
                 for (auto a : bucket) {
@@ -452,9 +439,9 @@ std::vector<table> read_tables(const char *instance, int type, std::vector<size_
                         oss << t.vars.size() << " ";
                         oss << vec2str(t.vars, nullptr, " ", nullptr, nullptr) << " ";
                         oss << numeric_limits<int>::max() << " ";
-                        oss << t.rows.size() << endl;
+                        oss << t.rows.size() << '\n';
                         for (auto r : t.rows) {
-                                oss << vec2str(r.first, nullptr, " ", nullptr, nullptr) << " " << r.second << endl;
+                                oss << vec2str(r.first, nullptr, " ", nullptr, nullptr) << " " << r.second << '\n';
                         }
                 }
         }

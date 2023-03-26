@@ -1,12 +1,16 @@
 #include "order.hpp"
 
-#include <cmath>                // fabs
-#include <iostream>             // std::cout
-#include <iomanip>              // setw
-#include <numeric>              // accumulate
-#include <algorithm>            // count_if
-#include <fstream>              // ifstream, getline
-#include <unordered_set>        // unordered_set
+#include <cmath>            // fabs
+#include <iomanip>          // ostringstream
+#include <numeric>          // accumulate
+#include <algorithm>        // count_if
+#include <fstream>          // ifstream, getline
+#include <unordered_set>    // unordered_set
+
+// fmt library
+#define FMT_HEADER_ONLY
+#include <fmt/core.h>
+#include <fmt/ranges.h>
 
 #include "io.hpp"
 
@@ -38,13 +42,12 @@ static inline weight metric(int order_heur, std::vector<std::vector<weight>> con
                                 if (!adj[i][j]) {
                                         if (order_heur == O_WEIGHTED_MIN_FILL) {
                                                 #ifdef DEBUG_GREEDY_ORDER
-                                                std::cout << "edge (" << i << ", " << j << ") not present, adding " ;
-                                                std::cout << EDGE_VAL(avg_w, i, j) << '\n';
+                                                fmt::print("edge ({}, {}) not present, adding {}\n", i, j, EDGE_VAL(avg_w, i, j));
                                                 #endif
                                                 fill += EDGE_VAL(avg_w, i, j);
                                         } else {
                                                 #ifdef DEBUG_GREEDY_ORDER
-                                                std::cout << "edge (" << i << ", " << j << ") not present, adding 1" << '\n';
+                                                fmt::print("edge ({}, {}) not present, adding 1\n", i, j, EDGE_VAL(avg_w, i, j));
                                                 #endif
                                                 fill++;
                                         }
@@ -66,8 +69,8 @@ static inline void connect_neighbours(int order_heur, std::vector<std::vector<we
                                         adj[i][j] = adj[j][i] = 1;
                                 }
                                 #ifdef DEBUG_GREEDY_ORDER
-                                std::cout << "edge (" << i << ", " << j << ") <- " << adj[i][j] << '\n';
-                                std::cout << "edge (" << j << ", " << i << ") <- " << adj[i][j] << '\n';
+                                fmt::print("edge ({}, {}) <- ()\n", i, j, adj[i][j]);
+                                fmt::print("edge ({}, {}) <- ()\n", j, i, adj[i][j]);
                                 #endif
                         }
                 }
@@ -90,18 +93,16 @@ std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, in
 
         while (!not_marked.empty()) {
                 #ifdef DEBUG_GREEDY_ORDER
-                //std::cout << "current adj. matrix" << '\n';
-                //print_adj(tmp_adj);
-                std::cout << vec2str(avg_w, "avg_w") << '\n';
+                fmt::print("avg_w: {}\n", avg_w);
                 #endif
                 std::vector<size_t> cand;
-                weight min_met = numeric_limits<weight>::max();
+                weight min_met = std::numeric_limits<weight>::max();
                 for (auto i : not_marked) {
                         weight met = metric(order_heur, tmp_adj, i, avg_w);
                         #ifdef DEBUG_GREEDY_ORDER
-                        std::cout << "metric(" << i << ") = " << met << " (min = " << min_met << ")" << '\n';
+                        fmt::print("metric({}) = {} (min = {})\n", i, met, min_met);
                         #endif
-                        if (fabs(met - min_met) <= numeric_limits<weight>::epsilon()) {
+                        if (fabs(met - min_met) <= std::numeric_limits<weight>::epsilon()) {
                                 cand.push_back(i);
                         } else if (met < min_met) {
                                 min_met = met;
@@ -110,11 +111,11 @@ std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, in
                         }
                 }
                 #ifdef DEBUG_GREEDY_ORDER
-                std::cout << vec2str(cand, "candidates") << '\n';
+                fmt::print("candidates: {}\n", cand);
                 for (auto c : cand) {
-                        std::cout << avg_w[c] << " ";
+                        fmt::print("{} ", avg_w[c]);
                 }
-                std::cout << '\n';
+                fmt::print("\n");
                 #endif
                 size_t sel;
                 if (tie_heur == T_RANDOM) {
@@ -123,7 +124,7 @@ std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, in
                         sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w));
                 }
                 #ifdef DEBUG_GREEDY_ORDER
-                std::cout << "selected = " << sel << '\n';
+                fmt::print("selected = {}\n", sel);
                 #endif
                 // connect neighbours
                 if (order_heur != O_MIN_DEGREE) {
@@ -150,7 +151,7 @@ size_t induced_width(std::vector<std::vector<weight>> const &adj, std::vector<si
 
         for (auto i = order.rbegin(); i != order.rend(); ++i) {
                 const size_t deg = count_if(tmp_adj[*i].begin(), tmp_adj[*i].end(), [](weight i) { return i > 0; });
-                w = max(w, deg);
+                w = std::max(w, deg);
                 for EACH_NONZERO(tmp_adj[*i], n1) {
                         tmp_adj[n1][*i] = 0;
                         for EACH_NONZERO(tmp_adj[*i], n2, n1 + 1) {
@@ -217,7 +218,7 @@ std::vector<size_t> read_pseudotree_order(const char *filename, std::vector<size
         }
 
         std::vector<size_t> order;
-        ifstream f(filename);
+        std::ifstream f(filename);
         std::string str;
         getline(f, str);
         parse(str.substr(1, str.size() - 2), order);
@@ -261,7 +262,7 @@ void export_order(std::vector<size_t> const &order, std::vector<size_t> const &d
                 }
         }
 
-        ofstream f(output);
+        std::ofstream f(output);
         f << oss.str();
         f.close();
 }

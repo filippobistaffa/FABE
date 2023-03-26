@@ -44,8 +44,6 @@ value quantise(value val) {
 
         if constexpr (QUANTISATION) {
                 const value q = floor(exp(-val) * QUANTISATION);
-                //cout << val << " (exp(-) = " << exp(-val) << ", Q = " << 1 / QUANTISATION << ") -> ";
-                //cout << -log(q / QUANTISATION) << endl;
                 return -log(q / QUANTISATION);
         } else {
                 return val;
@@ -56,11 +54,11 @@ static inline automata join(automata &a1, automata &a2, bool quant, std::vector<
                             std::vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES
-        cout << endl << "Joining:" << endl << endl;
+        fmt::print("\nJoining:\n\n");
         print_table(compute_table(a1));
-        cout << endl;
+        fmt::print("\n");
         print_table(compute_table(a2));
-        cout << endl;
+        fmt::print("\n");
         #endif
 
         automata join;
@@ -91,13 +89,13 @@ static inline automata join(automata &a1, automata &a2, bool quant, std::vector<
         }
 
         /*
-        cout << vec2str(a1.vars, "v1") << endl;
-        cout << vec2str(a2.vars, "v2") << endl;
-        cout << vec2str(join.vars, "vj") << endl;
-        cout << vec2str(add1, "add1") << endl;
-        cout << vec2str(add2, "add2") << endl;
-        cout << vec2str(padd1, "padd1") << endl;
-        cout << vec2str(padd2, "padd2") << endl;
+        fmt::print("{}\n", a1.vars, "v1");
+        fmt::print("{}\n", a2.vars, "v2");
+        fmt::print("{}\n", join.vars, "vj");
+        fmt::print("{}\n", add1, "add1");
+        fmt::print("{}\n", add2, "add2");
+        fmt::print("{}\n", padd1, "padd1");
+        fmt::print("{}\n", padd2, "padd2");
         */
 
         for (auto &[ v, fa ] : a1.rows) {
@@ -118,7 +116,7 @@ static inline automata join(automata &a1, automata &a2, bool quant, std::vector<
         for (auto &[ v1, fa1 ] : a1.rows) {
                 for (auto &[ v2, fa2 ] : a2.rows) {
                         const value v1v2 = (quant) ? quantise(v1 + v2) : v1 + v2;
-                        if (isinf(v1v2)) {
+                        if (std::isinf(v1v2)) {
                                 continue;
                         }
                         auto in = fa_intersect(fa1, fa2);
@@ -137,7 +135,7 @@ static inline automata join(automata &a1, automata &a2, bool quant, std::vector<
         }
 
         //sort(keys.begin(), keys.end());
-        //cout << vec2str(keys, "keys") << endl;
+        //fmt::print("{}\n", keys, "keys");
         tot_keys += keys.size();
 
         //#pragma omp parallel for schedule(dynamic) if (parallel)
@@ -146,9 +144,9 @@ static inline automata join(automata &a1, automata &a2, bool quant, std::vector<
         }
 
         #ifdef PRINT_TABLES
-        cout << "Result:" << endl << endl;
+        fmt::print("Result:\n\n");
         print_table(compute_table(join));
-        cout << endl;
+        fmt::print("\n");
         #endif
         return join;
 }
@@ -180,7 +178,7 @@ static inline automata join_bucket(std::vector<automata> &bucket, bool quant, st
                 HeapProfilerDump("post-free");
                 #endif
                 #ifdef DEBUG_BUCKETS
-                cout << "Joined " << (it - bucket.begin()) + 1 << " functions" << endl;
+                fmt::print("Joined {} functions\n", (it - bucket.begin()) + 1);
                 #endif
 	}
 
@@ -194,9 +192,9 @@ static inline automata join_bucket(std::vector<automata> &bucket, bool quant, st
 static inline value reduce_last_var(automata &a) {
 
         #ifdef PRINT_TABLES
-        cout << endl << "Minimising:" << endl << endl;
+        fmt::print("\nMinimising:\n\n");
         print_table(compute_table(a));
-        cout << endl;
+        fmt::print("\n");
         #endif
 
         // remove last variable and domain
@@ -245,7 +243,7 @@ static inline value reduce_last_var(automata &a) {
 
         #ifdef PRINT_TABLES
         print_table(compute_table(a));
-        cout << endl;
+        fmt::print("\n");
         #endif
         return 0;
 }
@@ -253,7 +251,7 @@ static inline value reduce_last_var(automata &a) {
 static inline size_t push_bucket(automata const &a, std::vector<std::vector<automata>> &buckets, std::vector<size_t> const &pos) {
 
         const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_vec(pos));
-        buckets[b].push_back(move(a));
+        buckets[b].push_back(std::move(a));
         return b;
 }
 
@@ -268,7 +266,7 @@ static inline value process_bucket(std::vector<automata> &bucket, std::vector<st
                         if (h.vars.size() > 0) {
                                 //automata_dot(h, "dot");
                                 #ifdef DEBUG_BUCKETS
-                                cout << "Result placed in bucket " << push_bucket(h, buckets, pos) << endl;
+                                fmt::print("Result placed in bucket {}\n", push_bucket(h, buckets, pos));
                                 #else
                                 push_bucket(h, buckets, pos);
                                 #endif
@@ -284,8 +282,7 @@ static inline value process_bucket(std::vector<automata> &bucket, std::vector<st
 
 //#define COMPARE_MBE
 
-static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automata> &bucket, size_t ibound,
-                                                    std::vector<size_t> const &pos) {
+static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automata> &bucket, size_t ibound, std::vector<size_t> const &pos) {
 
         // doing a simple FFD bin packing
         sort(bucket.begin(), bucket.end(), [](automata const &x, automata const &y) {
@@ -303,7 +300,7 @@ static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automa
 
         // initialise first mini-bucket with first (larger) function
         std::vector<std::vector<size_t>> bucket_vars = { bucket.front().vars };
-        std::vector<std::vector<automata>> mini_buckets = { { move(bucket.front()) } };
+        std::vector<std::vector<automata>> mini_buckets = { { std::move(bucket.front()) } };
 
         for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
                 size_t mb = 0;
@@ -312,14 +309,14 @@ static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automa
                         SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_vec(pos));
                         if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) {
                                 // function fits in this mini-bucket
-                                mini_buckets[mb].push_back(move(*it));
+                                mini_buckets[mb].push_back(std::move(*it));
                                 bucket_vars[mb] = tmp;
                                 break;
                         }
                 }
                 if (mb == mini_buckets.size()) { // could not find any bucket
                         bucket_vars.push_back({ it->vars });
-                        mini_buckets.push_back({ move(*it) });
+                        mini_buckets.push_back({ std::move(*it) });
                 }
         }
 
@@ -353,12 +350,12 @@ value bucket_elimination(std::vector<std::vector<automata>> &buckets, bool quant
 
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
                 #ifdef DEBUG_BUCKETS
-                cout << "Processing bucket " << *it << " with " << buckets[*it].size() << " functions" << endl;
+                fmt::print("Processing bucket {} with {} functions\n", *it, buckets[*it].size());
                 #endif
                 if (ibound && buckets[*it].size() > 1) {
                         auto mb = mini_buckets(buckets[*it], ibound, pos);
                         #ifdef DEBUG_BUCKETS
-                        cout << "There are " << mb.size() << " mini-buckets" << endl;
+                        fmt::print("There are {} mini-buckets\n", mb.size());
                         #endif
                         for (auto &bucket : mb) {
                                 optimal += process_bucket(bucket, buckets, quant, pos, domains);
@@ -380,8 +377,8 @@ value bucket_elimination(std::vector<std::vector<automata>> &buckets, bool quant
         #endif
 
         log_line();
-        log_value("Total number of automata states", tot_states);
-        log_value("Total number of keys", tot_keys);
+        log_fmt("Total number of automata states", tot_states);
+        log_fmt("Total number of keys", tot_keys);
 
         return optimal;
 }
