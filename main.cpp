@@ -271,7 +271,7 @@ int main(int argc, char *argv[]) {
         if (inst_type == WCSP) {
                 log_fmt("Solution value", optimal);
         } else {
-                log_fmt("Solution value (-log)", fmt::format("{} ({})", exp(-(optimal)), optimal));
+                log_fmt("Solution value (-log)", fmt::format("{:.3f} ({:.3f})", exp(-(optimal)), optimal));
         }
         //log_fmt("Maximum optimality gap", tolerance * tables.size());
         //log_fmt("Maximum optimality gap (%)", 100 * (tolerance * tables.size()) / optimal);
