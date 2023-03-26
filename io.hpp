@@ -8,10 +8,10 @@
 
 template <typename T>
 __attribute__((always_inline)) inline
-string vec2str(T const &vec, const char *name = nullptr, const char *sep = " ",
+std::string vec2str(T const &vec, const char *name = nullptr, const char *sep = " ",
                const char *open = "[ ", const char *close = " ]") {
 
-        ostringstream oss;
+    std::ostringstream oss;
 	if (name) { oss << name << " = "; }
         if (open) { oss << open; }
         if (vec.size() > 1) {
@@ -29,14 +29,14 @@ void print_table(table const &t);
 
 void automata_dot(automata const &c, const char *root_dir = ".");
 
-void print_adj(vector<vector<weight>> const &adj);
+void print_adj(std::vector<std::vector<weight>> const &adj);
 
 void preallocate_rows(table &t, value def = 0);
 
-pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance, int type);
+std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_adj(const char *instance, int type);
 
-vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold);
+std::vector<table> read_tables(const char *instance, int type, std::vector<size_t> const &pos, value threshold);
 
-//void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp);
+//void export_wcsp(std::vector<std::vector<automata>> buckets, std::vector<size_t> const &domains, const char *wcsp);
 
 #endif /* IO_HPP_ */

@@ -58,7 +58,7 @@ void automata_dot(automata const &a, const char *root_dir) {
 
 #define PRECISION 2
 
-void print_adj(vector<vector<weight>> const &adj) {
+void print_adj(std::vector<std::vector<weight>> const &adj) {
 
         const size_t n_vars = adj.size();
         const int var = 1 + floor(log10(n_vars - 1));
@@ -92,7 +92,7 @@ void print_adj(vector<vector<weight>> const &adj) {
         }
 }
 
-string trim(string const &str, string const &whitespace = " \t") {
+std::string trim(std::string const &str, std::string const &whitespace = " \t") {
 
         const auto strBegin = str.find_first_not_of(whitespace);
         if (strBegin == std::string::npos)
@@ -103,9 +103,9 @@ string trim(string const &str, string const &whitespace = " \t") {
 }
 
 template <typename T>
-vector<T> tokenize(ifstream &f) {
+std::vector<T> tokenize(ifstream &f) {
 
-        string str;
+        std::string str;
         getline(f, str);
         while (str.empty()) {
                 getline(f, str);
@@ -114,7 +114,7 @@ vector<T> tokenize(ifstream &f) {
         char *dup = strdup(str.c_str());
         const char *sep = (strstr(dup, " ") != NULL) ? " " : "\t";
         char *token = strtok(dup, sep);
-        vector<T> v;
+        std::vector<T> v;
 
         while (token != NULL) {
                 if constexpr (is_integral_v<T>) {
@@ -132,7 +132,7 @@ vector<T> tokenize(ifstream &f) {
 template <typename T, size_t SKIP, size_t N>
 array<T, N> tokenize(ifstream &f) {
 
-        string str;
+        std::string str;
         getline(f, str);
         while (str.empty()) {
                 getline(f, str);
@@ -168,23 +168,23 @@ array<T, N> tokenize(ifstream &f) {
 
 #define SKIP_LINE f.ignore(numeric_limits<streamsize>::max(), '\n')
 
-static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp(const char *wcsp) {
+static inline std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_adj_wcsp(const char *wcsp) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         const auto domains = tokenize<size_t>(f);
 
-        vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));
-        vector<vector<weight>> tot(n_vars, vector<weight>(n_vars));
+        std::vector<std::vector<weight>> adj(n_vars, std::vector<weight>(n_vars));
+        std::vector<std::vector<weight>> tot(n_vars, std::vector<weight>(n_vars));
 
         for (size_t i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
-                vector<size_t> vars(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                std::vector<size_t> vars(temp.begin() + 1, temp.begin() + temp[0] + 1);
                 size_t n_rows = 1;
                 for (auto it = vars.begin(); it != vars.end(); ++it) {
                         n_rows *= domains[*it];
                 }
-                vector<value> values(1, temp[temp[0] + 1]);
+                std::vector<value> values(1, temp[temp[0] + 1]);
                 for (size_t j = 0; j < temp[temp[0] + 2]; ++j) {
                         auto row = tokenize<value>(f);
                         values.push_back(row.back());
@@ -212,28 +212,28 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_wcsp
         }
 
         f.close();
-        return make_pair(domains, adj);
+        return std::make_pair(domains, adj);
 }
 
-static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_uai(const char *uai) {
+static inline std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_adj_uai(const char *uai) {
 
         ifstream f(uai);
         SKIP_LINE;
         auto [ n_vars ] = tokenize<size_t, 0, 1>(f);
         auto domains = tokenize<size_t>(f);
         auto [ n_tables ] = tokenize<size_t, 0, 1>(f);
-        vector<vector<weight>> adj(n_vars, vector<weight>(n_vars));
-        vector<vector<weight>> tot(n_vars, vector<weight>(n_vars));
-        vector<vector<size_t>> vars(n_tables);
+        std::vector<std::vector<weight>> adj(n_vars, std::vector<weight>(n_vars));
+        std::vector<std::vector<weight>> tot(n_vars, std::vector<weight>(n_vars));
+        std::vector<std::vector<size_t>> vars(n_tables);
 
         for (size_t i = 0; i < n_tables; ++i) {
                 auto temp = tokenize<value>(f);
-                vars[i] = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                vars[i] = std::vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
         }
 
         for (size_t i = 0; i < n_tables; ++i) {
                 auto [ n_rows ] = tokenize<size_t, 0, 1>(f);
-                vector<value> values;
+                std::vector<value> values;
                 while (values.size() < n_rows) {
                         auto temp = tokenize<value>(f);
                         values.insert(values.end(), temp.begin(), temp.end());
@@ -261,10 +261,10 @@ static inline pair<vector<size_t>, vector<vector<weight>>> read_domains_adj_uai(
         }
 
         f.close();
-        return make_pair(domains, adj);
+        return std::make_pair(domains, adj);
 }
 
-pair<vector<size_t>, vector<vector<weight>>> read_domains_adj(const char *instance, int type) {
+std::pair<std::vector<size_t>, std::vector<std::vector<weight>>> read_domains_adj(const char *instance, int type) {
 
         if (type == WCSP) {
                 return read_domains_adj_wcsp(instance);
@@ -279,7 +279,7 @@ void preallocate_rows(table &t, value def) {
         t.rows.resize(n_rows);
 
         for (size_t i = 0; i < n_rows; ++i) {
-                t.rows[i] = make_pair(get_combination(i, t.domains), def);
+                t.rows[i] = std::make_pair(get_combination(i, t.domains), def);
         }
 }
 
@@ -301,18 +301,18 @@ void remove_threshold(table &t, value threshold) {
         }
 }
 
-static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> const &pos, value threshold) {
+static inline std::vector<table> read_tables_wcsp(const char *wcsp, std::vector<size_t> const &pos, value threshold) {
 
         ifstream f(wcsp);
         const auto [ n_vars, max_domain, n_tables ] = tokenize<size_t, 1, 3>(f);
         const auto domains = tokenize<size_t>(f);
-        vector<table> tables(n_tables);
+        std::vector<table> tables(n_tables);
 
         for (size_t i = 0; i < n_tables; ++i) {
 
                 table t;
                 auto temp = tokenize<value>(f);
-                auto vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                auto vars = std::vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
                 t.vars = vars;
                 sort(t.vars.begin(), t.vars.end(), compare_vec(pos));
 
@@ -320,12 +320,12 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
                         t.domains.push_back(domains[var]);
                 }
 
-                vector<size_t> map(t.vars.size());
+                std::vector<size_t> map(t.vars.size());
                 for (size_t i = 0; i < t.vars.size(); ++i) {
                         map[i] = find(t.vars.begin(), t.vars.end(), vars[i]) - t.vars.begin();
                 }
 
-                vector<size_t> pfx_prod(t.domains.size());
+                std::vector<size_t> pfx_prod(t.domains.size());
                 exclusive_scan(t.domains.begin(), t.domains.end(), pfx_prod.begin(), 1, multiplies<>{});
                 preallocate_rows(t, temp[temp[0] + 1]);
 
@@ -340,8 +340,8 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
                 }
 
                 // sort according to values
-                sort(t.rows.begin(), t.rows.end(), [](pair<vector<size_t>, value> const &x,
-                                                      pair<vector<size_t>, value> const &y)
+                sort(t.rows.begin(), t.rows.end(), [](std::pair<std::vector<size_t>, value> const &x,
+                                                      std::pair<std::vector<size_t>, value> const &y)
                                                       { return (x.second < y.second); });
                 remove_threshold(t, threshold);
                 tables[i] = t;
@@ -351,19 +351,19 @@ static inline vector<table> read_tables_wcsp(const char *wcsp, vector<size_t> co
         return tables;
 }
 
-static inline vector<table> read_tables_uai(const char *uai, vector<size_t> const &pos, value threshold) {
+static inline std::vector<table> read_tables_uai(const char *uai, std::vector<size_t> const &pos, value threshold) {
 
         ifstream f(uai);
         SKIP_LINE;
         SKIP_LINE;
         const auto domains = tokenize<size_t>(f);
         auto [ n_tables ] = tokenize<size_t, 0, 1>(f);
-        vector<table> tables(n_tables);
+        std::vector<table> tables(n_tables);
 
         for (size_t i = 0; i < n_tables; ++i) {
                 table t;
                 auto temp = tokenize<value>(f);
-                t.vars = vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
+                t.vars = std::vector<size_t>(temp.begin() + 1, temp.begin() + temp[0] + 1);
                 tables[i] = t;
         }
 
@@ -371,7 +371,7 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
 
                 auto vars = tables[i].vars;
                 reverse(vars.begin(), vars.end());
-                vector<size_t> orig_dom;
+                std::vector<size_t> orig_dom;
                 sort(tables[i].vars.begin(), tables[i].vars.end(), compare_vec(pos));
 
                 for (auto var : vars) {
@@ -382,16 +382,16 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
                         tables[i].domains.push_back(domains[var]);
                 }
 
-                vector<size_t> map(tables[i].vars.size());
+                std::vector<size_t> map(tables[i].vars.size());
                 for (size_t j = 0; j < tables[i].vars.size(); ++j) {
                         map[j] = find(tables[i].vars.begin(), tables[i].vars.end(), vars[j]) - tables[i].vars.begin();
                 }
 
-                vector<size_t> pfx_prod(tables[i].domains.size());
+                std::vector<size_t> pfx_prod(tables[i].domains.size());
                 exclusive_scan(tables[i].domains.begin(), tables[i].domains.end(), pfx_prod.begin(), 1, multiplies<>{});
 
                 auto [ n_rows ] = tokenize<size_t, 0, 1>(f);
-                vector<value> values;
+                std::vector<value> values;
 
                 while (values.size() < n_rows) {
                         auto temp = tokenize<value>(f);
@@ -411,8 +411,8 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
                 }
 
                 // sort according to values
-                sort(tables[i].rows.begin(), tables[i].rows.end(), [](pair<vector<size_t>, value> const &x,
-                                                                      pair<vector<size_t>, value> const &y)
+                sort(tables[i].rows.begin(), tables[i].rows.end(), [](std::pair<std::vector<size_t>, value> const &x,
+                                                                      std::pair<std::vector<size_t>, value> const &y)
                                                                       { return (x.second < y.second); });
                 remove_threshold(tables[i], threshold);
         }
@@ -421,7 +421,7 @@ static inline vector<table> read_tables_uai(const char *uai, vector<size_t> cons
         return tables;
 }
 
-vector<table> read_tables(const char *instance, int type, vector<size_t> const &pos, value threshold) {
+std::vector<table> read_tables(const char *instance, int type, std::vector<size_t> const &pos, value threshold) {
 
         if (type == WCSP) {
                 return read_tables_wcsp(instance, pos, threshold);
@@ -430,7 +430,7 @@ vector<table> read_tables(const char *instance, int type, vector<size_t> const &
         }
 }
 
-/*void export_wcsp(vector<vector<automata>> buckets, vector<size_t> const &domains, const char *wcsp) {
+/*void export_wcsp(std::vector<std::vector<automata>> buckets, std::vector<size_t> const &domains, const char *wcsp) {
 
         ostringstream oss;
         size_t n_funcs = 0;

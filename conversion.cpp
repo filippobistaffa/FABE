@@ -13,8 +13,8 @@
 
 #ifdef OLD
 
-/*static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
-                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
+/*static struct fa *fa_compile_minimise(std::vector<std::pair<std::vector<size_t>, value>>::const_iterator begin,
+                                      std::vector<std::pair<std::vector<size_t>, value>>::const_iterator end) {
 
         ostringstream oss;
 
@@ -33,8 +33,8 @@
 
 #else
 
-static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const_iterator begin,
-                                      vector<pair<vector<size_t>, value>>::const_iterator end) {
+static struct fa *fa_compile_minimise(std::vector<std::pair<std::vector<size_t>, value>>::const_iterator begin,
+                                      std::vector<std::pair<std::vector<size_t>, value>>::const_iterator end) {
 
         struct fa *fa = fa_make_basic(FA_EMPTY);
 
@@ -51,15 +51,15 @@ static struct fa *fa_compile_minimise(vector<pair<vector<size_t>, value>>::const
 __attribute__((always_inline)) inline
 bool are_equal(value a, value b, value tolerance) {
 
-        const value epsilon = numeric_limits<value>::epsilon();
+        const value epsilon = std::numeric_limits<value>::epsilon();
         return fabs(a - b) <= tolerance + epsilon;
 }
 
-pair<automata, value> compute_automata(table const &t, value tolerance) {
+std::pair<automata, value> compute_automata(table const &t, value tolerance) {
 
         automata res = {
-                vector<size_t>(t.vars),
-                vector<size_t>(t.domains),
+                std::vector<size_t>(t.vars),
+                std::vector<size_t>(t.domains),
         };
 
         auto begin = t.rows.begin();
@@ -70,22 +70,22 @@ pair<automata, value> compute_automata(table const &t, value tolerance) {
                 while (end != t.rows.end() && are_equal(end->second, begin->second, tolerance)) {
                         end++;
                 }
-                max_error = max(max_error, prev(end)->second - begin->second);
+                max_error = std::max(max_error, prev(end)->second - begin->second);
                 res.rows.insert({ prev(end)->second, fa_compile_minimise(begin, end) });
                 begin = end;
         }
 
-        return make_pair(res, max_error);
+        return std::make_pair(res, max_error);
 }
 
 table compute_table(automata const &a) {
 
         table res = {
-                vector<size_t>(a.vars),
-                vector<size_t>(a.domains),
+                std::vector<size_t>(a.vars),
+                std::vector<size_t>(a.domains),
         };
 
-        preallocate_rows(res, numeric_limits<value>::max());
+        preallocate_rows(res, std::numeric_limits<value>::max());
 
         size_t *idx = new size_t[res.rows.size()];
 

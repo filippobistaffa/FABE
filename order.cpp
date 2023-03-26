@@ -1,7 +1,7 @@
 #include "order.hpp"
 
 #include <cmath>                // fabs
-#include <iostream>             // cout
+#include <iostream>             // std::cout
 #include <iomanip>              // setw
 #include <numeric>              // accumulate
 #include <algorithm>            // count_if
@@ -18,7 +18,7 @@
 
 //#define DEBUG_GREEDY_ORDER
 
-/*static inline weight new_edge_value(vector<vector<weight>> const &adj, size_t i, size_t j) {
+/*static inline weight new_edge_value(std::vector<std::vector<weight>> const &adj, size_t i, size_t j) {
 
         const weight avg1 = accumulate(adj[i].begin(), adj[i].end(), 0.0) / adj[i].size();
         const weight avg2 = accumulate(adj[j].begin(), adj[j].end(), 0.0) / adj[j].size();
@@ -27,7 +27,7 @@
 
 #define EDGE_VAL(AVG_W, I, J) ((AVG_W[I] + AVG_W[J]) / 2)
 
-static inline weight metric(int order_heur, vector<vector<weight>> const &adj, size_t node, vector<weight> avg_w) {
+static inline weight metric(int order_heur, std::vector<std::vector<weight>> const &adj, size_t node, std::vector<weight> avg_w) {
 
         if (order_heur == O_MIN_DEGREE || order_heur == O_MIN_INDUCED_WIDTH) {
                 return avg_w[node];
@@ -38,13 +38,13 @@ static inline weight metric(int order_heur, vector<vector<weight>> const &adj, s
                                 if (!adj[i][j]) {
                                         if (order_heur == O_WEIGHTED_MIN_FILL) {
                                                 #ifdef DEBUG_GREEDY_ORDER
-                                                cout << "edge (" << i << ", " << j << ") not present, adding " ;
-                                                cout << EDGE_VAL(avg_w, i, j) << endl;
+                                                std::cout << "edge (" << i << ", " << j << ") not present, adding " ;
+                                                std::cout << EDGE_VAL(avg_w, i, j) << '\n';
                                                 #endif
                                                 fill += EDGE_VAL(avg_w, i, j);
                                         } else {
                                                 #ifdef DEBUG_GREEDY_ORDER
-                                                cout << "edge (" << i << ", " << j << ") not present, adding 1" << endl;
+                                                std::cout << "edge (" << i << ", " << j << ") not present, adding 1" << '\n';
                                                 #endif
                                                 fill++;
                                         }
@@ -55,7 +55,7 @@ static inline weight metric(int order_heur, vector<vector<weight>> const &adj, s
         }
 }
 
-static inline void connect_neighbours(int order_heur, vector<vector<weight>> &adj, size_t node, vector<weight> avg_w) {
+static inline void connect_neighbours(int order_heur, std::vector<std::vector<weight>> &adj, size_t node, std::vector<weight> avg_w) {
 
         for EACH_NONZERO(adj[node], i) {
                 for EACH_NONZERO(adj[node], j, i + 1) {
@@ -66,40 +66,40 @@ static inline void connect_neighbours(int order_heur, vector<vector<weight>> &ad
                                         adj[i][j] = adj[j][i] = 1;
                                 }
                                 #ifdef DEBUG_GREEDY_ORDER
-                                cout << "edge (" << i << ", " << j << ") <- " << adj[i][j] << endl;
-                                cout << "edge (" << j << ", " << i << ") <- " << adj[i][j] << endl;
+                                std::cout << "edge (" << i << ", " << j << ") <- " << adj[i][j] << '\n';
+                                std::cout << "edge (" << j << ", " << i << ") <- " << adj[i][j] << '\n';
                                 #endif
                         }
                 }
         }
 }
 
-vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur, int tie_heur) {
+std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, int order_heur, int tie_heur) {
 
-        vector<size_t> order;
-        vector<vector<weight>> tmp_adj(adj);
-        unordered_set<size_t> not_marked(adj.size());
-        vector<weight> avg_w(adj.size());
+        std::vector<size_t> order;
+        std::vector<std::vector<weight>> tmp_adj(adj);
+        std::unordered_set<size_t> not_marked(adj.size());
+        std::vector<weight> avg_w(adj.size());
 
         for (size_t i = 0; i < adj.size(); ++i) {
                 not_marked.insert(i);
                 avg_w[i] = accumulate(tmp_adj[i].begin(), tmp_adj[i].end(), 0.0) / tmp_adj.size();
         }
 
-        //vector<weight> avg_w_in = avg_w;
+        //std::vector<weight> avg_w_in = avg_w;
 
         while (!not_marked.empty()) {
                 #ifdef DEBUG_GREEDY_ORDER
-                //cout << "current adj. matrix" << endl;
+                //std::cout << "current adj. matrix" << '\n';
                 //print_adj(tmp_adj);
-                cout << vec2str(avg_w, "avg_w") << endl;
+                std::cout << vec2str(avg_w, "avg_w") << '\n';
                 #endif
-                vector<size_t> cand;
+                std::vector<size_t> cand;
                 weight min_met = numeric_limits<weight>::max();
                 for (auto i : not_marked) {
                         weight met = metric(order_heur, tmp_adj, i, avg_w);
                         #ifdef DEBUG_GREEDY_ORDER
-                        cout << "metric(" << i << ") = " << met << " (min = " << min_met << ")" << endl;
+                        std::cout << "metric(" << i << ") = " << met << " (min = " << min_met << ")" << '\n';
                         #endif
                         if (fabs(met - min_met) <= numeric_limits<weight>::epsilon()) {
                                 cand.push_back(i);
@@ -110,11 +110,11 @@ vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur, i
                         }
                 }
                 #ifdef DEBUG_GREEDY_ORDER
-                cout << vec2str(cand, "candidates") << endl;
+                std::cout << vec2str(cand, "candidates") << '\n';
                 for (auto c : cand) {
-                        cout << avg_w[c] << " ";
+                        std::cout << avg_w[c] << " ";
                 }
-                cout << endl;
+                std::cout << '\n';
                 #endif
                 size_t sel;
                 if (tie_heur == T_RANDOM) {
@@ -123,7 +123,7 @@ vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur, i
                         sel = *min_element(cand.begin(), cand.end(), compare_vec(avg_w));
                 }
                 #ifdef DEBUG_GREEDY_ORDER
-                cout << "selected = " << sel << endl;
+                std::cout << "selected = " << sel << '\n';
                 #endif
                 // connect neighbours
                 if (order_heur != O_MIN_DEGREE) {
@@ -143,9 +143,9 @@ vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur, i
         return order;
 }
 
-size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &order) {
+size_t induced_width(std::vector<std::vector<weight>> const &adj, std::vector<size_t> const &order) {
 
-        vector<vector<weight>> tmp_adj(adj);
+        std::vector<std::vector<weight>> tmp_adj(adj);
         size_t w = 0;
 
         for (auto i = order.rbegin(); i != order.rend(); ++i) {
@@ -166,12 +166,12 @@ size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &or
 	return w;
 }
 
-static inline void parse(string str, vector<size_t> &order) {
+static inline void parse(std::string str, std::vector<size_t> &order) {
 
         size_t var;
         size_t i = str.find("(");
 
-        if (i != string::npos) {
+        if (i != std::string::npos) {
                 var = atoi(str.substr(0, i).c_str());
                 auto children = str.substr(i);
                 while (children.size() > 0) {
@@ -195,10 +195,10 @@ static inline void parse(string str, vector<size_t> &order) {
         order.push_back(var);
 }
 
-vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains) {
+std::vector<size_t> read_pseudotree_order(const char *filename, std::vector<size_t> const &domains) {
 
-        vector<size_t> vars;
-        vector<size_t> ev(domains.size());
+        std::vector<size_t> vars;
+        std::vector<size_t> ev(domains.size());
 
         for (size_t i = 0; i < domains.size(); ++i) {
                 if (domains[i] == 1) {
@@ -207,7 +207,7 @@ vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const 
                 }
         }
 
-        vector<size_t> offset(ev.size());
+        std::vector<size_t> offset(ev.size());
         partial_sum(ev.begin(), ev.end(), offset.begin());
 
         for (int i = offset.size(); i --> 0; ) {
@@ -216,9 +216,9 @@ vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const 
                 }
         }
 
-        vector<size_t> order;
+        std::vector<size_t> order;
         ifstream f(filename);
-        string str;
+        std::string str;
         getline(f, str);
         parse(str.substr(1, str.size() - 2), order);
         order.pop_back();
@@ -233,9 +233,9 @@ vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const 
         return order;
 }
 
-void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output) {
+void export_order(std::vector<size_t> const &order, std::vector<size_t> const &domains, const char *output) {
 
-        vector<size_t> ev(order.size());
+        std::vector<size_t> ev(order.size());
         size_t n = 0;
 
         for (auto var : order) {
@@ -246,18 +246,18 @@ void export_order(vector<size_t> const &order, vector<size_t> const &domains, co
                 }
         }
 
-        vector<size_t> rem(order.size());
+        std::vector<size_t> rem(order.size());
         partial_sum(ev.begin(), ev.end(), rem.begin());
 
-        ostringstream oss;
+        std::ostringstream oss;
         oss << "# exported in aolib format: first line is the number of variables, ";
         oss << "variables with domain 1 are considered evidence and removed, ";
-        oss << "remaining variables are re-indexed." << endl;
-        oss << n << endl;
+        oss << "remaining variables are re-indexed." << '\n';
+        oss << n << '\n';
 
         for (auto it = order.rbegin(); it != order.rend(); ++it) {
                 if (domains[*it] > 1) {
-                        oss << *it - rem[*it] << endl;
+                        oss << *it - rem[*it] << '\n';
                 }
         }
 

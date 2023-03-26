@@ -20,26 +20,26 @@ enum tie_heur {
 
 template <typename T>
 struct compare_vec {
-        compare_vec(vector<T> const &vec) : vec(vec) {};
+        compare_vec(std::vector<T> const &vec) : vec(vec) {};
         bool operator()(size_t const &x, size_t const &y) {
-                if constexpr (is_integral_v<T>) {
+                if constexpr (std::is_integral_v<T>) {
                         return vec[x] < vec[y];
-                } else if (is_floating_point_v<T>) {
-                        return vec[x] < vec[y] - numeric_limits<weight>::epsilon();
+                } else if (std::is_floating_point_v<T>) {
+                        return vec[x] < vec[y] - std::numeric_limits<weight>::epsilon();
                 }
         }
-        vector<T> vec;
+        std::vector<T> vec;
 };
 
 using namespace std;
 
-vector<size_t> greedy_order(vector<vector<weight>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL,
+std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL,
                             int tie_heur = T_UNIQUENESS);
 
-size_t induced_width(vector<vector<weight>> const &adj, vector<size_t> const &order);
+size_t induced_width(std::vector<std::vector<weight>> const &adj, std::vector<size_t> const &order);
 
-vector<size_t> read_pseudotree_order(const char *filename, vector<size_t> const &domains);
+std::vector<size_t> read_pseudotree_order(const char *filename, std::vector<size_t> const &domains);
 
-void export_order(vector<size_t> const &order, vector<size_t> const &domains, const char *output);
+void export_order(std::vector<size_t> const &order, std::vector<size_t> const &domains, const char *output);
 
 #endif /* ORDER_HPP_ */

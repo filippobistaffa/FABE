@@ -52,8 +52,8 @@ value quantise(value val) {
         }
 }
 
-static inline automata join(automata &a1, automata &a2, bool quant, vector<size_t> const &pos,
-                            vector<size_t> const &domains) {
+static inline automata join(automata &a1, automata &a2, bool quant, std::vector<size_t> const &pos,
+                            std::vector<size_t> const &domains) {
 
         #ifdef PRINT_TABLES
         cout << endl << "Joining:" << endl << endl;
@@ -73,14 +73,14 @@ static inline automata join(automata &a1, automata &a2, bool quant, vector<size_
         }
 
         // variables to be added
-        vector<size_t> add1;
-        vector<size_t> add2;
+        std::vector<size_t> add1;
+        std::vector<size_t> add2;
         SET_OP(set_difference, a2.vars, a1.vars, add1, compare_vec(pos));
         SET_OP(set_difference, a1.vars, a2.vars, add2, compare_vec(pos));
 
         // non-shared variables' positions in union
-        vector<size_t> padd1;
-        vector<size_t> padd2;
+        std::vector<size_t> padd1;
+        std::vector<size_t> padd2;
 
         for (auto var : add1) {
                 padd1.push_back(lower_bound(join.vars.begin(), join.vars.end(), var, compare_vec(pos)) - join.vars.begin());
@@ -113,7 +113,7 @@ static inline automata join(automata &a1, automata &a2, bool quant, vector<size_
                 }
         }
 
-        vector<value> keys;
+        std::vector<value> keys;
 
         for (auto &[ v1, fa1 ] : a1.rows) {
                 for (auto &[ v2, fa2 ] : a2.rows) {
@@ -161,7 +161,7 @@ static inline void free_automata(automata &a) {
         a.rows.clear();
 }
 
-static inline automata join_bucket(vector<automata> &bucket, bool quant, vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline automata join_bucket(std::vector<automata> &bucket, bool quant, std::vector<size_t> const &pos, std::vector<size_t> const &domains) {
 
         auto res = bucket.front();
 
@@ -202,7 +202,7 @@ static inline value reduce_last_var(automata &a) {
         // remove last variable and domain
         a.vars.pop_back();
         a.domains.pop_back();
-        vector<value> keys;
+        std::vector<value> keys;
 
         for (auto &[ v, fa ] : a.rows) {
                 if (fa_remove_last(fa) > 1) {
@@ -217,7 +217,7 @@ static inline value reduce_last_var(automata &a) {
                 return keys.front();
         }
 
-        vector<struct fa *> pfx_union(keys.size());
+        std::vector<struct fa *> pfx_union(keys.size());
         pfx_union[0] = fa_make_basic(FA_EMPTY);
 
         for (size_t i = 1; i < keys.size(); ++i) {
@@ -225,7 +225,7 @@ static inline value reduce_last_var(automata &a) {
                 fa_minimize(pfx_union[i]);
         }
 
-        vector<value> empty;
+        std::vector<value> empty;
 
         for (size_t i = 1; i < keys.size(); ++i) {
                 OP_FREE_OLD(fa_minus, fa_free, a.rows[keys[i]], pfx_union[i]);
@@ -250,15 +250,15 @@ static inline value reduce_last_var(automata &a) {
         return 0;
 }
 
-static inline size_t push_bucket(automata const &a, vector<vector<automata>> &buckets, vector<size_t> const &pos) {
+static inline size_t push_bucket(automata const &a, std::vector<std::vector<automata>> &buckets, std::vector<size_t> const &pos) {
 
         const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_vec(pos));
         buckets[b].push_back(move(a));
         return b;
 }
 
-static inline value process_bucket(vector<automata> &bucket, vector<vector<automata>> &buckets, bool quant,
-                                   vector<size_t> const &pos, vector<size_t> const &domains) {
+static inline value process_bucket(std::vector<automata> &bucket, std::vector<std::vector<automata>> &buckets, bool quant,
+                                   std::vector<size_t> const &pos, std::vector<size_t> const &domains) {
 
         if (bucket.size()) {
                 auto h = join_bucket(bucket, quant, pos, domains);
@@ -275,7 +275,7 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
                         }
                         return res;
                 } else { // no assignment is in all functions, some constraint is violated
-                        return numeric_limits<value>::infinity();
+                        return std::numeric_limits<value>::infinity();
                 }
         } else {
                 return 0;
@@ -284,8 +284,8 @@ static inline value process_bucket(vector<automata> &bucket, vector<vector<autom
 
 //#define COMPARE_MBE
 
-static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, size_t ibound,
-                                                    vector<size_t> const &pos) {
+static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automata> &bucket, size_t ibound,
+                                                    std::vector<size_t> const &pos) {
 
         // doing a simple FFD bin packing
         sort(bucket.begin(), bucket.end(), [](automata const &x, automata const &y) {
@@ -302,13 +302,13 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
         });
 
         // initialise first mini-bucket with first (larger) function
-        vector<vector<size_t>> bucket_vars = { bucket.front().vars };
-        vector<vector<automata>> mini_buckets = { { move(bucket.front()) } };
+        std::vector<std::vector<size_t>> bucket_vars = { bucket.front().vars };
+        std::vector<std::vector<automata>> mini_buckets = { { move(bucket.front()) } };
 
         for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
                 size_t mb = 0;
                 for (; mb < mini_buckets.size(); ++mb) {
-                        vector<size_t> tmp;
+                        std::vector<size_t> tmp;
                         SET_OP(set_union, it->vars, bucket_vars[mb], tmp, compare_vec(pos));
                         if (tmp.size() == bucket_vars[mb].size() || tmp.size() <= ibound + 1) {
                                 // function fits in this mini-bucket
@@ -326,9 +326,9 @@ static inline vector<vector<automata>> mini_buckets(vector<automata> &bucket, si
         return mini_buckets;
 }
 
-vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vector<size_t> const &pos) {
+std::vector<std::vector<automata>> compute_buckets(std::vector<automata> const &automatas, std::vector<size_t> const &pos) {
 
-        vector<vector<automata>> buckets(pos.size(), vector<automata>());
+        std::vector<std::vector<automata>> buckets(pos.size(), std::vector<automata>());
 
         for (automata const &a : automatas) {
                 push_bucket(a, buckets, pos);
@@ -337,9 +337,9 @@ vector<vector<automata>> compute_buckets(vector<automata> const &automatas, vect
         return buckets;
 }
 
-value bucket_elimination(vector<vector<automata>> &buckets, bool quant,
-                         vector<size_t> const &order, vector<size_t> const &pos,
-                         vector<size_t> const &domains, size_t ibound) {
+value bucket_elimination(std::vector<std::vector<automata>> &buckets, bool quant,
+                         std::vector<size_t> const &order, std::vector<size_t> const &pos,
+                         std::vector<size_t> const &domains, size_t ibound) {
 
         #ifdef CPU_PROFILER
         ProfilerStart(CPU_PROFILER_OUTPUT);

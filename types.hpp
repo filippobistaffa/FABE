@@ -5,22 +5,20 @@
 #include <unordered_map>
 #include <vector>
 
-using namespace std;
-
 typedef double value;
 
 typedef double weight;
 
 struct automata {
-        vector<size_t> vars;
-        vector<size_t> domains;
-        unordered_map<value, struct fa *> rows {};
+        std::vector<size_t> vars;
+        std::vector<size_t> domains;
+        std::unordered_map<value, struct fa *> rows {};
 };
 
 struct table {
-        vector<size_t> vars;
-        vector<size_t> domains;
-        vector<pair<vector<size_t>, value>> rows {};
+        std::vector<size_t> vars;
+        std::vector<size_t> domains;
+        std::vector<std::pair<std::vector<size_t>, value>> rows {};
 };
 
 enum instance {
