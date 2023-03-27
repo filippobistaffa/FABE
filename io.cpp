@@ -9,6 +9,7 @@
 #include <linux/limits.h>       // PATH_MAX
 #include <unistd.h>             // getcwd
 #include <cassert>              // assert
+#include <array>                // array
 
 // fmt library
 #define FMT_HEADER_ONLY
