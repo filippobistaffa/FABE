@@ -137,6 +137,9 @@ int main(int argc, char *argv[]) {
         }
 
         log_line();
+        log_title("Finite-State Automata Bucket Elimination (FABE)");
+        log_title("https://github.com/filippobistaffa/FABE");
+        log_line();
         log_fmt("Instance", instance);
         int inst_type;
 
