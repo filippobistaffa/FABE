@@ -69,8 +69,8 @@ static inline void connect_neighbours(int order_heur, std::vector<std::vector<we
                                         adj[i][j] = adj[j][i] = 1;
                                 }
                                 #ifdef DEBUG_GREEDY_ORDER
-                                fmt::print("edge ({}, {}) <- ()\n", i, j, adj[i][j]);
-                                fmt::print("edge ({}, {}) <- ()\n", j, i, adj[i][j]);
+                                fmt::print("edge ({}, {}) <- {}\n", i, j, adj[i][j]);
+                                fmt::print("edge ({}, {}) <- {}\n", j, i, adj[i][j]);
                                 #endif
                         }
                 }
