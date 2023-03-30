@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# default instance parameters
+seed=$RANDOM
+instance=""
+
+# default job parameters
+out=""
+err="/dev/null"
+time="1:00:00"
+cpus="16"
+memory="32GB"
+
+args=""
+
+while [[ $# > 0 ]]
+do
+    key="$1"
+    case $key in
+        -f|--file)
+            shift
+            instance="$1"
+            shift
+        ;;
+        -s|--seed)
+            shift
+            seed="$1"
+            shift
+        ;;
+        --output)
+            shift
+            out="$1"
+            shift
+        ;;
+        --error)
+            shift
+            err="$1"
+            shift
+        ;;
+        --time)
+            shift
+            time="$1"
+            shift
+        ;;
+        --cpus)
+            shift
+            cpus="$1"
+            shift
+        ;;
+        --memory)
+            shift
+            memory="$1"
+            shift
+        ;;
+        *)
+            args="$args$key "
+            shift
+        ;;
+    esac
+done
+
+if [ -z "$instance" ]
+then
+    echo "Required instance option (-f) missing!"
+    exit 1
+fi
+
+if [ ! -f "$instance" ]
+then
+    echo "$instance does not exists!"
+    exit 1
+fi
+
+if [ -z "$out" ]
+then
+    out=${instance##*/}-$seed.out
+fi
+
+if hash sbatch 2>/dev/null
+then
+
+tmpfile=$(mktemp)
+sbatch 1> $tmpfile <<EOF
+#!/bin/bash
+#SBATCH --job-name=fabe-${instance##*/}-$seed
+#SBATCH --time=$time
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=$cpus
+#SBATCH --mem=$memory
+#SBATCH --output=$out
+#SBATCH --error=$err
+#SBATCH --mail-type=begin
+#SBATCH --mail-type=end
+#SBATCH --mail-type=fail
+#SBATCH --mail-user=email@domain
+echo srun $HOME/fabe/fabe -f $instance -s $seed $args
+srun $HOME/fabe/fabe -f $instance -s $seed $args
+EOF
+
+else
+echo "Unknown cluster"
+fi
