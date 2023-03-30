@@ -2,6 +2,7 @@
 
 bin="./fabe"
 qcachegrind="./qcachegrind"
+pprof="google-pprof"
 trace="trace"
 heapcheck="normal" #strict draconian
 
@@ -13,9 +14,10 @@ fi
 
 if [[ $1 == "cpu" ]]
 then
-        ${bin} ${@:2}
-        pprof --callgrind ${bin} ${trace}.prof > ${trace}.callgrind
-        ${qcachegrind} ${trace}.callgrind &
+    ${bin} ${@:2}
+    ${pprof} --gv ${bin} ${trace}.prof
+    #${pprof} --callgrind ${bin} ${trace}.prof > ${trace}.callgrind
+    #${qcachegrind} ${trace}.callgrind &
 else
-        env PPROF_PATH=`which pprof` HEAPCHECK=${heapcheck} ${bin} ${@:2}
+    env PPROF_PATH=`which ${pprof}` HEAPCHECK=${heapcheck} ${bin} ${@:2}
 fi
