@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.9)
 option(PROFILE "Enable Gperftools CPU profiler" OFF)
 option(HEAP "Enable Gperftools heap profiler" OFF)
 
@@ -49,6 +49,7 @@ find_package(Gperftools)
 
 add_executable(${NAME} ${SOURCES})
 target_compile_options(${NAME} PRIVATE ${PEDANTIC_COMPILE_FLAGS} ${EXCLUDED_WARNINGS} ${OPTIMIZATION_COMPILE_FLAGS})
+set_target_properties(${NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 target_link_libraries(${NAME} PRIVATE OpenMP::OpenMP_CXX)
 
 if(GPERFTOOLS_FOUND)
