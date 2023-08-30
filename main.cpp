@@ -276,7 +276,9 @@ int main(int argc, char *argv[]) {
         } else {
                 log_fmt("Solution value (-log)", fmt::format("{:.3f} ({:.3f})", exp(-(optimal)), optimal));
         }
-        log_string("Optimality gap", fmt::format("{} ({:3f}%)", tot_error, 100 * (tot_error) / optimal));
+        if (tot_error != 0) {
+                log_string("Optimality gap", fmt::format("{} ({:3f}%)", tot_error, 100 * (tot_error) / optimal));
+        }
         log_fmt("Bucket elimination runtime", fmt::format("{:%T}", runtime));
         log_line();
 
