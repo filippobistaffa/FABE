@@ -4,7 +4,8 @@
 #include <numeric>      // accumulate
 #include <string.h>     // strcmp
 #include <unistd.h>     // getopt
-#include <algorithm>    // reverse, random_shuffle
+#include <algorithm>    // reverse
+#include <random>       // shuffle
 
 #include "be.hpp"
 #include "io.hpp"
@@ -199,8 +200,8 @@ int main(int argc, char *argv[]) {
                 if (ord_heur == O_RANDOM) {
                         log_fmt("Variable order heuristic", "RANDOM");
                         order.resize(domains.size());
-                        iota(order.begin(), order.end(), 0);
-                        random_shuffle(order.begin(), order.end());
+                        std::iota(order.begin(), order.end(), 0);
+                        std::shuffle(order.begin(), order.end(), std::default_random_engine{seed});
                 } else {
                         log_fmt("Variable order heuristic", ord_heur_names[ord_heur]);
                         log_fmt("Tie-breaking heuristic", tie_heur_names[tie_heur]);
@@ -209,7 +210,7 @@ int main(int argc, char *argv[]) {
         }
 
         //fmt::print("Order: {}\n", order);
-        reverse(order.begin(), order.end());
+        std::reverse(order.begin(), order.end());
         std::vector<size_t> pos(order.size());
         for (size_t i = 0; i < order.size(); ++i) {
                 pos[order[i]] = i;
