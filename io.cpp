@@ -10,6 +10,7 @@
 #include <unistd.h>             // getcwd
 #include <cassert>              // assert
 #include <array>                // array
+#include <cstdlib>              // system
 
 // fmt library
 #define FMT_HEADER_ONLY
@@ -50,6 +51,13 @@ void automata_dot(automata const &a, const char *root_dir) {
 
         for (auto const &[ v, fa ] : a.rows) {
                 fa_make_dot(fa, "%.5f.dot", v);
+        }
+
+        system("sed -E -i 's/\\\\\\\\0{2,}//g' *.dot");
+        system("sed -E -i 's/\\\\\\\\0/0/g' *.dot");
+
+        if (system("dot -Tpng -O *.dot")) {
+                fmt::print(stderr, "Failed to render dot files\n");
         }
 
         chdir(cwd);
