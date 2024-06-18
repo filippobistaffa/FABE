@@ -39,8 +39,14 @@ set(SOURCES
     libfa/ref.c
 )
 
-include_directories(fmt/include)
 include_directories(libfa)
+
+include(FetchContent)
+FetchContent_Declare(fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    GIT_TAG master
+)
+FetchContent_MakeAvailable(fmt)
 
 find_package(OpenMP REQUIRED)
 
@@ -50,7 +56,7 @@ find_package(Gperftools)
 add_executable(${NAME} ${SOURCES})
 target_compile_options(${NAME} PRIVATE ${PEDANTIC_COMPILE_FLAGS} ${EXCLUDED_WARNINGS} ${OPTIMIZATION_COMPILE_FLAGS})
 set_target_properties(${NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
-target_link_libraries(${NAME} PRIVATE OpenMP::OpenMP_CXX)
+target_link_libraries(${NAME} PRIVATE OpenMP::OpenMP_CXX fmt::fmt)
 
 if(GPERFTOOLS_FOUND)
     LIST(APPEND LINK_LIBRARIES ${GPERFTOOLS_LIBRARIES})

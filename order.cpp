@@ -8,7 +8,6 @@
 #include <unordered_set>    // unordered_set
 
 // fmt library
-#define FMT_HEADER_ONLY
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 
