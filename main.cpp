@@ -40,10 +40,10 @@ int main(int argc, char *argv[]) {
     size_t ibound = 0;
     int ord_heur = O_WEIGHTED_MIN_FILL;
     int tie_heur = T_UNIQUENESS;
-    char *instance = NULL;
-    char *pseudotree = NULL;
-    char *order_file = NULL;
-    size_t seed = time(NULL);
+    char *instance = nullptr;
+    char *pseudotree = nullptr;
+    char *order_file = nullptr;
+    size_t seed = time(nullptr);
     bool print_red = false;
     int opt;
 
