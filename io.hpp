@@ -17,4 +17,4 @@ std::vector<table> read_tables(const char *instance, int type, std::vector<size_
 
 //void export_wcsp(std::vector<std::vector<automata>> buckets, std::vector<size_t> const &domains, const char *wcsp);
 
-#endif /* IO_HPP_ */
+#endif

@@ -10,20 +10,20 @@ typedef double value;
 typedef double weight;
 
 struct automata {
-        std::vector<size_t> vars;
-        std::vector<size_t> domains;
-        std::unordered_map<value, struct fa *> rows {};
+    std::vector<size_t> vars;
+    std::vector<size_t> domains;
+    std::unordered_map<value, struct fa *> rows {};
 };
 
 struct table {
-        std::vector<size_t> vars;
-        std::vector<size_t> domains;
-        std::vector<std::pair<std::vector<size_t>, value>> rows {};
+    std::vector<size_t> vars;
+    std::vector<size_t> domains;
+    std::vector<std::pair<std::vector<size_t>, value>> rows {};
 };
 
 enum instance {
-        WCSP,
-        MPE
+    WCSP,
+    MPE
 };
 
-#endif /* TYPES_HPP_ */
+#endif

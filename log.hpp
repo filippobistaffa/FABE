@@ -39,7 +39,7 @@ inline void log_string(std::string name, std::string val, std::string param = ""
     if (val.length() > COLUMN_WIDTH) {
         fmt::print("...{}", val.substr(val.length() - COLUMN_WIDTH + 3));
     } else {
-        fmt::print("{1:<{0}}", COLUMN_WIDTH, val);
+       fmt::print("{1:<{0}}", COLUMN_WIDTH, val);
     }
     fmt::print(" |\n");
     std::fflush(nullptr);
@@ -65,4 +65,4 @@ inline void log_progress_increase(float step, float tot) {
     }
 }
 
-#endif /* LOG_HPP_ */
+#endif
