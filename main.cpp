@@ -1,5 +1,6 @@
 #include "main.hpp"
 
+#include <filesystem>   // std::filesystem::exists
 #include <chrono>       // time measurement
 #include <numeric>      // accumulate
 #include <string.h>     // strcmp
@@ -30,17 +31,6 @@ static inline void print_usage(const char *bin) {
 
     fmt::print(stderr, "Usage: {} [-h] [-a bub|brz|hop] [-i bound] [-o wmf|mf|miw|md|random|*.pt] ", bin);
     fmt::print(stderr, "[-t unique|random] [-s seed] [-O order] [-r] -f instance\n");
-}
-
-static inline bool exists(const char *filename) {
-
-    FILE *file = fopen(filename, "r");
-    if (!file) {
-        return false;
-    } else {
-        fclose(file);
-        return true;
-    }
 }
 
 int main(int argc, char *argv[]) {
@@ -76,7 +66,7 @@ int main(int argc, char *argv[]) {
                 ibound = std::max(0, atoi(optarg));
                 continue;
             case 'f':
-                if (exists(optarg)) {
+                if (std::filesystem::exists(optarg)) {
                     instance = optarg;
                 } else {
                     fmt::print(stderr, "{}: file not found -- '{}'\n", argv[0], optarg);
@@ -95,7 +85,7 @@ int main(int argc, char *argv[]) {
                     ord_heur = O_MIN_DEGREE;
                 } else if (strcmp(optarg, "random") == 0) {
                     ord_heur = O_RANDOM;
-                } else if (exists(optarg)) {
+                } else if (std::filesystem::exists(optarg)) {
                     pseudotree = optarg;
                 } else {
                     fmt::print(stderr, "{}: file not found -- '{}'\n", argv[0], optarg);
