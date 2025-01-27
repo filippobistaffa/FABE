@@ -28,12 +28,15 @@ set(OPTIMIZATION_COMPILE_FLAGS
     -fopenmp
 )
 
-set(SOURCES
+set(CXX_SOURCES
     be.cpp
     conversion.cpp
     io.cpp
     main.cpp
     order.cpp
+)
+
+set(C_SOURCES
     libfa/fa.c
     libfa/hash.c
     libfa/ref.c
@@ -53,7 +56,8 @@ find_package(OpenMP REQUIRED)
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 find_package(Gperftools)
 
-add_executable(${NAME} ${SOURCES})
+add_executable(${NAME} ${C_SOURCES} ${CXX_SOURCES})
+set_source_files_properties(${CXX_SOURCES} PROPERTIES COMPILE_FLAGS -Wnrvo)
 target_compile_options(${NAME} PRIVATE ${PEDANTIC_COMPILE_FLAGS} ${EXCLUDED_WARNINGS} ${OPTIMIZATION_COMPILE_FLAGS})
 set_target_properties(${NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 target_link_libraries(${NAME} PRIVATE OpenMP::OpenMP_CXX fmt::fmt)
