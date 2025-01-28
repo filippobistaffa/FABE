@@ -5050,7 +5050,8 @@ static int minimize_bubenzer(struct fa *fa) {
     list_for_each(s, fa->initial) {
         s->visited = 0;
     }
-    F(state_list_add(queue, fa->initial));
+    //F(state_list_add(queue, fa->initial));
+    state_list_add(queue, fa->initial);
     fa->initial->visited = 1; // not really necessary
     fa->initial->level = 0;
     for (struct state_list_node *cur = queue->first; cur != NULL; cur = cur->next) {
@@ -5058,7 +5059,8 @@ static int minimize_bubenzer(struct fa *fa) {
             if (!t->to->visited) {
                 t->to->visited = 1;
                 t->to->level = cur->state->level + 1;
-                F(state_list_add(queue, t->to));
+                //F(state_list_add(queue, t->to));
+                state_list_add(queue, t->to);
             }
         }
     }
