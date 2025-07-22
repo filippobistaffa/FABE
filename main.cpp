@@ -20,7 +20,7 @@
 #include <fmt/chrono.h>
 
 // print tables after parsing
-#define PRINT_TABLES
+//#define PRINT_TABLES
 
 // export dot representation of created automata
 //#define EXPORT_AUTOMATA_DOT

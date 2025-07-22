@@ -8,7 +8,7 @@
 #include "log.hpp"
 
 // print tables during execution
-#define PRINT_TABLES
+//#define PRINT_TABLES
 
 // print bucket debug messages
 //#define DEBUG_BUCKETS
