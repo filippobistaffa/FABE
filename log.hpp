@@ -1,6 +1,8 @@
 #ifndef LOG_HPP_
 #define LOG_HPP_
 
+#include <string>
+
 // fmt library
 #include <fmt/core.h>
 
@@ -17,9 +19,9 @@ inline void log_title(std::string title) {
     std::fflush(nullptr);
 }
 
-inline void log_line() {
+inline void log_line(std::string sep = "+") {
 
-    fmt::print("+{1:->{0}}+{1:->{0}}+\n", COLUMN_WIDTH + 2, "");
+    fmt::print("+{1:->{0}}{2}{1:->{0}}+\n", COLUMN_WIDTH + 2, "", sep);
     std::fflush(nullptr);
 }
 

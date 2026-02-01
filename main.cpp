@@ -20,7 +20,7 @@
 #include <fmt/chrono.h>
 
 // print tables after parsing
-#define PRINT_TABLES
+//#define PRINT_TABLES
 
 // export dot representation of created automata
 //#define EXPORT_AUTOMATA_DOT
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    log_line();
+    log_line("-");
     log_title("Finite-State Automata Bucket Elimination (FABE)");
     log_title("https://github.com/filippobistaffa/FABE");
     log_line();

@@ -2,13 +2,14 @@
 
 #include <numeric>      // accumulate
 #include <algorithm>    // max_element, sort
+#include <cmath>        // exp, log
 
 #include "libfa/fa.h"
 #include "order.hpp"
 #include "log.hpp"
 
 // print tables during execution
-#define PRINT_TABLES
+//#define PRINT_TABLES
 
 // print bucket debug messages
 //#define DEBUG_BUCKETS
@@ -42,7 +43,7 @@ size_t tot_keys;
 value quantise(value val) {
 
     if constexpr (QUANTISATION) {
-        const value q = floor(exp(-val) * QUANTISATION);
+        const value q = floor(std::exp(-val) * QUANTISATION);
         return -log(q / QUANTISATION);
     } else {
         return val;
