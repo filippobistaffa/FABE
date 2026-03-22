@@ -1,7 +1,8 @@
 #!/bin/bash
 
+name="fabe"
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exe="$root/fabe"
+exe="$root/$name"
 
 # default instance parameters
 seed=$RANDOM
@@ -120,7 +121,7 @@ then
 tmpfile=$(mktemp)
 sbatch 1> $tmpfile <<EOF
 #!/bin/bash
-#SBATCH --job-name=iw-${instance##*/}-$seed
+#SBATCH --job-name=$name-${instance##*/}-$seed
 #SBATCH --time=$time
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=$cpus
