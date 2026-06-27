@@ -5,6 +5,7 @@
 
 // fmt library
 #include <fmt/core.h>
+#include <fmt/format.h>
 
 #define TOTAL_WIDTH 79
 #define COLUMN_WIDTH ((TOTAL_WIDTH - 7) / 2)
