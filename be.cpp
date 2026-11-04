@@ -167,8 +167,8 @@ std::vector<automata> split_remove_last_var(automata &a) {
 
     for (size_t d = 0; d < domain; ++d) {
         automata b = {
-            std::vector<size_t>(a.vars),
-            std::vector<size_t>(a.domains),
+            std::vector<size_t>(a.vars.begin(), a.vars.end() - 1),
+            std::vector<size_t>(a.domains.begin(), a.domains.end() - 1),
         };
         for (auto const &[ v, fa ] : a.rows) {
             auto filtered_fa = fa_clone(fa);
