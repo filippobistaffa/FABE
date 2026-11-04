@@ -4883,6 +4883,7 @@ void fa_filter_remove_last(struct fa *fa, char ch) {
     fa_remove_last(fa);
     fa_merge_accept(fa);
     collect(fa);
+    fa->deterministic = -1;
 }
 
 bool fa_is_empty(struct fa *fa) {
