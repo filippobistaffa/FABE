@@ -163,7 +163,7 @@ static inline automata join_bucket(std::vector<automata> &bucket, bool quant, st
 
     auto res = bucket.front();
 
-	for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
+    for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
         auto old = res;
         #ifdef HEAP_PROFILER
         HeapProfilerDump("pre-join");
@@ -180,7 +180,7 @@ static inline automata join_bucket(std::vector<automata> &bucket, bool quant, st
         #ifdef DEBUG_BUCKETS
         fmt::print("Joined {} functions\n", (it - bucket.begin()) + 1);
         #endif
-	}
+    }
 
     for (auto &[ v, fa ] : res.rows) {
         tot_states += fa_n_states(fa);
