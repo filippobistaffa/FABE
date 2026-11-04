@@ -159,6 +159,33 @@ static inline void free_automata(automata &a) {
     a.rows.clear();
 }
 
+std::vector<automata> split_remove_last_var(automata &a) {
+
+    //automata_dot(a, "datasets/wcsp/map/before");
+    std::vector<automata> res;
+    const auto domain = a.domains.back();
+
+    for (size_t d = 0; d < domain; ++d) {
+        automata b = {
+            std::vector<size_t>(a.vars),
+            std::vector<size_t>(a.domains),
+        };
+        for (auto const &[ v, fa ] : a.rows) {
+            auto filtered_fa = fa_clone(fa);
+            fa_filter_remove_last(filtered_fa, d);
+            if (fa_is_empty(filtered_fa)) {
+                fa_free(filtered_fa);
+            } else {
+                b.rows.insert({ v, filtered_fa });
+            }
+        }
+        res.push_back(b);
+        //automata_dot(b, fmt::format("datasets/wcsp/map/{}", d).c_str());
+    }
+
+    return res;
+}
+
 static inline automata join_bucket(std::vector<automata> &bucket, bool quant, std::vector<size_t> const &pos, std::vector<size_t> const &domains) {
 
     auto res = bucket.front();

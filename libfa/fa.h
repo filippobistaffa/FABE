@@ -339,6 +339,8 @@ void fa_add_level(struct fa *fa, size_t level, size_t dom);
 
 size_t fa_remove_last(struct fa *fa);
 
+void fa_filter_remove_last(struct fa *fa, char ch);
+
 void fa_merge_accept(struct fa *fa);
 
 void fa_add_word(struct fa *fa, const size_t *word, size_t length);
@@ -346,6 +348,8 @@ void fa_add_word(struct fa *fa, const size_t *word, size_t length);
 size_t fa_n_states(struct fa *fa);
 
 size_t fa_enumerate_idx(struct fa *fa, const size_t *dom, size_t *idx);
+
+bool fa_is_empty(struct fa *fa);
 
 #ifdef __cplusplus
 }

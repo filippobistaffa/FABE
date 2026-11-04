@@ -4861,6 +4861,34 @@ size_t fa_remove_last(struct fa *fa) {
     return na;
 }
 
+void fa_filter_remove_last(struct fa *fa, char ch) {
+    list_for_each(s, fa->initial) {
+        if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
+            //printf("%p ", (void *)s);
+            //printf("%d - %d: ", s->trans->min, s->trans->max);
+            if (ch < s->trans->min || ch > s->trans->max) {
+                s->live = 0;
+            } else {
+                s->trans->min = s->trans->max = ch;
+            }
+        }
+    }
+    collect_trans(fa);
+    fa_reverse(fa);
+    mark_live(fa);
+    collect_dead_states(fa);
+    fa_reverse(fa);
+    mark_live(fa);
+    collect_dead_states(fa);
+    fa_remove_last(fa);
+    fa_merge_accept(fa);
+    collect(fa);
+}
+
+bool fa_is_empty(struct fa *fa) {
+    return fa->initial->tused == 0;
+}
+
 void fa_merge_accept(struct fa *fa) {
     struct state *accept = add_state(fa, 0);
     list_for_each(st, fa->initial) {
