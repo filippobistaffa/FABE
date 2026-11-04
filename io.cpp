@@ -41,8 +41,13 @@ void print_table(table const &t) {
 
 void automata_dot(automata const &a, const char *root_dir) {
 
+    if (a.rows.empty()) {
+        return;
+    }
+
     char cwd[PATH_MAX];
     getcwd(cwd, sizeof(cwd));
+    system(fmt::format("mkdir -p {}", root_dir).c_str());
     chdir(root_dir);
     auto folder = fmt::format("{}", a.vars);
     mkdir(folder.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
