@@ -11,7 +11,6 @@ value bucket_elimination(std::vector<std::vector<automata>> &buckets, bool quant
                          std::vector<size_t> const &order, std::vector<size_t> const &pos,
                          std::vector<size_t> const &domains, size_t ibound = 0);
 
-
-std::vector<automata> split_remove_last_var(automata &a);
+automata map_reduce_last_var(automata &a, bool quant, std::vector<size_t> const &pos, std::vector<size_t> const &domains);
 
 #endif

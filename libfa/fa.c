@@ -4658,11 +4658,18 @@ static void print_char(FILE *out, uchar c) {
 void fa_dot(FILE *out, struct fa *fa) {
     fprintf(out, "digraph {\n  rankdir=LR;");
     list_for_each(s, fa->initial) {
+        fprintf(out, "\"%p\" [style=filled, ", (void *)s);
         if (s->accept) {
-            fprintf(out, "\"%p\" [shape=doublecircle];\n", (void *)s);
+            fprintf(out, "shape=doublecircle, ");
         } else {
-            fprintf(out, "\"%p\" [shape=circle];\n", (void *)s);
+            fprintf(out, "shape=circle, ");
         }
+        if (s->live) {
+            fprintf(out, "fillcolor=white");
+        } else {
+            fprintf(out, "fillcolor=lightgray");
+        }
+        fprintf(out, "];");
     }
     fprintf(out, "%s -> \"%p\";\n", fa->deterministic ? "dfa" : "nfa",
             (void *)fa->initial);
@@ -4864,12 +4871,21 @@ size_t fa_remove_last(struct fa *fa) {
 void fa_filter_remove_last(struct fa *fa, char ch) {
     list_for_each(s, fa->initial) {
         if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
-            //printf("%p ", (void *)s);
-            //printf("%d - %d: ", s->trans->min, s->trans->max);
-            if (ch < s->trans->min || ch > s->trans->max) {
-                s->live = 0;
+            //printf("%p\n", (void *)s);
+            bool found = false;
+            for_each_trans(t, s) {
+                if (ch >= t->min && ch <= t->max) {
+                    found = true;
+                }
+            }
+            if (found) {
+                for_each_trans(t, s) {
+                    t->min = t->max = ch;
+                }
+                sort_merge_trans(s);
             } else {
-                s->trans->min = s->trans->max = ch;
+                //free_trans(s);
+                s->live = 0;
             }
         }
     }

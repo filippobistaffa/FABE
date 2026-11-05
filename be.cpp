@@ -7,6 +7,7 @@
 #include "libfa/fa.h"
 #include "order.hpp"
 #include "log.hpp"
+#include "io.hpp"
 
 // print tables during execution
 //#define PRINT_TABLES
@@ -159,9 +160,8 @@ static inline void free_automata(automata &a) {
     a.rows.clear();
 }
 
-std::vector<automata> split_remove_last_var(automata &a) {
+static inline std::vector<automata> split_remove_last_var(automata &a) {
 
-    //automata_dot(a, "datasets/wcsp/map/before");
     std::vector<automata> res;
     const auto domain = a.domains.back();
 
@@ -214,6 +214,15 @@ static inline automata join_bucket(std::vector<automata> &bucket, bool quant, st
     }
 
     return res;
+}
+
+automata map_reduce_last_var(automata &a, bool quant, std::vector<size_t> const &pos, std::vector<size_t> const &domains) {
+
+    //automata_dot(a, "datasets/wcsp/map");
+    auto automatas = split_remove_last_var(a);
+    auto j = join_bucket(automatas, quant, pos, domains);
+    //automata_dot(j, "datasets/wcsp/map");
+    return j;
 }
 
 static inline value reduce_last_var(automata &a) {
