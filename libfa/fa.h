@@ -339,8 +339,6 @@ void fa_add_level(struct fa *fa, size_t level, size_t dom);
 
 size_t fa_remove_last(struct fa *fa);
 
-void fa_filter_remove_last(struct fa *fa, char ch);
-
 struct fa * fa_filter_intersect_remove_last(struct fa *fa, const size_t *domains, size_t length, char ch);
 
 void fa_merge_accept(struct fa *fa);

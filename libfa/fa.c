@@ -4897,40 +4897,6 @@ struct fa *fa_filter_intersect_remove_last(struct fa *fa, const size_t *domains,
     return intersection;
 }
 
-void fa_filter_remove_last(struct fa *fa, char ch) {
-    list_for_each(s, fa->initial) {
-        if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
-            //printf("%p\n", (void *)s);
-            bool found = false;
-            for_each_trans(t, s) {
-                if (ch >= t->min && ch <= t->max) {
-                    found = true;
-                }
-            }
-            if (found) {
-                for_each_trans(t, s) {
-                    t->min = t->max = ch;
-                }
-                sort_merge_trans(s);
-            } else {
-                //free_trans(s);
-                s->live = 0;
-            }
-        }
-    }
-    collect_trans(fa);
-    fa_reverse(fa);
-    mark_live(fa);
-    collect_dead_states(fa);
-    fa_reverse(fa);
-    mark_live(fa);
-    collect_dead_states(fa);
-    fa_remove_last(fa);
-    fa_merge_accept(fa);
-    collect(fa);
-    fa->deterministic = -1;
-}
-
 bool fa_is_empty(struct fa *fa) {
     return fa->initial->tused == 0;
 }

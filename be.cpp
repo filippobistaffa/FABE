@@ -160,8 +160,6 @@ static inline void free_automata(automata &a) {
     a.rows.clear();
 }
 
-#define INTERSECTION
-
 static inline std::vector<automata> split_remove_last_var(automata &a) {
 
     std::vector<automata> res;
@@ -173,16 +171,11 @@ static inline std::vector<automata> split_remove_last_var(automata &a) {
             std::vector<size_t>(a.domains.begin(), a.domains.end() - 1),
         };
         for (auto const &[ v, fa ] : a.rows) {
-            #ifdef INTERSECTION
-            auto filtered_fa = fa_filter_intersect_remove_last(fa, &a.domains[0], a.domains.size(), d);
-            #else
-            auto filtered_fa = fa_clone(fa);
-            fa_filter_remove_last(filtered_fa, d);
-            #endif
-            if (fa_is_empty(filtered_fa)) {
-                fa_free(filtered_fa);
+            auto fa_intersection = fa_filter_intersect_remove_last(fa, &a.domains[0], a.domains.size(), d);
+            if (fa_is_empty(fa_intersection)) {
+                fa_free(fa_intersection);
             } else {
-                b.rows.insert({ v, filtered_fa });
+                b.rows.insert({ v, fa_intersection });
             }
         }
         res.push_back(b);

@@ -17,6 +17,7 @@
 // fmt library
 #include <fmt/core.h>
 #include <fmt/ranges.h>
+#include <fmt/color.h>
 
 #include <cstddef>
 #include <functional>
@@ -125,6 +126,7 @@ int main(int argc, char** argv) {
     fmt::print("\n");
     #endif
 
+    fmt::print("SEED = {}, ", seed);
     auto [ a, error ] = compute_automata(table, tolerance);
     auto reduced_automata = map_reduce_last_var(a, false, pos, domains);
     auto reduced_automata_table = compute_table(reduced_automata);
@@ -135,10 +137,10 @@ int main(int argc, char** argv) {
     #endif
 
     if (reduced_table.rows == reduced_automata_table.rows) {
-        fmt::print("SUCCESS, SEED = {}\n", seed);
+        fmt::print(fg(fmt::color::green) | fmt::emphasis::bold, "SUCCESS\n");
         return 0;
     } else {
-        fmt::print("FAILED, SEED = {}\n", seed);
+        fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "FAILED\n");
         return 1;
     }
 }
