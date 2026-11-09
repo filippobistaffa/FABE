@@ -115,7 +115,10 @@ static inline int mem_alloc_n(void *ptrptr, size_t size, size_t count)
         *(void **)ptrptr = NULL;
         return 0;
     }
-
+    if (AUGEAS_UNLIKELY(count > PTRDIFF_MAX / size)) {
+        errno = ENOMEM;
+        return -1;
+    }
     *(void**)ptrptr = calloc(count, size);
     if (AUGEAS_UNLIKELY(*(void**)ptrptr == NULL))
         return -1;
