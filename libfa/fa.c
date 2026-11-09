@@ -4868,6 +4868,35 @@ size_t fa_remove_last(struct fa *fa) {
     return na;
 }
 
+struct fa *fa_filter_intersect_remove_last(struct fa *fa, const size_t *domains, size_t length, char ch) {
+    struct fa *filter = fa_make_basic(FA_EMPTY);
+    struct state *from = filter->initial;
+    for (size_t i = 0; i < length - 1; ++i) {
+        struct state *to = add_state(filter, 0);
+        add_new_trans(from, to, 0, domains[i] - 1);
+        from = to;
+    }
+    struct state *to = add_state(filter, 1);
+    add_new_trans(from, to, ch, ch);
+    struct fa *intersection = fa_intersect(fa, filter);
+    fa_free(filter);
+    /*
+    fa_make_dot(fa, "fa.dot");
+    fa_make_dot(filter, "filter.dot");
+    fa_make_dot(intersection, "intersection.dot");
+    */
+    fa_remove_last(intersection);
+    fa_merge_accept(intersection);
+    collect(intersection);
+    /*
+    fa_make_dot(intersection, "removed.dot");
+    system("sed -E -i 's/\\\\\\\\0{2,}//g' *.dot");
+    system("sed -E -i 's/\\\\\\\\0/0/g' *.dot");
+    system("dot -Tpng -O *.dot");
+    */
+    return intersection;
+}
+
 void fa_filter_remove_last(struct fa *fa, char ch) {
     list_for_each(s, fa->initial) {
         if (s->tused > 0 && s->trans->to->accept && s->trans->to->tused == 0) {
