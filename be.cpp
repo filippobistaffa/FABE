@@ -160,11 +160,12 @@ static inline void free_automata(automata &a) {
     a.rows.clear();
 }
 
-static inline std::vector<automata> split_remove_last_var(automata &a) {
+static inline std::vector<automata> split_remove_last_var(const automata &a) {
 
-    std::vector<automata> res;
     const auto domain = a.domains.back();
+    std::vector<automata> res(domain);
 
+    //#pragma omp parallel for schedule(dynamic)
     for (size_t d = 0; d < domain; ++d) {
         automata b = {
             std::vector<size_t>(a.vars.begin(), a.vars.end() - 1),
@@ -178,7 +179,7 @@ static inline std::vector<automata> split_remove_last_var(automata &a) {
                 b.rows.insert({ v, fa_intersection });
             }
         }
-        res.push_back(b);
+        res[d] = std::move(b);
         //automata_dot(b, fmt::format("datasets/wcsp/map/{}", d).c_str());
     }
 
