@@ -21,14 +21,14 @@ enum tie_heur {
 template <typename T>
 struct compare_vec {
     compare_vec(std::vector<T> const &vec) : vec(vec) {};
-    bool operator()(size_t const &x, size_t const &y) {
+    bool operator()(size_t const &x, size_t const &y) const {
         if constexpr (std::is_integral_v<T>) {
             return vec[x] < vec[y];
         } else if (std::is_floating_point_v<T>) {
             return vec[x] < vec[y] - std::numeric_limits<weight>::epsilon();
         }
     }
-    std::vector<T> vec;
+    std::vector<T> const &vec;
 };
 
 std::vector<size_t> greedy_order(std::vector<std::vector<weight>> const &adj, int order_heur = O_WEIGHTED_MIN_FILL, int tie_heur = T_UNIQUENESS);

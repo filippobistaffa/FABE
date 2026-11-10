@@ -30,7 +30,7 @@
 
 #define EDGE_VAL(AVG_W, I, J) ((AVG_W[I] + AVG_W[J]) / 2)
 
-static inline weight metric(int order_heur, std::vector<std::vector<weight>> const &adj, size_t node, std::vector<weight> avg_w) {
+static inline weight metric(int order_heur, std::vector<std::vector<weight>> const &adj, size_t node, std::vector<weight> const &avg_w) {
 
     if (order_heur == O_MIN_DEGREE || order_heur == O_MIN_INDUCED_WIDTH) {
         return avg_w[node];
@@ -57,7 +57,7 @@ static inline weight metric(int order_heur, std::vector<std::vector<weight>> con
     }
 }
 
-static inline void connect_neighbours(int order_heur, std::vector<std::vector<weight>> &adj, size_t node, std::vector<weight> avg_w) {
+static inline void connect_neighbours(int order_heur, std::vector<std::vector<weight>> &adj, size_t node, std::vector<weight> const &avg_w) {
 
     for EACH_NONZERO(adj[node], i) {
         for EACH_NONZERO(adj[node], j, i + 1) {

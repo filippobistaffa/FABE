@@ -235,7 +235,7 @@ int main(int argc, char *argv[]) {
     #pragma omp parallel for schedule(dynamic) if (parallel)
     for (size_t i = 0; i < tables.size(); ++i) {
         auto [ a, error ] = compute_automata(tables[i], tolerance);
-        automatas[i] = a;
+        automatas[i] = std::move(a);
         tot_error += error;
         actual_rows += automatas[i].rows.size();
         total_rows += accumulate(automatas[i].domains.begin(),
@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
     }
     #endif
 
-    auto buckets = compute_buckets(automatas, pos);
+    auto buckets = compute_buckets(std::move(automatas), pos);
 
     log_line();
 

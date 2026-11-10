@@ -187,19 +187,19 @@ static inline std::vector<automata> split_remove_last_var(const automata &a) {
 
 static inline automata join_bucket(std::vector<automata> &bucket, bool quant, std::vector<size_t> const &pos, std::vector<size_t> const &domains) {
 
-    auto res = bucket.front();
+    automata res = std::move(bucket.front());
 
     for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
-        auto old = res;
         #ifdef HEAP_PROFILER
         HeapProfilerDump("pre-join");
         #endif
-        res = join(old, *it, quant, pos, domains);
+        automata joined = join(res, *it, quant, pos, domains);
         #ifdef HEAP_PROFILER
         HeapProfilerDump("post-join");
         #endif
-        free_automata(old);
+        free_automata(res);
         free_automata(*it);
+        res = std::move(joined);
         #ifdef HEAP_PROFILER
         HeapProfilerDump("post-free");
         #endif
@@ -283,7 +283,7 @@ static inline value reduce_last_var(automata &a) {
     return 0;
 }
 
-static inline size_t push_bucket(automata const &a, std::vector<std::vector<automata>> &buckets, std::vector<size_t> const &pos) {
+static inline size_t push_bucket(automata &&a, std::vector<std::vector<automata>> &buckets, std::vector<size_t> const &pos) {
 
     const size_t b = *max_element(a.vars.begin(), a.vars.end(), compare_vec(pos));
     buckets[b].push_back(std::move(a));
@@ -301,9 +301,9 @@ static inline value process_bucket(std::vector<automata> &bucket, std::vector<st
             if (h.vars.size() > 0) {
                 //automata_dot(h, "dot");
                 #ifdef DEBUG_BUCKETS
-                fmt::print("Result placed in bucket {}\n", push_bucket(h, buckets, pos));
+                fmt::print("Result placed in bucket {}\n", push_bucket(std::move(h), buckets, pos));
                 #else
-                push_bucket(h, buckets, pos);
+                push_bucket(std::move(h), buckets, pos);
                 #endif
             }
             return res;
@@ -335,7 +335,8 @@ static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automa
 
     // initialise first mini-bucket with first (larger) function
     std::vector<std::vector<size_t>> bucket_vars = { bucket.front().vars };
-    std::vector<std::vector<automata>> mini_buckets = { { std::move(bucket.front()) } };
+    std::vector<std::vector<automata>> mini_buckets(1);
+    mini_buckets[0].push_back(std::move(bucket.front()));
 
     for (auto it = next(bucket.begin()); it != bucket.end(); ++it) {
         size_t mb = 0;
@@ -351,19 +352,20 @@ static inline std::vector<std::vector<automata>> mini_buckets(std::vector<automa
         }
         if (mb == mini_buckets.size()) { // could not find any bucket
             bucket_vars.push_back({ it->vars });
-            mini_buckets.push_back({ std::move(*it) });
+            mini_buckets.emplace_back();
+            mini_buckets.back().push_back(std::move(*it));
         }
     }
 
     return mini_buckets;
 }
 
-std::vector<std::vector<automata>> compute_buckets(std::vector<automata> const &automatas, std::vector<size_t> const &pos) {
+std::vector<std::vector<automata>> compute_buckets(std::vector<automata> &&automatas, std::vector<size_t> const &pos) {
 
     std::vector<std::vector<automata>> buckets(pos.size(), std::vector<automata>());
 
-    for (automata const &a : automatas) {
-        push_bucket(a, buckets, pos);
+    for (automata &a : automatas) {
+        push_bucket(std::move(a), buckets, pos);
     }
 
     return buckets;

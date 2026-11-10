@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 option(PROFILE "Enable Gperftools CPU profiler" OFF)
 option(HEAP "Enable Gperftools heap profiler" OFF)
 
