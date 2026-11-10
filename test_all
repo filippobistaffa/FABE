@@ -4,6 +4,7 @@ red=$(tput setaf 1)
 normal=$(tput sgr0)
 
 declare -A opt
+export LC_NUMERIC=C
 
 # SPOT5 dataset
 opt["./datasets/wcsp/spot5/29.wcsp"]="8059"
