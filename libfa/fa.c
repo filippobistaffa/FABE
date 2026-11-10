@@ -2359,10 +2359,25 @@ struct fa *fa_iter(struct fa *fa, int min, int max) {
     }
 }
 
+/* Sort the transitions of every state by interval. States whose
+ * transitions are already sorted are left untouched (read-only check), so
+ * repeated calls on the same automaton do not write to it. */
 static void sort_transition_intervals(struct fa *fa) {
     list_for_each(s, fa->initial) {
-        qsort(s->trans, s->tused, sizeof(*s->trans), trans_intv_cmp);
+        bool sorted = true;
+        for (size_t i = 1; i < s->tused; i++) {
+            if (trans_intv_cmp(&s->trans[i - 1], &s->trans[i]) > 0) {
+                sorted = false;
+                break;
+            }
+        }
+        if (!sorted)
+            qsort(s->trans, s->tused, sizeof(*s->trans), trans_intv_cmp);
     }
+}
+
+void fa_sort_transitions(struct fa *fa) {
+    sort_transition_intervals(fa);
 }
 
 struct fa *fa_intersect(struct fa *fa1, struct fa *fa2) {
