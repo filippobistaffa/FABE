@@ -18,6 +18,7 @@
 #include <fmt/core.h>
 #include <fmt/ranges.h>
 #include <fmt/color.h>
+#include <fmt/chrono.h>
 
 #include <cstddef>
 #include <functional>
@@ -91,6 +92,9 @@ table reduce_last(const table& t, Op op = {}) {
 // print tables during execution
 //#define PRINT_TABLES
 
+// compare against reference table implementation
+//#define CHECK_CORRECT
+
 int main(int argc, char** argv) {
 
     if (argc < 2) {
@@ -119,28 +123,34 @@ int main(int argc, char** argv) {
         pos[order[i]] = i;
     }
 
+    #ifdef CHECK_CORRECT
     auto reduced_table = reduce_last(table);
     sort(reduced_table.rows.begin(), reduced_table.rows.end());
     #ifdef PRINT_TABLES
     print_table(reduced_table);
     fmt::print("\n");
     #endif
-
     fmt::print("SEED = {}, ", seed);
+    #endif
     auto [ a, error ] = compute_automata(table, tolerance);
+    auto start_t = std::chrono::high_resolution_clock::now();
     auto reduced_automata = map_reduce_last_var(a, false, pos, domains);
+    auto runtime = std::chrono::high_resolution_clock::now() - start_t;
+    #ifdef CHECK_CORRECT
     auto reduced_automata_table = compute_table(reduced_automata);
     sort(reduced_automata_table.rows.begin(), reduced_automata_table.rows.end());
     #ifdef PRINT_TABLES
     print_table(reduced_automata_table);
     fmt::print("\n");
     #endif
-
     if (reduced_table.rows == reduced_automata_table.rows) {
         fmt::print(fg(fmt::color::green) | fmt::emphasis::bold, "SUCCESS\n");
-        return 0;
     } else {
         fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "FAILED\n");
         return 1;
     }
+    #else
+    fmt::print("{:%T}", runtime);
+    #endif
+    return EXIT_SUCCESS;
 }
