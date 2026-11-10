@@ -4,6 +4,7 @@ _deps/
 cmake_install.cmake
 Makefile
 fabe
+map
 trace.*
 dot
 memory
