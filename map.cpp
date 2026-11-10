@@ -132,10 +132,12 @@ int main(int argc, char** argv) {
     #endif
     fmt::print("SEED = {}, ", seed);
     #endif
-    auto [ a, error ] = compute_automata(table, tolerance);
     auto start_t = std::chrono::high_resolution_clock::now();
+    auto [ a, error ] = compute_automata(table, tolerance);
+    auto reduce_t = std::chrono::high_resolution_clock::now();
     auto reduced_automata = map_reduce_last_var(a, false, pos, domains);
-    auto runtime = std::chrono::high_resolution_clock::now() - start_t;
+    auto reduce_runtime = std::chrono::high_resolution_clock::now() - reduce_t;
+    auto constr_runtime = std::chrono::high_resolution_clock::now() - start_t - reduce_runtime;
     #ifdef CHECK_CORRECT
     auto reduced_automata_table = compute_table(reduced_automata);
     sort(reduced_automata_table.rows.begin(), reduced_automata_table.rows.end());
@@ -150,7 +152,9 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     #else
-    fmt::print("{:%T}", runtime);
+    fmt::print("Seed = {}\n", seed);
+    fmt::print("Construction = {:%T}\n", constr_runtime);
+    fmt::print("Filter = {:%T}\n", reduce_runtime);
     #endif
     return EXIT_SUCCESS;
 }
