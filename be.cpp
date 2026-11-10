@@ -165,6 +165,9 @@ static inline std::vector<automata> split_remove_last_var(const automata &a) {
     const auto domain = a.domains.back();
     std::vector<automata> res(domain);
 
+    for (auto const &[ v, fa ] : a.rows) fa_sort_transitions(fa);
+
+    //#pragma omp parallel for schedule(dynamic)
     for (size_t d = 0; d < domain; ++d) {
         automata b = {
             std::vector<size_t>(a.vars.begin(), a.vars.end() - 1),
