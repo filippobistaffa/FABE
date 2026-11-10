@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     const value tolerance = 0;
     const unsigned seed = static_cast<unsigned>(std::stoul(argv[1]));
 
-    auto table = random_table(seed, 8, 8, 10);
+    auto table = random_table(seed, 7, 7, 10);
     //auto table = example_table();
 
     #ifdef PRINT_TABLES
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
         fmt::print(fg(fmt::color::green) | fmt::emphasis::bold, "SUCCESS\n");
     } else {
         fmt::print(fg(fmt::color::red) | fmt::emphasis::bold, "FAILED\n");
-        return 1;
+        return EXIT_FAILURE;
     }
     #else
     fmt::print("{:%T}", runtime);
