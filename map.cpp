@@ -95,6 +95,14 @@ table reduce_last(const table& t, Op op = {}) {
 // compare against reference table implementation
 //#define CHECK_CORRECT
 
+// enable profiling
+#define CPU_PROFILER
+
+#ifdef CPU_PROFILER
+#define CPU_PROFILER_OUTPUT "trace.prof"
+#include <gperftools/profiler.h>
+#endif
+
 int main(int argc, char** argv) {
 
     if (argc < 2) {
@@ -136,7 +144,13 @@ int main(int argc, char** argv) {
     auto start_t = std::chrono::high_resolution_clock::now();
     auto [ a, error ] = compute_automata(table, tolerance);
     auto reduce_t = std::chrono::high_resolution_clock::now();
+    #ifdef CPU_PROFILER
+    ProfilerStart(CPU_PROFILER_OUTPUT);
+    #endif
     auto reduced_automata = map_reduce_last_var(a, false, pos, domains);
+    #ifdef CPU_PROFILER
+    ProfilerStop();
+    #endif
     auto reduce_runtime = std::chrono::high_resolution_clock::now() - reduce_t;
     auto constr_runtime = std::chrono::high_resolution_clock::now() - start_t - reduce_runtime;
     #ifdef CHECK_CORRECT
