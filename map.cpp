@@ -112,6 +112,7 @@ int main(int argc, char** argv) {
     const value tolerance = 0;
     const unsigned seed = static_cast<unsigned>(std::stoul(argv[1]));
     const unsigned n = static_cast<unsigned>(std::stoul(argv[2]));
+    fa_minimization_algorithm = FA_MIN_BUBENZER;
 
     auto table = random_table(seed, n, n, 10);
     //auto table = example_table();
